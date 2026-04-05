@@ -1,0 +1,1 @@
+import{y as n}from"./CvxTmW8x.js";import{u as s}from"./waEt7gAw.js";function h(){const a=n(),t=s();async function u(i,o={}){const r={...o.headers||{}};t.token&&(r.Authorization=`Bearer ${t.token}`);try{return await $fetch(`${a.public.apiBaseUrl}${i}`,{...o,headers:r})}catch(e){throw(e?.statusCode===401||e?.status===401)&&t.logout(),e}}return{apiFetch:u}}export{h as u};
