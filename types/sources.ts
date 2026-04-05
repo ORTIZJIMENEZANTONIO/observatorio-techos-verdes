@@ -19,6 +19,8 @@ export type DataSourceName =
   | 'CONABIO'
   | 'CONAGUA'
   | 'SEMARNAT'
+  | 'ENVI_Sentinel2'
+  | 'ENVI_Landsat'
   | 'Mock'
   | 'Calculado'
 

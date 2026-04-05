@@ -6,6 +6,9 @@ declare module "nitropack/types" {
     '/api/ai/analyze-roof': {
       'post': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/ai/analyze-roof.post').default>>>>
     }
+    '/api/envi/indices': {
+      'post': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/envi/indices.post').default>>>>
+    }
     '/__nuxt_error': {
       'default': Simplify<Serialize<Awaited<ReturnType<typeof import('../../node_modules/@nuxt/nitro-server/dist/runtime/handlers/renderer').default>>>>
     }

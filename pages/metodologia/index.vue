@@ -4,7 +4,7 @@
     <section class="bg-white py-16">
       <div class="container-wide">
         <CommonSectionTitle
-          title="Metodología y Aptitud Territorial"
+          title="Metodología y aptitud territorial"
           subtitle="Documentación técnica del modelo multicriterio, variables, fuentes de datos y el índice de aptitud territorial."
           tag="Metodología"
         />

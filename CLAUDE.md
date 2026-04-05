@@ -5,6 +5,12 @@ Plataforma digital de monitoreo, analisis geoespacial y priorizacion de techos v
 
 Contenido 100% en espanol (es-MX). Tono: institucional, tecnico pero accesible.
 
+### Capitalización en español
+Todos los títulos, encabezados, etiquetas de tabs y subtítulos siguen la convención del español: solo la primera palabra y nombres propios en mayúscula (sentence case). No usar Title Case en inglés.
+- Correcto: "Indicadores ambientales y territoriales"
+- Incorrecto: "Indicadores Ambientales y Territoriales"
+- Excepción: nombres propios (Ciudad de México, CDMX, CIIEMAD, IPN, Observatorio de Techos Verdes CDMX como marca) y acrónimos (IA, AHP, ODS)
+
 ## Stack
 - **Framework:** Nuxt 3 + Vue 3 (Composition API, `<script setup lang="ts">`)
 - **State:** Pinia (setup/composable style)
@@ -91,6 +97,9 @@ observatorio-techos-verdes/
   types/
     index.ts                # Core types (GreenRoof, CandidateRoof, ValidationRecord, etc.)
     sources.ts              # Source metadata types (SourceMeta, WithSourceMeta, extended types, structural feasibility types)
+    remote-sensing.ts       # ENVI/satellite types (IndicesEspectrales, ENVIAlcaldiaData, SerieTemporal, pipeline config)
+  docs/
+    pipeline-envi.md        # Pipeline completo: adquisición → ENVI → JSON → plataforma
 ```
 
 ## Data Architecture
@@ -108,10 +117,28 @@ Official APIs (SIGCDMX WFS, SIMAT, SEDEMA)
    [Pinia Stores]          /stores/
          ↓
    [Components/Pages]      (show provenance via DataSourceBadge)
+
+Sentinel-2 / Landsat imagery
+         ↓
+   [ENVI Processing]       docs/pipeline-envi.md (offline)
+         ↓
+   [Zonal Statistics]      per alcaldía + per edificio
+         ↓
+   [JSON Export]           data/envi/alcaldias.ts
+         ↓
+   [Source Adapter]        services/sources/envi.ts
+         ↓
+   [Normalizer]            services/normalizers/envi-normalizer.ts
+         ↓                 NDVI→cobertura, EVI→verdor, SAVI→ajustada, NDWI→hídrica, LST directo
+   [Stores/Composables]   mejora confiabilidad de LST (0.55→0.90) y NDVI (0.60→0.92)
 ```
 
 ### Environment Variables
 - `NUXT_GEMINI_API_KEY`: Google Gemini API key (server-only, free at https://aistudio.google.com/apikey)
+- `NUXT_GEE_SERVICE_ACCOUNT_KEY`: Google Earth Engine Service Account JSON key (server-only, gratis)
+- `NUXT_GEE_PROJECT_ID`: Google Cloud project ID para GEE (server-only)
+- `NUXT_SENTINEL_HUB_CLIENT_ID`: Sentinel Hub OAuth client ID (server-only, fallback gratuito)
+- `NUXT_SENTINEL_HUB_CLIENT_SECRET`: Sentinel Hub OAuth secret (server-only)
 - `NUXT_PUBLIC_DATA_MODE`: `mock` (default) or `official` — controls data source priority
 - `NUXT_PUBLIC_SIGCDMX_BASE_URL`: SIGCDMX WFS endpoint
 - `NUXT_PUBLIC_SIMAT_BASE_URL`: SIMAT API endpoint
@@ -360,14 +387,26 @@ For pages with many sections, use sticky tab navigation with `v-show` (not `v-if
 Tables use collapsible toggles (`expandedTables` reactive object + `toggleTable(key)`) to reduce visual overload.
 
 ### Sortable Tables
-All data tables in Indicadores support click-to-sort on column headers. Generic infrastructure in the page script:
+**All** data tables with `v-for` rows support click-to-sort on column headers (except static reference tables and the correlation matrix).
+
+**`AdminDataTable.vue`** — sorting built-in: click any `<th>` to sort by that column. Sort icon (`↑`/`↓`) only appears on the active column inside a fixed-width `w-3` span to avoid column width changes. Chain: `filtered` → `sorted` → `paginated`. Compares numbers numerically, strings with `localeCompare`, nulls pushed to end.
+
+**Per-page tables (indicadores):**
 - `SortState` type: `{ col: string; dir: 'asc' | 'desc' }`
 - One `ref<SortState>` per table: `sortAlcaldia`, `sortBio`, `sortHidrico`, `sortPlan`
 - `toggleSort(state, col)` — toggles direction if same column, otherwise sets descending
 - `sortedBy(data, state, getters)` — generic sort using a `Record<string, (row) => number | string>` getter map
-- `sortIcon(state, col)` — returns `↕` (neutral), `↑` (asc), or `↓` (desc)
-- Template: `<th class="cursor-pointer select-none" @click="toggleSort(sortX, 'col')">Label <span>{{ sortIcon(sortX, 'col') }}</span></th>`
 - Hover feedback: scoped CSS `th.cursor-pointer:hover { background-color: rgba(0,0,0,0.03) }`
+
+**Card grids** use a `<select>` dropdown for ordering (no `<th>` available):
+- `inventario/index.vue` — nombre, superficie, alcaldía, fecha
+- `candidatos/index.vue` — score, nombre, superficie, alcaldía, estatus
+
+**Pages with sortable `<th>` tables:**
+- `indicadores/index.vue` — alcaldía, biodiversidad, hídrico, plan de acción (4 tables)
+- `ia-validacion/index.vue` — validation table (8 sortable columns + select dropdown + Acciones)
+- `admin/*` — all pages via `AdminDataTable` (techos-verdes, candidatos, validaciones)
+- `admin/prospectos/index.vue` — detector results (custom columns)
 
 ### Mobile-First Design
 All layouts follow mobile-first Tailwind convention (`grid-cols-1` base → `md:`/`lg:` breakpoints for wider screens):
@@ -449,6 +488,97 @@ Key script computeds for E.1/E.2:
 - `adjustForStructural` — ref toggle; when false, `effectiveM2` passes through raw `m2Slider` value
 - `inactionPhysicalDatasets` — stacked bar (MWh, m³, tonCO₂ cumulative per year)
 - `improvementChartDatasets` — line chart (energy, water, CO₂ accumulated benefits)
+
+## Remote Sensing / ENVI Pipeline
+
+### Índices espectrales
+| Índice | Fórmula (Sentinel-2) | Rango | Uso |
+|--------|---------------------|-------|-----|
+| NDVI | (B08-B04)/(B08+B04) | -1 a 1 | Cobertura vegetal (peso AHP 9.56%) |
+| EVI | 2.5×(B08-B04)/(B08+6×B04-7.5×B02+1) | -1 a 1 | Verdor mejorado (menos saturación) |
+| SAVI | ((B08-B04)/(B08+B04+0.5))×1.5 | -1 a 1 | Cobertura ajustada por suelo urbano |
+| NDWI | (B03-B08)/(B03+B08) | -1 a 1 | Disponibilidad hídrica superficial |
+| LST | Landsat ST_B10 → °C | 25-42°C | Isla de calor (peso AHP 30.19%) |
+
+### Fuentes satelitales
+
+**Sentinel-2 (ESA/Copernicus) — fuente principal para índices de vegetación**
+- **Satélites:** Sentinel-2A (2015) + Sentinel-2B (2017), órbita polar heliosíncrona a 786 km
+- **Resolución espacial:** 10m (bandas visibles B02-B04 + NIR B08), 20m (red-edge B05-B07, SWIR B11-B12), 60m (atmosférica)
+- **Resolución temporal:** 5 días (combinando 2A+2B), 10 días por satélite individual
+- **Cobertura CDMX:** tiles 14QNG, 14QPG, 14QNH (sistema MGRS)
+- **Producto usado:** S2MSI2A (Level-2A) — reflectancia de superficie, ya corregido atmosféricamente por Sen2Cor
+- **Bandas clave:** B02 (490nm azul, para EVI), B03 (560nm verde, para NDWI), B04 (665nm rojo, para NDVI/EVI/SAVI), B08 (842nm NIR, para todos), SCL (clasificación de escena, para cloud masking)
+- **Uso en el observatorio:** NDVI, EVI, SAVI, NDWI — los 4 índices de vegetación y agua
+- **Acceso:** gratuito vía Copernicus Data Space (dataspace.copernicus.eu) o Google Earth Engine (`COPERNICUS/S2_SR_HARMONIZED`)
+- **Ventajas:** resolución 10m ideal para azoteas individuales, revisita frecuente para series temporales, corrección atmosférica incluida en L2A
+
+**Landsat 8/9 (NASA/USGS) — fuente para temperatura superficial (LST)**
+- **Satélites:** Landsat 8 (2013, sensores OLI + TIRS) + Landsat 9 (2021, OLI-2 + TIRS-2), órbita polar a 705 km
+- **Resolución espacial:** 30m (bandas ópticas), 100m (bandas térmicas TIRS, remuestreadas a 30m en producto)
+- **Resolución temporal:** 16 días por satélite, 8 días combinando L8+L9
+- **Cobertura CDMX:** path 026, row 047 (sistema WRS-2)
+- **Producto usado:** LC08_L2SP / LC09_L2SP (Collection 2 Level-2 Science Product) — incluye reflectancia de superficie + temperatura superficial
+- **Banda clave:** ST_B10 (TIRS-1 Surface Temperature) — LST en Kelvin, conversión: `°C = DN × 0.00341802 + 149.0 - 273.15`
+- **Uso en el observatorio:** LST (temperatura superficial terrestre) — el índice de mayor peso en el modelo AHP (30.19%)
+- **Acceso:** gratuito vía USGS EarthExplorer (earthexplorer.usgs.gov) o Google Earth Engine (`LANDSAT/LC08/C02/T1_L2`, `LANDSAT/LC09/C02/T1_L2`)
+- **Ventajas:** único satélite gratuito con banda térmica calibrada; continuidad del programa desde 1972 (Landsat 1) permite análisis histórico de décadas
+- **Limitación:** resolución térmica real de 100m limita análisis a nivel manzana (no edificio individual); para azoteas se usa el promedio zonal de la alcaldía
+
+**MODIS (NASA) — referencia para validación cruzada**
+- **Satélites:** Terra (1999) + Aqua (2002), órbita polar a 705 km
+- **Resolución espacial:** 250m-1km según producto
+- **Resolución temporal:** diaria (ambos satélites)
+- **Productos relevantes:** MOD13Q1 (NDVI/EVI 250m, 16 días), MOD11A2 (LST 1km, 8 días)
+- **Uso en el observatorio:** no se usa como fuente directa (resolución insuficiente para análisis urbano), pero sirve como referencia de validación cruzada para verificar tendencias temporales de NDVI y LST derivados de Sentinel-2/Landsat
+- **Acceso:** gratuito vía GEE (`MODIS/061/MOD13Q1`, `MODIS/061/MOD11A2`)
+
+**¿Por qué estas fuentes y no otras?**
+| Criterio | Sentinel-2 | Landsat 8/9 | MODIS | Imágenes comerciales (Maxar, Planet) |
+|----------|-----------|-------------|-------|-------------------------------------|
+| Costo | Gratis | Gratis | Gratis | $$$$ |
+| Resolución | 10m | 30m (100m térmica) | 250m-1km | 0.3-3m |
+| Banda térmica | No | Sí (TIRS) | Sí | Rara |
+| Revisita | 5 días | 8 días | Diaria | 1-5 días |
+| Histórico | 2015+ | 1984+ | 2000+ | Variable |
+| Acceso API | GEE, SH | GEE, USGS | GEE | APIs propietarias |
+
+Para un observatorio público de investigación con presupuesto cero, Sentinel-2 + Landsat cubren el 100% de las necesidades: vegetación a 10m y temperatura a 100m, ambos gratuitos con +40 años de archivo combinado.
+
+### Consulta en vivo (Google Earth Engine / Sentinel Hub)
+```
+Cliente → useRemoteSensing() → POST /api/envi/indices → Google Earth Engine (gratis, prioridad)
+                                                       → Sentinel Hub (gratis 30k req/mes, fallback)
+                                                       → datos locales calibrados (fallback final)
+```
+- `server/api/envi/indices.post.ts` — Nitro endpoint con cadena de 3 fuentes. GEE usa Service Account + REST API v1 (`computeValue`), Sentinel Hub usa Statistical API + evalscript custom, local usa `data/envi/alcaldias.ts`
+- `composables/useRemoteSensing.ts` — `fetchIndices({ lat, lng, alcaldia?, radio?, fechaInicio?, fechaFin? })` → `indices`, `serie`, `fuente`, `fuenteLabel`, `calidad`, `confianzaColor`, `loading`, `error`
+- Variables de entorno (server-only): `NUXT_GEE_SERVICE_ACCOUNT_KEY`, `NUXT_GEE_PROJECT_ID`, `NUXT_SENTINEL_HUB_CLIENT_ID`, `NUXT_SENTINEL_HUB_CLIENT_SECRET`
+
+**Setup GEE (gratis):**
+1. Crear proyecto en Google Cloud Console
+2. Habilitar Earth Engine API
+3. Crear Service Account y descargar JSON key
+4. Registrar SA en earthengine.google.com (uso investigación)
+5. `NUXT_GEE_SERVICE_ACCOUNT_KEY` = contenido JSON del key file
+6. `NUXT_GEE_PROJECT_ID` = ID del proyecto Cloud
+
+### Archivos
+- `types/remote-sensing.ts` — tipos: `IndicesEspectrales`, `ENVIAlcaldiaData`, `SerieTemporal`, `CalidadDatos`, `ENVIPipelineConfig`
+- `data/envi/alcaldias.ts` — datos por alcaldía con serie temporal mensual 2019-2025 (placeholder calibrado)
+- `services/sources/envi.ts` — adapter offline: `getENVIAlcaldias()`, `getENVIActual()`, `getENVISerie()`
+- `services/normalizers/envi-normalizer.ts` — `ndviToCoberturaVegetal()`, `eviToIndiceVerdor()`, `saviToCoberturaAjustada()`, `ndwiToDisponibilidadHidrica()`, `categorizarTendencia()`
+- `docs/pipeline-envi.md` — pipeline paso a paso con comandos ENVI
+
+### Mejora de confiabilidad
+| Indicador | Mock → ENVI | Impacto |
+|-----------|-------------|---------|
+| Cobertura vegetal | 0.60 → 0.92 | NDVI calibrado reemplaza estimaciones |
+| LST | 0.55 → 0.90 | Medición directa por banda térmica |
+| Score AHP global | 0.60 → 0.85 | LST+NDVI = 39.75% del peso del modelo |
+
+### Serie temporal
+Cada alcaldía tiene ~78 observaciones mensuales (2019-2025) con variación estacional (NDVI↑ en lluvias jun-oct, LST↑ en secas mar-may). Permite gráficas de evolución y cálculo de tendencias lineales por índice.
 
 ## System Dynamics Simulation (`useSystemDynamics.ts`)
 Euler-based simulation engine with feedback loops for policy scenario comparison. Imports `TASAS` and `COSTOS_REFERENCIA` from `useStatisticalAnalysis.ts`.

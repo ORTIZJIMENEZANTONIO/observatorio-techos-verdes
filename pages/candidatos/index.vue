@@ -4,7 +4,7 @@
     <section class="bg-white py-16">
       <div class="container-wide">
         <CommonSectionTitle
-          title="Techos Candidatos Priorizados"
+          title="Techos candidatos priorizados"
           subtitle="60 sitios identificados para potencial intervención verde"
           tag="Candidatos"
         />
@@ -46,9 +46,14 @@
 
           <!-- Sort -->
           <select v-model="sortBy" class="select !w-auto">
-            <option value="score_desc">Score (mayor a menor)</option>
+            <option value="score_desc">Score (mayor)</option>
+            <option value="score_asc">Score (menor)</option>
+            <option value="nombre_asc">Nombre (A-Z)</option>
+            <option value="nombre_desc">Nombre (Z-A)</option>
             <option value="superficie_desc">Superficie (mayor)</option>
+            <option value="superficie_asc">Superficie (menor)</option>
             <option value="alcaldia_asc">Alcaldía (A-Z)</option>
+            <option value="estatus_asc">Estatus (A-Z)</option>
           </select>
         </div>
 
@@ -296,7 +301,7 @@ const {
 const roofsStore = useRoofsStore()
 
 useHead({
-  title: 'Candidatos Priorizados | Observatorio de Techos Verdes CDMX',
+  title: 'Candidatos priorizados | Observatorio de Techos Verdes CDMX',
   meta: [
     { name: 'description', content: '60 sitios candidatos priorizados para potencial intervención con techos verdes en la Ciudad de México.' },
   ],
@@ -361,14 +366,15 @@ const filteredCandidates = computed(() => {
 const sortedCandidates = computed(() => {
   const arr = [...filteredCandidates.value]
   switch (sortBy.value) {
-    case 'score_desc':
-      return arr.sort((a, b) => b.scoreAptitud - a.scoreAptitud)
-    case 'superficie_desc':
-      return arr.sort((a, b) => b.superficie - a.superficie)
-    case 'alcaldia_asc':
-      return arr.sort((a, b) => a.alcaldia.localeCompare(b.alcaldia))
-    default:
-      return arr
+    case 'score_desc': return arr.sort((a, b) => b.scoreAptitud - a.scoreAptitud)
+    case 'score_asc': return arr.sort((a, b) => a.scoreAptitud - b.scoreAptitud)
+    case 'nombre_asc': return arr.sort((a, b) => a.nombre.localeCompare(b.nombre))
+    case 'nombre_desc': return arr.sort((a, b) => b.nombre.localeCompare(a.nombre))
+    case 'superficie_desc': return arr.sort((a, b) => b.superficie - a.superficie)
+    case 'superficie_asc': return arr.sort((a, b) => a.superficie - b.superficie)
+    case 'alcaldia_asc': return arr.sort((a, b) => a.alcaldia.localeCompare(b.alcaldia))
+    case 'estatus_asc': return arr.sort((a, b) => a.estatus.localeCompare(b.estatus))
+    default: return arr
   }
 })
 

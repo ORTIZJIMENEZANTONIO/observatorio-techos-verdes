@@ -3,7 +3,7 @@
     <section class="bg-white py-16">
       <div class="container-wide">
         <CommonSectionTitle
-          title="Inventario de Techos Verdes"
+          title="Inventario de techos verdes"
           subtitle="57 techos verdes registrados en la Ciudad de México"
           tag="Inventario"
         />
@@ -44,6 +44,16 @@
             <select v-model="filterEstado" class="select !w-auto min-w-[140px]">
               <option value="">Estado: Todos</option>
               <option v-for="e in estados" :key="e" :value="e">{{ formatEstado(e) }}</option>
+            </select>
+
+            <select v-model="sortBy" class="select !w-auto min-w-[180px]">
+              <option value="nombre_asc">Nombre (A-Z)</option>
+              <option value="nombre_desc">Nombre (Z-A)</option>
+              <option value="superficie_desc">Superficie (mayor)</option>
+              <option value="superficie_asc">Superficie (menor)</option>
+              <option value="alcaldia_asc">Alcaldía (A-Z)</option>
+              <option value="fecha_desc">Fecha (reciente)</option>
+              <option value="fecha_asc">Fecha (antiguo)</option>
             </select>
 
             <button
@@ -311,6 +321,7 @@ const filterTipoEdificio = ref('')
 const filterTipoTecho = ref('')
 const filterEstado = ref('')
 const selectedRoof = ref<(typeof greenRoofs)[number] | null>(null)
+const sortBy = ref('nombre_asc')
 const currentPage = ref(1)
 const perPage = 15
 
@@ -357,10 +368,24 @@ const filteredRoofs = computed(() => {
   })
 })
 
-const totalPages = computed(() => Math.ceil(filteredRoofs.value.length / perPage) || 1)
-const paginatedRoofs = computed(() => filteredRoofs.value.slice((currentPage.value - 1) * perPage, currentPage.value * perPage))
+const sortedRoofs = computed(() => {
+  const arr = [...filteredRoofs.value]
+  switch (sortBy.value) {
+    case 'nombre_asc': return arr.sort((a, b) => a.nombre.localeCompare(b.nombre))
+    case 'nombre_desc': return arr.sort((a, b) => b.nombre.localeCompare(a.nombre))
+    case 'superficie_desc': return arr.sort((a, b) => (b.superficie || 0) - (a.superficie || 0))
+    case 'superficie_asc': return arr.sort((a, b) => (a.superficie || 0) - (b.superficie || 0))
+    case 'alcaldia_asc': return arr.sort((a, b) => a.alcaldia.localeCompare(b.alcaldia))
+    case 'fecha_desc': return arr.sort((a, b) => (b.fechaRegistro || '').localeCompare(a.fechaRegistro || ''))
+    case 'fecha_asc': return arr.sort((a, b) => (a.fechaRegistro || '').localeCompare(b.fechaRegistro || ''))
+    default: return arr
+  }
+})
 
-watch([searchQuery, filterAlcaldia, filterTipoEdificio, filterTipoTecho, filterEstado], () => { currentPage.value = 1 })
+const totalPages = computed(() => Math.ceil(sortedRoofs.value.length / perPage) || 1)
+const paginatedRoofs = computed(() => sortedRoofs.value.slice((currentPage.value - 1) * perPage, currentPage.value * perPage))
+
+watch([searchQuery, filterAlcaldia, filterTipoEdificio, filterTipoTecho, filterEstado, sortBy], () => { currentPage.value = 1 })
 
 const totalFilteredArea = computed(() => {
   return filteredRoofs.value.reduce((sum, r) => sum + (r.superficie || 0), 0)

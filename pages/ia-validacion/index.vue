@@ -4,7 +4,7 @@
     <section class="bg-white py-16">
       <div class="container-wide">
         <CommonSectionTitle
-          title="Validación Asistida por IA"
+          title="Validación asistida por IA"
           subtitle="Revisión y validación de detecciones de techos verdes"
           tag="IA Validación"
         />
@@ -117,6 +117,17 @@
             <option value="indeterminado">Indeterminado</option>
             <option value="pendiente_conciliacion">Pendiente de conciliación</option>
           </select>
+          <select v-model="sortSelect" class="select !w-auto">
+            <option value="">Ordenar por...</option>
+            <option value="nombre_asc">Nombre (A-Z)</option>
+            <option value="nombre_desc">Nombre (Z-A)</option>
+            <option value="confianza_desc">Confianza (mayor)</option>
+            <option value="confianza_asc">Confianza (menor)</option>
+            <option value="estado_asc">Estado (A-Z)</option>
+            <option value="origen_asc">Origen (A-Z)</option>
+            <option value="id_asc">ID (ascendente)</option>
+            <option value="id_desc">ID (descendente)</option>
+          </select>
           <button
             v-if="filterConfianza || filterEstado"
             class="btn-ghost btn-sm"
@@ -135,14 +146,14 @@
           <table class="table-base">
             <thead>
               <tr>
-                <th>ID</th>
-                <th>Nombre</th>
-                <th>Predicción</th>
-                <th>Origen</th>
-                <th>Confianza</th>
-                <th>Estado</th>
-                <th>Fuente</th>
-                <th>Revisado por</th>
+                <th class="cursor-pointer select-none" @click="toggleSort('id')">ID <span class="text-[10px] opacity-60">{{ sortIcon('id') }}</span></th>
+                <th class="cursor-pointer select-none" @click="toggleSort('nombre')">Nombre <span class="text-[10px] opacity-60">{{ sortIcon('nombre') }}</span></th>
+                <th class="cursor-pointer select-none" @click="toggleSort('prediccion')">Predicción <span class="text-[10px] opacity-60">{{ sortIcon('prediccion') }}</span></th>
+                <th class="cursor-pointer select-none" @click="toggleSort('origen')">Origen <span class="text-[10px] opacity-60">{{ sortIcon('origen') }}</span></th>
+                <th class="cursor-pointer select-none" @click="toggleSort('confianza')">Confianza <span class="text-[10px] opacity-60">{{ sortIcon('confianza') }}</span></th>
+                <th class="cursor-pointer select-none" @click="toggleSort('estado')">Estado <span class="text-[10px] opacity-60">{{ sortIcon('estado') }}</span></th>
+                <th class="cursor-pointer select-none" @click="toggleSort('fuente')">Fuente <span class="text-[10px] opacity-60">{{ sortIcon('fuente') }}</span></th>
+                <th class="cursor-pointer select-none" @click="toggleSort('revisadoPor')">Revisado por <span class="text-[10px] opacity-60">{{ sortIcon('revisadoPor') }}</span></th>
                 <th>Acciones</th>
               </tr>
             </thead>
@@ -237,7 +248,7 @@
           <CommonPaginationControls
             v-model:current-page="currentPage"
             :total-pages="totalPages"
-            :total-items="filteredRecords.length"
+            :total-items="sortedRecords.length"
             :per-page="perPage"
           />
         </div>
@@ -283,6 +294,28 @@ const filterConfianza = ref('')
 const filterEstado = ref('')
 const currentPage = ref(1)
 const perPage = 15
+const sortCol = ref('')
+const sortDir = ref<'asc' | 'desc'>('desc')
+const sortSelect = ref('')
+
+watch(sortSelect, (v) => {
+  if (!v) { sortCol.value = ''; return }
+  const [col, dir] = v.split('_')
+  const colMap: Record<string, string> = { nombre: 'nombre', confianza: 'confianza', estado: 'estado', origen: 'origen', id: 'id' }
+  sortCol.value = colMap[col] || col
+  sortDir.value = (dir as 'asc' | 'desc') || 'desc'
+})
+
+function toggleSort(col: string) {
+  if (sortCol.value === col) { sortDir.value = sortDir.value === 'asc' ? 'desc' : 'asc' }
+  else { sortCol.value = col; sortDir.value = 'desc' }
+  sortSelect.value = `${col}_${sortDir.value}`
+}
+
+function sortIcon(col: string) {
+  if (sortCol.value !== col) return '↕'
+  return sortDir.value === 'asc' ? '↑' : '↓'
+}
 
 const filteredRecords = computed(() => {
   return validationStore.records.filter(r => {
@@ -292,8 +325,27 @@ const filteredRecords = computed(() => {
   })
 })
 
-const totalPages = computed(() => Math.ceil(filteredRecords.value.length / perPage) || 1)
-const paginatedRecords = computed(() => filteredRecords.value.slice((currentPage.value - 1) * perPage, currentPage.value * perPage))
+const sortedRecords = computed(() => {
+  const data = [...filteredRecords.value]
+  if (!sortCol.value) return data
+  const dir = sortDir.value === 'asc' ? 1 : -1
+  return data.sort((a, b) => {
+    switch (sortCol.value) {
+      case 'id': return dir * (a.id - b.id)
+      case 'nombre': return dir * (a.nombre || '').localeCompare(b.nombre || '')
+      case 'prediccion': return dir * (a.prediccion || '').localeCompare(b.prediccion || '')
+      case 'origen': return dir * (a.origenDeteccion || '').localeCompare(b.origenDeteccion || '')
+      case 'confianza': return dir * (a.porcentajeConfianza - b.porcentajeConfianza)
+      case 'estado': return dir * a.estado.localeCompare(b.estado)
+      case 'fuente': return dir * a._source.sourceName.localeCompare(b._source.sourceName)
+      case 'revisadoPor': return dir * (a.revisadoPor || '').localeCompare(b.revisadoPor || '')
+      default: return 0
+    }
+  })
+})
+
+const totalPages = computed(() => Math.ceil(sortedRecords.value.length / perPage) || 1)
+const paginatedRecords = computed(() => sortedRecords.value.slice((currentPage.value - 1) * perPage, currentPage.value * perPage))
 
 watch([filterConfianza, filterEstado], () => { currentPage.value = 1 })
 
@@ -340,3 +392,9 @@ function origenBadgeClass(origen: OrigenDeteccion) {
   return map[origen] || 'bg-gray-100 text-ink-muted'
 }
 </script>
+
+<style scoped>
+th.cursor-pointer:hover {
+  background-color: rgba(0, 0, 0, 0.03);
+}
+</style>

@@ -20,6 +20,18 @@ const emit = defineEmits<{
 const search = ref('')
 const currentPage = ref(1)
 const perPage = 15
+const sortCol = ref('')
+const sortDir = ref<'asc' | 'desc'>('desc')
+
+function toggleSort(col: string) {
+  if (sortCol.value === col) { sortDir.value = sortDir.value === 'asc' ? 'desc' : 'asc' }
+  else { sortCol.value = col; sortDir.value = 'desc' }
+}
+
+function sortIcon(col: string) {
+  if (sortCol.value !== col) return '↕'
+  return sortDir.value === 'asc' ? '↑' : '↓'
+}
 
 const filtered = computed(() => {
   if (!search.value) return props.rows
@@ -32,8 +44,23 @@ const filtered = computed(() => {
   )
 })
 
-const totalPages = computed(() => Math.ceil(filtered.value.length / perPage) || 1)
-const paginated = computed(() => filtered.value.slice((currentPage.value - 1) * perPage, currentPage.value * perPage))
+const sorted = computed(() => {
+  const data = [...filtered.value]
+  if (!sortCol.value) return data
+  const dir = sortDir.value === 'asc' ? 1 : -1
+  return data.sort((a, b) => {
+    const va = a[sortCol.value]
+    const vb = b[sortCol.value]
+    if (va == null && vb == null) return 0
+    if (va == null) return dir
+    if (vb == null) return -dir
+    if (typeof va === 'number' && typeof vb === 'number') return dir * (va - vb)
+    return dir * String(va).localeCompare(String(vb))
+  })
+})
+
+const totalPages = computed(() => Math.ceil(sorted.value.length / perPage) || 1)
+const paginated = computed(() => sorted.value.slice((currentPage.value - 1) * perPage, currentPage.value * perPage))
 
 watch([search, () => props.rows], () => { currentPage.value = 1 })
 </script>
@@ -65,10 +92,11 @@ watch([search, () => props.rows], () => { currentPage.value = 1 })
             <th
               v-for="col in columns"
               :key="col.key"
-              class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500"
+              class="cursor-pointer select-none px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500 whitespace-nowrap"
               :class="col.class"
+              @click="toggleSort(col.key)"
             >
-              {{ col.label }}
+              {{ col.label }}<span class="ml-0.5 text-[10px] opacity-60 inline-block w-3 text-center">{{ sortCol === col.key ? (sortDir === 'asc' ? '↑' : '↓') : '' }}</span>
             </th>
             <th class="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wider text-gray-500">
               Acciones
@@ -148,9 +176,15 @@ watch([search, () => props.rows], () => { currentPage.value = 1 })
       <CommonPaginationControls
         v-model:current-page="currentPage"
         :total-pages="totalPages"
-        :total-items="filtered.length"
+        :total-items="sorted.length"
         :per-page="perPage"
       />
     </div>
   </div>
 </template>
+
+<style scoped>
+th.cursor-pointer:hover {
+  background-color: rgba(0, 0, 0, 0.03);
+}
+</style>

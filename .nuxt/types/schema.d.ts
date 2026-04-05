@@ -13,6 +13,14 @@ import { NuxtModule, ModuleDependencyMeta } from '@nuxt/schema'
 
    geminiApiKey: string,
 
+   geeServiceAccountKey: string,
+
+   geeProjectId: string,
+
+   sentinelHubClientId: string,
+
+   sentinelHubClientSecret: string,
+
    nitro: {
       envPrefix: string,
    },

@@ -6,7 +6,7 @@
     <section class="py-12">
       <div class="container-wide">
         <CommonSectionTitle
-          title="Simulación de Dinámica de Sistemas"
+          title="Simulación de dinámica de sistemas"
           subtitle="Modelo con ciclos de retroalimentación, saturación territorial y curvas de aprendizaje para proyectar escenarios de política pública."
           tag="Simulación"
         />

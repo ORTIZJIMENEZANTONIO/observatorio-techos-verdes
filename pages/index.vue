@@ -71,7 +71,7 @@
     <section ref="aboutSection" class="bg-surface py-16">
       <div class="container-wide">
         <CommonSectionTitle
-          title="Qué es el Observatorio"
+          title="Qué es el observatorio"
           subtitle="Una plataforma integral para el monitoreo, análisis y priorización de techos verdes en la Ciudad de México."
           :centered="true"
           tag="Acerca de"

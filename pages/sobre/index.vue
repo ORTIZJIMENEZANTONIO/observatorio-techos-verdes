@@ -4,7 +4,7 @@
     <section class="bg-white py-16">
       <div class="container-wide">
         <CommonSectionTitle
-          title="Sobre el Observatorio"
+          title="Sobre el observatorio"
           subtitle="Un espacio abierto de datos, análisis y visualización de infraestructura verde en azoteas de la Ciudad de México."
           tag="Sobre"
         />
@@ -436,7 +436,7 @@ import { aptitudPesos } from '~/data/aptitud-pesos'
 import { ALCALDIAS } from '~/utils/constants'
 
 useHead({
-  title: 'Sobre el Observatorio | Observatorio Techos Verdes CDMX',
+  title: 'Sobre el observatorio | Observatorio Techos Verdes CDMX',
   meta: [
     { name: 'description', content: 'Conoce el propósito, alcance y principios del Observatorio de Techos Verdes de la Ciudad de México.' },
   ],
