@@ -90,9 +90,6 @@ observatorio-techos-verdes/
     geojson/                # CDMX alcaldia boundaries
     images/tesis/           # Images extracted from thesis PDFs (capas, CIIEMAD photos, maps, charts)
     img/roofs/              # 22 building photos (Wikimedia CC) + 7 category fallbacks
-  server/
-    api/ai/
-      analyze-roof.post.ts  # Nitro endpoint: Gemini Vision roof analysis (POST, receives base64 image)
   stores/                   # roofs, validation, map (Pinia composable style, repository-backed)
   types/
     index.ts                # Core types (GreenRoof, CandidateRoof, ValidationRecord, etc.)
@@ -134,11 +131,7 @@ Sentinel-2 / Landsat imagery
 ```
 
 ### Environment Variables
-- `NUXT_GEMINI_API_KEY`: Google Gemini API key (server-only, free at https://aistudio.google.com/apikey)
-- `NUXT_GEE_SERVICE_ACCOUNT_KEY`: Google Earth Engine Service Account JSON key (server-only, gratis)
-- `NUXT_GEE_PROJECT_ID`: Google Cloud project ID para GEE (server-only)
-- `NUXT_SENTINEL_HUB_CLIENT_ID`: Sentinel Hub OAuth client ID (server-only, fallback gratuito)
-- `NUXT_SENTINEL_HUB_CLIENT_SECRET`: Sentinel Hub OAuth secret (server-only)
+- Todas las API keys (Gemini, GEE, Sentinel Hub) se configuran en **cercu-backend**, no en este repo
 - `NUXT_PUBLIC_DATA_MODE`: `mock` (default) or `official` — controls data source priority
 - `NUXT_PUBLIC_SIGCDMX_BASE_URL`: SIGCDMX WFS endpoint
 - `NUXT_PUBLIC_SIMAT_BASE_URL`: SIMAT API endpoint
@@ -152,8 +145,8 @@ User uploads image (drag & drop / file picker)
 [AIAnalysisPanel.vue]       components/validation/
          ↓
 [useVisionAI.ts]            composables/ (fileToBase64 + $fetch)
-         ↓  POST /api/ai/analyze-roof
-[analyze-roof.post.ts]      server/api/ai/ (Nitro, server-only)
+         ↓  POST /observatory/techos-verdes/ai/analyze-roof
+[cercu-backend]             Express endpoint (Gemini API key en backend .env)
          ↓
 [Google Gemini 2.0 Flash]   Vision model (free tier: 15 RPM, 1,500 req/day)
          ↓
@@ -191,7 +184,7 @@ The system prompt instructs Gemini as a TVLE expert with CDMX-specific context:
 - Response always in Spanish, structured JSON only
 
 #### Server-side Safety
-- API key is in `runtimeConfig` (NOT `runtimeConfig.public`) — never exposed to client
+- API key (`GEMINI_API_KEY`) se configura en cercu-backend `.env` — nunca expuesta al cliente
 - Response JSON is parsed and validated with clamped numerics and enum checks
 - Falls back gracefully if Gemini returns non-JSON text
 
@@ -547,21 +540,14 @@ Para un observatorio público de investigación con presupuesto cero, Sentinel-2
 
 ### Consulta en vivo (Google Earth Engine / Sentinel Hub)
 ```
-Cliente → useRemoteSensing() → POST /api/envi/indices → Google Earth Engine (gratis, prioridad)
-                                                       → Sentinel Hub (gratis 30k req/mes, fallback)
-                                                       → datos locales calibrados (fallback final)
+Cliente → useRemoteSensing() → cercu-backend POST /observatory/techos-verdes/remote-sensing/indices
+                                  → Google Earth Engine (gratis, prioridad)
+                                  → Sentinel Hub (gratis 30k req/mes, fallback)
+                               → datos locales calibrados (fallback offline: data/envi/alcaldias.ts)
 ```
-- `server/api/envi/indices.post.ts` — Nitro endpoint con cadena de 3 fuentes. GEE usa Service Account + REST API v1 (`computeValue`), Sentinel Hub usa Statistical API + evalscript custom, local usa `data/envi/alcaldias.ts`
-- `composables/useRemoteSensing.ts` — `fetchIndices({ lat, lng, alcaldia?, radio?, fechaInicio?, fechaFin? })` → `indices`, `serie`, `fuente`, `fuenteLabel`, `calidad`, `confianzaColor`, `loading`, `error`
-- Variables de entorno (server-only): `NUXT_GEE_SERVICE_ACCOUNT_KEY`, `NUXT_GEE_PROJECT_ID`, `NUXT_SENTINEL_HUB_CLIENT_ID`, `NUXT_SENTINEL_HUB_CLIENT_SECRET`
+El procesamiento de GEE/Sentinel Hub ocurre en **cercu-backend**, no en Nitro. Las credenciales (GEE Service Account, Sentinel Hub OAuth) se configuran en el backend.
 
-**Setup GEE (gratis):**
-1. Crear proyecto en Google Cloud Console
-2. Habilitar Earth Engine API
-3. Crear Service Account y descargar JSON key
-4. Registrar SA en earthengine.google.com (uso investigación)
-5. `NUXT_GEE_SERVICE_ACCOUNT_KEY` = contenido JSON del key file
-6. `NUXT_GEE_PROJECT_ID` = ID del proyecto Cloud
+- `composables/useRemoteSensing.ts` — `fetchIndices({ lat, lng, alcaldia?, radio?, fechaInicio?, fechaFin? })` → `indices`, `serie`, `fuente`, `fuenteLabel`, `calidad`, `confianzaColor`, `loading`, `error`. Si cercu-backend no responde, usa fallback local automáticamente.
 
 ### Archivos
 - `types/remote-sensing.ts` — tipos: `IndicesEspectrales`, `ENVIAlcaldiaData`, `SerieTemporal`, `CalidadDatos`, `ENVIPipelineConfig`

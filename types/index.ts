@@ -114,6 +114,22 @@ export interface ValidationRecord {
   fechaRevision?: string
 }
 
+/** Result from Gemini Vision roof analysis (processed in cercu-backend) */
+export interface RoofAnalysisResult {
+  techoPlano: boolean
+  materialEstimado: string
+  vegetacionExistente: boolean
+  porcentajeVegetacion: number
+  obstrucciones: string[]
+  aptitudTechoVerde: number
+  tipoRecomendado: 'extensivo' | 'semi-intensivo' | 'intensivo' | 'no_apto'
+  areaUtilEstimadaPct: number
+  prediccion: string
+  confianza: 'alta' | 'media' | 'baja'
+  porcentajeConfianza: number
+  observaciones: string[]
+}
+
 // ---------------------------------------------------------------------------
 // Dashboard / UI Interfaces
 // ---------------------------------------------------------------------------

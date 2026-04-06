@@ -1,4 +1,4 @@
-import type { RoofAnalysisResult } from '~/server/api/ai/analyze-roof.post'
+import type { RoofAnalysisResult } from '~/types'
 
 interface AnalyzeOptions {
   imageBase64: string
@@ -17,19 +17,16 @@ interface AnalyzeResponse {
 }
 
 export function useVisionAI() {
+  const config = useRuntimeConfig()
   const analyzing = ref(false)
   const lastResult = ref<RoofAnalysisResult | null>(null)
   const error = ref<string | null>(null)
 
-  /**
-   * Convert a File object to base64 string (without the data URI prefix).
-   */
   function fileToBase64(file: File): Promise<string> {
     return new Promise((resolve, reject) => {
       const reader = new FileReader()
       reader.onload = () => {
         const result = reader.result as string
-        // Remove "data:image/jpeg;base64," prefix
         const base64 = result.split(',')[1]
         resolve(base64)
       }
@@ -38,26 +35,26 @@ export function useVisionAI() {
     })
   }
 
-  /**
-   * Analyze a roof image using Gemini Vision via the server endpoint.
-   */
   async function analyzeRoof(options: AnalyzeOptions): Promise<RoofAnalysisResult | null> {
     analyzing.value = true
     error.value = null
     lastResult.value = null
 
     try {
-      const response = await $fetch<AnalyzeResponse>('/api/ai/analyze-roof', {
-        method: 'POST',
-        body: {
-          imageBase64: options.imageBase64,
-          mimeType: options.mimeType || 'image/jpeg',
-          buildingName: options.buildingName,
-          buildingType: options.buildingType,
-          alcaldia: options.alcaldia,
-          superficie: options.superficie,
+      const response = await $fetch<AnalyzeResponse>(
+        `${config.public.apiBaseUrl}/observatory/techos-verdes/ai/analyze-roof`,
+        {
+          method: 'POST',
+          body: {
+            imageBase64: options.imageBase64,
+            mimeType: options.mimeType || 'image/jpeg',
+            buildingName: options.buildingName,
+            buildingType: options.buildingType,
+            alcaldia: options.alcaldia,
+            superficie: options.superficie,
+          },
         },
-      })
+      )
 
       if (response.ok && response.analysis) {
         lastResult.value = response.analysis
@@ -68,10 +65,9 @@ export function useVisionAI() {
       }
     } catch (e: unknown) {
       const msg = e instanceof Error ? e.message : 'Error de conexión con el servidor.'
-      // Surface Nitro error messages
       if (typeof e === 'object' && e !== null && 'data' in e) {
-        const nitroErr = e as { data?: { statusMessage?: string } }
-        error.value = nitroErr.data?.statusMessage || msg
+        const fetchErr = e as { data?: { statusMessage?: string; error?: { message?: string } } }
+        error.value = fetchErr.data?.error?.message || fetchErr.data?.statusMessage || msg
       } else {
         error.value = msg
       }
@@ -81,9 +77,6 @@ export function useVisionAI() {
     }
   }
 
-  /**
-   * Convenience: analyze from a File input.
-   */
   async function analyzeFromFile(
     file: File,
     context?: Omit<AnalyzeOptions, 'imageBase64' | 'mimeType'>,

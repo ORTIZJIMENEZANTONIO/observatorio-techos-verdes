@@ -12,11 +12,6 @@ export default defineNuxtConfig({
   ssr: true,
 
   runtimeConfig: {
-    geminiApiKey: '', // env: NUXT_GEMINI_API_KEY (server-only)
-    geeServiceAccountKey: '', // env: NUXT_GEE_SERVICE_ACCOUNT_KEY (server-only, JSON string del SA key)
-    geeProjectId: '', // env: NUXT_GEE_PROJECT_ID (server-only, e.g. 'observatorio-techos-verdes')
-    sentinelHubClientId: '', // env: NUXT_SENTINEL_HUB_CLIENT_ID (server-only, fallback)
-    sentinelHubClientSecret: '', // env: NUXT_SENTINEL_HUB_CLIENT_SECRET (server-only, fallback)
     public: {
       dataMode: 'mock', // 'mock' | 'official' — env: NUXT_PUBLIC_DATA_MODE
       sigcdmxBaseUrl: 'https://sig.cdmx.gob.mx/geoserver/ows',

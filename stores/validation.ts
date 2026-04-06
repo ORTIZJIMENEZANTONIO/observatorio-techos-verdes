@@ -1,7 +1,6 @@
 import { defineStore } from 'pinia'
 import { fetchValidationRecords } from '~/services/repositories/validation-repository'
-import type { ValidationRecord, NivelConfianza, WithSourceMeta, ValidationRecordExtended, SourceMeta } from '~/types'
-import type { RoofAnalysisResult } from '~/server/api/ai/analyze-roof.post'
+import type { ValidationRecord, NivelConfianza, WithSourceMeta, ValidationRecordExtended, SourceMeta, RoofAnalysisResult } from '~/types'
 
 // ---------------------------------------------------------------------------
 // Store state shape
