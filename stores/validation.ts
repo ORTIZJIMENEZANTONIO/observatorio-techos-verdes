@@ -2,6 +2,24 @@ import { defineStore } from 'pinia'
 import { fetchValidationRecords } from '~/services/repositories/validation-repository'
 import type { ValidationRecord, NivelConfianza, WithSourceMeta, ValidationRecordExtended, SourceMeta, RoofAnalysisResult } from '~/types'
 
+// ── localStorage persistence for visible/archivado overrides ──
+const VR_STORAGE_KEY = 'obs-techos-verdes-validation-overrides'
+
+function loadOverrides(): Record<number, { visible?: boolean; archivado?: boolean }> {
+  if (typeof localStorage === 'undefined') return {}
+  try { return JSON.parse(localStorage.getItem(VR_STORAGE_KEY) || '{}') } catch { return {} }
+}
+
+function saveOverrides(overrides: Record<number, { visible?: boolean; archivado?: boolean }>) {
+  if (typeof localStorage === 'undefined') return
+  localStorage.setItem(VR_STORAGE_KEY, JSON.stringify(overrides))
+}
+
+function applyOverrides<T extends { id: number }>(items: T[]): T[] {
+  const ov = loadOverrides()
+  return items.map(item => { const o = ov[item.id]; return o ? { ...item, ...o } : item })
+}
+
 // ---------------------------------------------------------------------------
 // Store state shape
 // ---------------------------------------------------------------------------
@@ -24,31 +42,33 @@ export const useValidationStore = defineStore('validation', {
   }),
 
   getters: {
-    /**
-     * Number of records still awaiting human review.
-     */
+    /** Public records (exclude archived/hidden) */
+    publicRecords(state): WithSourceMeta<ValidationRecordExtended>[] {
+      return state.records.filter(r => !r.archivado && r.visible !== false)
+    },
+
+    /** Number of records still awaiting human review. */
     pendingCount(state): number {
       return state.records.filter((r) => r.estado === 'pendiente').length
     },
 
-    /**
-     * Records filtered by the current estado filter.
-     */
+    /** Records filtered by the current estado filter (public only). */
     filteredRecords(state): WithSourceMeta<ValidationRecordExtended>[] {
-      if (!state.filterEstado) return state.records
-      return state.records.filter((r) => r.estado === state.filterEstado)
+      return state.records.filter((r) => {
+        if (r.archivado) return false
+        if (r.visible === false) return false
+        if (state.filterEstado && r.estado !== state.filterEstado) return false
+        return true
+      })
     },
 
-    /**
-     * Breakdown of records by confianza level.
-     */
+    /** Breakdown of records by confianza level. */
     statsByConfianza(state): Record<NivelConfianza, { total: number; confirmados: number; rechazados: number; pendientes: number }> {
       const levels: NivelConfianza[] = ['alta', 'media', 'baja']
       const result = {} as Record<
         NivelConfianza,
         { total: number; confirmados: number; rechazados: number; pendientes: number }
       >
-
       for (const nivel of levels) {
         const subset = state.records.filter((r) => r.confianza === nivel)
         result[nivel] = {
@@ -58,29 +78,39 @@ export const useValidationStore = defineStore('validation', {
           pendientes: subset.filter((r) => r.estado === 'pendiente').length,
         }
       }
-
       return result
     },
   },
 
   actions: {
-    /**
-     * Load data from the repository (official-first, mock fallback).
-     */
+    /** Load data from the repository (official-first, mock fallback). */
     async loadRecords(): Promise<void> {
       this.loading = true
       try {
-        const config = useRuntimeConfig()
-        const dataMode = config.public.dataMode as string
-        this.records = await fetchValidationRecords(dataMode)
+        const dataMode = (typeof useRuntimeConfig !== 'undefined' ? useRuntimeConfig().public.dataMode : 'mock') as string
+        this.records = applyOverrides(await fetchValidationRecords(dataMode))
       } finally {
         this.loading = false
       }
     },
 
-    /**
-     * Mark a record as confirmed by a human reviewer.
-     */
+    /** Replace records (from backend) with overrides applied. */
+    setRecords(items: any[]): void {
+      this.records = applyOverrides(items)
+    },
+
+    /** Update a record and persist visible/archivado to localStorage. */
+    updateRecord(id: number, data: Partial<ValidationRecord>): void {
+      const idx = this.records.findIndex(r => r.id === id)
+      if (idx === -1) return
+      this.records[idx] = { ...this.records[idx], ...data } as any
+      if ('visible' in data || 'archivado' in data) {
+        const overrides = loadOverrides()
+        overrides[id] = { ...overrides[id], ...(data.visible !== undefined ? { visible: data.visible } : {}), ...(data.archivado !== undefined ? { archivado: data.archivado } : {}) }
+        saveOverrides(overrides)
+      }
+    },
+
     confirmRecord(id: number, reviewer: string): void {
       const record = this.records.find((r) => r.id === id)
       if (!record) return
@@ -89,9 +119,6 @@ export const useValidationStore = defineStore('validation', {
       record.fechaRevision = new Date().toISOString().slice(0, 10)
     },
 
-    /**
-     * Mark a record as rejected by a human reviewer.
-     */
     rejectRecord(id: number, reviewer: string): void {
       const record = this.records.find((r) => r.id === id)
       if (!record) return
@@ -100,9 +127,6 @@ export const useValidationStore = defineStore('validation', {
       record.fechaRevision = new Date().toISOString().slice(0, 10)
     },
 
-    /**
-     * Mark a record as indeterminate (needs further analysis).
-     */
     markIndeterminate(id: number, reviewer: string): void {
       const record = this.records.find((r) => r.id === id)
       if (!record) return
@@ -111,23 +135,14 @@ export const useValidationStore = defineStore('validation', {
       record.fechaRevision = new Date().toISOString().slice(0, 10)
     },
 
-    /**
-     * Set the estado filter. Pass `null` to show all.
-     */
     setFilterEstado(estado: ValidationRecord['estado'] | null): void {
       this.filterEstado = estado
     },
 
-    /**
-     * Set the current record for detail/review view.
-     */
     setCurrentRecord(record: ValidationRecord | null): void {
       this.currentRecord = record
     },
 
-    /**
-     * Add a new validation record generated by AI vision analysis.
-     */
     addAIRecord(analysis: RoofAnalysisResult, buildingName: string): WithSourceMeta<ValidationRecordExtended> {
       const maxId = this.records.reduce((max, r) => Math.max(max, r.id), 0)
       const aiSource: SourceMeta = {
@@ -137,7 +152,6 @@ export const useValidationStore = defineStore('validation', {
         confidenceLevel: analysis.porcentajeConfianza / 100,
         validationStatus: 'sin_verificar',
       }
-
       const newRecord: WithSourceMeta<ValidationRecordExtended> = {
         id: maxId + 1,
         candidatoId: 0,
@@ -150,7 +164,6 @@ export const useValidationStore = defineStore('validation', {
         origenDeteccion: 'ia_automatica',
         _source: aiSource,
       }
-
       this.records.unshift(newRecord)
       return newRecord
     },

@@ -5,7 +5,6 @@
   "private": true,
   "dependencies": {
     "@babel/parser": "7.29.2",
-    "@google/generative-ai": "0.24.1",
     "@vue/compiler-core": "3.5.30",
     "@vue/compiler-dom": "3.5.30",
     "@vue/compiler-ssr": "3.5.30",

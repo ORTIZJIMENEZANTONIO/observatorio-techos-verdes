@@ -1,13 +1,12 @@
 <template>
   <div class="bg-surface">
+    <CommonHeroSection compact>
+      <h1 class="text-3xl font-extrabold text-white md:text-4xl">Inventario de techos verdes</h1>
+      <p class="mt-2 text-base text-white/80">57 techos verdes registrados en la Ciudad de México</p>
+    </CommonHeroSection>
+
     <section class="bg-white py-16">
       <div class="container-wide">
-        <CommonSectionTitle
-          title="Inventario de techos verdes"
-          subtitle="57 techos verdes registrados en la Ciudad de México"
-          tag="Inventario"
-        />
-
         <!-- Search and filters -->
         <div class="mt-6 space-y-4">
           <!-- Search bar -->

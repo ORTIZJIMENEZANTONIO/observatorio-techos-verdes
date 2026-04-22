@@ -9,6 +9,11 @@ onMounted(async () => {
   loading.value = false
 })
 
+// ── Advanced filters ──
+const advFilter = reactive({ alcaldia: '', tipoEdificio: '', tipoTechoVerde: '', estado: '', visibilidad: '', archivo: '' })
+const hasAdvFilters = computed(() => Object.values(advFilter).some(v => !!v))
+function clearAdvFilters() { Object.assign(advFilter, { alcaldia: '', tipoEdificio: '', tipoTechoVerde: '', estado: '', visibilidad: '', archivo: '' }) }
+
 const columns = [
   { key: 'id', label: 'ID', class: 'w-16' },
   { key: 'nombre', label: 'Nombre' },
@@ -18,10 +23,30 @@ const columns = [
   { key: 'superficie', label: 'm²', class: 'text-right tabular-nums' },
   { key: 'estado', label: 'Estado' },
   { key: 'fechaRegistro', label: 'Fecha' },
+  { key: 'visible', label: 'Visible', class: 'w-20 text-center' },
+  { key: 'archivado', label: 'Archivado', class: 'w-20 text-center' },
 ]
 
+function toggleVisible(row: any) {
+  const newVal = !(row.visible ?? true)
+  store.updateGreenRoof(row.id, { visible: newVal })
+}
+function toggleArchivado(row: any) {
+  store.updateGreenRoof(row.id, { archivado: !row.archivado })
+}
+
 const rows = computed(() =>
-  store.greenRoofs.map((r: any) => ({
+  store.greenRoofs.filter((r: any) => {
+    if (advFilter.alcaldia && r.alcaldia !== advFilter.alcaldia) return false
+    if (advFilter.tipoEdificio && r.tipoEdificio !== advFilter.tipoEdificio) return false
+    if (advFilter.tipoTechoVerde && r.tipoTechoVerde !== advFilter.tipoTechoVerde) return false
+    if (advFilter.estado && r.estado !== advFilter.estado) return false
+    if (advFilter.visibilidad === 'visible' && r.visible === false) return false
+    if (advFilter.visibilidad === 'oculto' && r.visible !== false) return false
+    if (advFilter.archivo === 'activo' && r.archivado) return false
+    if (advFilter.archivo === 'archivado' && !r.archivado) return false
+    return true
+  }).map((r: any) => ({
     id: r.id,
     nombre: r.nombre,
     alcaldia: r.alcaldia,
@@ -30,7 +55,8 @@ const rows = computed(() =>
     superficie: r.superficie,
     estado: r.estado,
     fechaRegistro: r.fechaRegistro || '—',
-    // keep full object for edit
+    visible: r.visible,
+    archivado: r.archivado,
     _raw: r,
   }))
 )
@@ -102,6 +128,34 @@ const tipoTechoLabel: Record<string, string> = {
       @edit="handleEdit"
       @delete="handleDelete"
     >
+      <template #filters>
+        <div class="mb-4 flex flex-wrap items-center gap-2">
+          <select v-model="advFilter.tipoTechoVerde" class="select !py-1.5 text-xs max-w-[180px]">
+            <option value="">Todos los tipos</option>
+            <option value="extensivo">Extensivo</option>
+            <option value="intensivo">Intensivo</option>
+            <option value="semi-intensivo">Semi-intensivo</option>
+          </select>
+          <select v-model="advFilter.estado" class="select !py-1.5 text-xs max-w-[160px]">
+            <option value="">Todos los estados</option>
+            <option value="activo">Activo</option>
+            <option value="en_mantenimiento">En mantenimiento</option>
+            <option value="inactivo">Inactivo</option>
+            <option value="nuevo">Nuevo</option>
+          </select>
+          <select v-model="advFilter.visibilidad" class="select !py-1.5 text-xs max-w-[140px]">
+            <option value="">Visibilidad: todos</option>
+            <option value="visible">Solo visibles</option>
+            <option value="oculto">Solo ocultos</option>
+          </select>
+          <select v-model="advFilter.archivo" class="select !py-1.5 text-xs max-w-[140px]">
+            <option value="">Archivo: todos</option>
+            <option value="activo">Solo activos</option>
+            <option value="archivado">Solo archivados</option>
+          </select>
+          <button v-if="hasAdvFilters" @click="clearAdvFilters" class="btn-ghost !py-1 text-xs">Limpiar filtros</button>
+        </div>
+      </template>
       <template #cell-tipoTechoVerde="{ value }">
         <span class="rounded bg-primary-50 px-2 py-0.5 text-xs font-medium text-primary">
           {{ tipoTechoLabel[value] || value }}
@@ -122,6 +176,17 @@ const tipoTechoLabel: Record<string, string> = {
       </template>
       <template #cell-superficie="{ value }">
         {{ value ? Number(value).toLocaleString('es-MX') : '—' }}
+      </template>
+      <template #cell-visible="{ row }">
+        <button @click.stop="toggleVisible(row)" class="mx-auto flex h-7 w-7 items-center justify-center rounded-lg transition-colors" :class="(row.visible ?? true) ? 'text-eco hover:bg-eco/10' : 'text-gray-300 hover:bg-gray-100'" :title="(row.visible ?? true) ? 'Visible — clic para ocultar' : 'Oculto — clic para mostrar'">
+          <svg v-if="row.visible ?? true" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
+          <svg v-else class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.878 9.878L3 3m6.878 6.878L21 21" /></svg>
+        </button>
+      </template>
+      <template #cell-archivado="{ row }">
+        <button @click.stop="toggleArchivado(row)" class="mx-auto flex h-7 w-7 items-center justify-center rounded-lg transition-colors" :class="row.archivado ? 'text-accent hover:bg-accent/10' : 'text-gray-300 hover:bg-gray-100'" :title="row.archivado ? 'Archivado — clic para restaurar' : 'Activo — clic para archivar'">
+          <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" /></svg>
+        </button>
       </template>
     </AdminDataTable>
 

@@ -1,14 +1,13 @@
 <template>
   <div class="bg-surface">
-    <!-- Header + KPIs (siempre visible) -->
+    <CommonHeroSection compact>
+      <h1 class="text-3xl font-extrabold text-white md:text-4xl">Indicadores ambientales y territoriales</h1>
+      <p class="mt-2 text-base text-white/80">Métricas clave del estado de los techos verdes en la Ciudad de México</p>
+    </CommonHeroSection>
+
+    <!-- KPIs + Tabs -->
     <section class="bg-white py-16">
       <div class="container-wide">
-        <CommonSectionTitle
-          title="Indicadores ambientales y territoriales"
-          subtitle="Métricas clave del estado de los techos verdes en la Ciudad de México."
-          tag="Indicadores"
-        />
-
         <!-- KPI grid -->
         <div class="mt-8 grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-6">
           <div v-for="kpi in kpis" :key="kpi.label" class="kpi-card">

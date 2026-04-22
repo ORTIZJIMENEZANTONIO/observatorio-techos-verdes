@@ -68,6 +68,8 @@ export interface GreenRoof {
   imagen?: string
   fechaRegistro: string
   descripcion?: string
+  visible?: boolean
+  archivado?: boolean
 }
 
 /** Prioritised candidate roof */
@@ -86,6 +88,8 @@ export interface CandidateRoof {
   variables: AptitudVariables
   confianzaIA: NivelConfianza
   fechaPriorizacion: string
+  visible?: boolean
+  archivado?: boolean
 }
 
 /** Variables used for the aptitude multi-criteria model */
@@ -112,6 +116,8 @@ export interface ValidationRecord {
   estado: 'pendiente' | 'confirmado' | 'rechazado' | 'indeterminado' | 'pendiente_conciliacion'
   revisadoPor?: string
   fechaRevision?: string
+  visible?: boolean
+  archivado?: boolean
 }
 
 /** Result from Gemini Vision roof analysis (processed in cercu-backend) */

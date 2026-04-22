@@ -1,15 +1,9 @@
 <template>
   <div class="bg-surface">
-    <!-- Header -->
-    <section class="bg-white py-16">
-      <div class="container-wide">
-        <CommonSectionTitle
-          title="Sobre el observatorio"
-          subtitle="Un espacio abierto de datos, análisis y visualización de infraestructura verde en azoteas de la Ciudad de México."
-          tag="Sobre"
-        />
-      </div>
-    </section>
+    <CommonHeroSection compact>
+      <h1 class="text-3xl font-extrabold text-white md:text-4xl">Sobre el observatorio</h1>
+      <p class="mt-2 text-base text-white/80">Un espacio abierto de datos, análisis y visualización de infraestructura verde en azoteas de la Ciudad de México</p>
+    </CommonHeroSection>
 
     <!-- Propósito -->
     <section class="py-16">

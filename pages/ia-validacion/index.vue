@@ -1,14 +1,12 @@
 <template>
   <div class="bg-surface">
-    <!-- Header -->
+    <CommonHeroSection compact>
+      <h1 class="text-3xl font-extrabold text-white md:text-4xl">Validación asistida por IA</h1>
+      <p class="mt-2 text-base text-white/80">Revisión y validación de detecciones de techos verdes</p>
+    </CommonHeroSection>
+
     <section class="bg-white py-16">
       <div class="container-wide">
-        <CommonSectionTitle
-          title="Validación asistida por IA"
-          subtitle="Revisión y validación de detecciones de techos verdes"
-          tag="IA Validación"
-        />
-
         <!-- Data disclaimer -->
         <CommonDataDisclaimer class="mt-6" />
 

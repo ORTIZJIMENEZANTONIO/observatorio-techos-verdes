@@ -30,6 +30,7 @@ interface _GlobalComponents {
   CommonDatasetDownloadCard: typeof import("../../components/common/DatasetDownloadCard.vue")['default']
   CommonEmptyState: typeof import("../../components/common/EmptyState.vue")['default']
   CommonFeatureCard: typeof import("../../components/common/FeatureCard.vue")['default']
+  CommonHeroSection: typeof import("../../components/common/HeroSection.vue")['default']
   CommonInfoBanner: typeof import("../../components/common/InfoBanner.vue")['default']
   CommonMethodologyStep: typeof import("../../components/common/MethodologyStep.vue")['default']
   CommonObservationTimeline: typeof import("../../components/common/ObservationTimeline.vue")['default']
@@ -94,6 +95,7 @@ interface _GlobalComponents {
   LazyCommonDatasetDownloadCard: LazyComponent<typeof import("../../components/common/DatasetDownloadCard.vue")['default']>
   LazyCommonEmptyState: LazyComponent<typeof import("../../components/common/EmptyState.vue")['default']>
   LazyCommonFeatureCard: LazyComponent<typeof import("../../components/common/FeatureCard.vue")['default']>
+  LazyCommonHeroSection: LazyComponent<typeof import("../../components/common/HeroSection.vue")['default']>
   LazyCommonInfoBanner: LazyComponent<typeof import("../../components/common/InfoBanner.vue")['default']>
   LazyCommonMethodologyStep: LazyComponent<typeof import("../../components/common/MethodologyStep.vue")['default']>
   LazyCommonObservationTimeline: LazyComponent<typeof import("../../components/common/ObservationTimeline.vue")['default']>

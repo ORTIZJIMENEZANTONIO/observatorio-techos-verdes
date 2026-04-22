@@ -34,7 +34,7 @@ npm run preview    # Preview production build
 observatorio-techos-verdes/
   assets/css/main.css       # Global styles, animations, Leaflet overrides
   components/
-    common/                 # AppHeader, AppFooter, SectionTitle, StatCard, StatusBadge, PaginationControls, etc.
+    common/                 # AppHeader, AppFooter, SectionTitle, StatCard, StatusBadge, PaginationControls, HeroSection (lava lamp)
     home/                   # HeroSection, KPIGrid, HowItWorks, FeaturedRoofs, AIBlock, MapTeaser, MethodologySummary
     inventory/              # RoofCard, RoofDetailDrawer
     map/                    # MapPanel.client.vue, FilterSidebar, SuitabilityLegend
@@ -136,7 +136,7 @@ Sentinel-2 / Landsat imagery
 - `NUXT_PUBLIC_SIGCDMX_BASE_URL`: SIGCDMX WFS endpoint
 - `NUXT_PUBLIC_SIMAT_BASE_URL`: SIMAT API endpoint
 - `NUXT_PUBLIC_SEDEMA_BASE_URL`: SEDEMA data portal
-- `NUXT_PUBLIC_API_BASE_URL`: cercu-backend API URL (default: `http://localhost:3000/api/v1`) — for admin system
+- `NUXT_PUBLIC_API_BASE_URL`: cercu-backend API URL (default: `http://localhost:3003/api/v1`) — for admin system
 
 ### AI Vision Pipeline (Gemini)
 ```
@@ -306,6 +306,14 @@ const { revealRef } = useScrollReveal({ stagger: true })
 - **Filter chips:** `scale-[1.02]` when active, `active:scale-95` press feedback
 - **Progress bars:** `animation: progressFill 1s` for animated width fill
 
+### Lava Lamp Hero (`CommonHeroSection.vue`)
+Reusable component used by all public pages via `<CommonHeroSection compact>`.
+- 4 orbs: 3 green primary (`#0E5E3A`, `#1A7A4E`, `#0A4A2D`) + 1 eco accent (`#79C141`)
+- GPU-accelerated via `translate3d` + `will-change: transform`
+- `filter: blur(26px)`, `mix-blend-mode: screen`
+- Keyframes `lavaA`-`lavaD` (10-16s staggered)
+- `compact` prop controls padding; `<slot>` receives inner content
+
 ### Reduced Motion
 All animations and transitions are disabled with `@media (prefers-reduced-motion: reduce)`.
 
@@ -338,8 +346,8 @@ export const useMyStore = defineStore('myStore', () => {
 })
 ```
 
-### Pagination (15 items per page)
-All data tables and card grids use client-side pagination with 15 results per page via `CommonPaginationControls.vue`. The component receives `v-model:current-page`, `totalPages`, `totalItems`, and `perPage` props.
+### Pagination (configurable, default 15 items per page)
+All data tables use client-side pagination via `CommonPaginationControls.vue` with configurable per-page selector (10/15/25/50). `AdminDataTable` accepts `defaultPerPage` prop and renders a dropdown. The component receives `v-model:current-page`, `totalPages`, `totalItems`, and `perPage` props.
 
 **Pattern:**
 ```typescript
@@ -699,6 +707,13 @@ Attribution footer at bottom of inventory page.
 
 ## Admin System
 
+### Visibility & Archive System
+All three content types (GreenRoof, CandidateRoof, ValidationRecord) support `visible` (default true) and `archivado` (default false) fields:
+- **Public pages** (`filteredGreenRoofs`, `filteredCandidates`, `filteredRecords`) exclude archived/hidden items
+- **Admin pages** show all items with toggle buttons (eye icon / archive box) in table columns
+- **Backend** public endpoints filter server-side (`publicOnly: true`); admin endpoints accept `visible`/`archivado` query params
+- **Persistence** admin toggle changes saved to localStorage (`obs-techos-verdes-overrides`, `obs-techos-verdes-candidates-overrides`, `obs-techos-verdes-validation-overrides`), applied on store init and `set*()` calls
+
 ### Architecture
 - **Backend:** cercu-backend (shared Express/TypeORM API at `NUXT_PUBLIC_API_BASE_URL`)
 - **Auth:** Email + password login via `/api/v1/observatory/auth/login` → JWT (15min access token)
@@ -719,7 +734,7 @@ middleware/admin.ts          # Nuxt route middleware (redirects to /admin/login 
 layouts/admin.vue            # Admin layout, sidebar en orden de pipeline, responsive
 components/admin/
   AdminPipelineBanner.vue    # Step indicator reutilizable (muestra paso actual en el pipeline)
-  AdminDataTable.vue         # Tabla con búsqueda, paginación, acciones, responsive
+  AdminDataTable.vue         # Tabla con búsqueda, paginación configurable (10/15/25/50), filtros avanzados (#filters slot), visible/archivado toggles, responsive
 pages/admin/
   login.vue                  # Email + password login form
   index.vue                  # Dashboard con pipeline visual, stats, quick links

@@ -1,14 +1,13 @@
 <template>
   <div class="bg-surface">
-    <!-- Header -->
+    <CommonHeroSection compact>
+      <h1 class="text-3xl font-extrabold text-white md:text-4xl">Techos candidatos priorizados</h1>
+      <p class="mt-2 text-base text-white/80">60 sitios identificados para potencial intervención verde</p>
+    </CommonHeroSection>
+
+    <!-- Content -->
     <section class="bg-white py-16">
       <div class="container-wide">
-        <CommonSectionTitle
-          title="Techos candidatos priorizados"
-          subtitle="60 sitios identificados para potencial intervención verde"
-          tag="Candidatos"
-        />
-
         <!-- Data disclaimer -->
         <CommonDataDisclaimer class="mt-6" />
 

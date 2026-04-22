@@ -1,1 +1,0 @@
-import{e as a,y as o,c as n,z as r,o as s}from"./CBJJUGhe.js";const m=a({__name:"index",async setup(c){let e,t;return[e,t]=o(()=>r("/metodologia",{replace:!0})),await e,t(),(_,i)=>(s(),n("div"))}});export{m as default};

@@ -10,6 +10,14 @@ onMounted(async () => {
   loading.value = false
 })
 
+const advVisibilidad = ref('')
+const advArchivo = ref('')
+const hasAdvFilters = computed(() => !!filterEstado.value || !!advVisibilidad.value || !!advArchivo.value)
+function clearAdvFilters() { filterEstado.value = ''; advVisibilidad.value = ''; advArchivo.value = '' }
+
+function toggleVisible(row: any) { validationStore.updateRecord(row.id, { visible: !(row.visible ?? true) }) }
+function toggleArchivado(row: any) { validationStore.updateRecord(row.id, { archivado: !row.archivado }) }
+
 const columns = [
   { key: 'id', label: 'ID', class: 'w-12' },
   { key: 'nombre', label: 'Edificio candidato' },
@@ -19,23 +27,23 @@ const columns = [
   { key: 'prediccion', label: 'Predicción IA' },
   { key: 'revisadoPor', label: 'Revisado por' },
   { key: 'fechaRevision', label: 'Fecha' },
+  { key: 'visible', label: 'Visible', class: 'w-20 text-center' },
+  { key: 'archivado', label: 'Archivado', class: 'w-20 text-center' },
 ]
 
 const rows = computed(() => {
-  let data = validationStore.records
-  if (filterEstado.value) {
-    data = data.filter((r: any) => r.estado === filterEstado.value)
-  }
+  let data = validationStore.records as any[]
+  if (filterEstado.value) data = data.filter((r: any) => r.estado === filterEstado.value)
+  if (advVisibilidad.value === 'visible') data = data.filter((r: any) => r.visible !== false)
+  if (advVisibilidad.value === 'oculto') data = data.filter((r: any) => r.visible === false)
+  if (advArchivo.value === 'activo') data = data.filter((r: any) => !r.archivado)
+  if (advArchivo.value === 'archivado') data = data.filter((r: any) => r.archivado)
   return data.map((r: any) => ({
-    id: r.id,
-    nombre: r.nombre,
+    id: r.id, nombre: r.nombre,
     prediccion: r.prediccion?.length > 50 ? r.prediccion.substring(0, 50) + '...' : (r.prediccion || '—'),
-    confianza: r.confianza,
-    porcentajeConfianza: r.porcentajeConfianza,
-    estado: r.estado,
-    revisadoPor: r.revisadoPor || '—',
-    fechaRevision: r.fechaRevision || '—',
-    _raw: r,
+    confianza: r.confianza, porcentajeConfianza: r.porcentajeConfianza, estado: r.estado,
+    revisadoPor: r.revisadoPor || '—', fechaRevision: r.fechaRevision || '—',
+    visible: r.visible, archivado: r.archivado, _raw: r,
   }))
 })
 
@@ -130,6 +138,21 @@ function handleDelete(row: any) {
       @edit="handleEdit"
       @delete="handleDelete"
     >
+      <template #filters>
+        <div class="mb-4 flex flex-wrap items-center gap-2">
+          <select v-model="advVisibilidad" class="select !py-1.5 text-xs max-w-[140px]">
+            <option value="">Visibilidad: todos</option>
+            <option value="visible">Solo visibles</option>
+            <option value="oculto">Solo ocultos</option>
+          </select>
+          <select v-model="advArchivo" class="select !py-1.5 text-xs max-w-[140px]">
+            <option value="">Archivo: todos</option>
+            <option value="activo">Solo activos</option>
+            <option value="archivado">Solo archivados</option>
+          </select>
+          <button v-if="hasAdvFilters" @click="clearAdvFilters" class="btn-ghost !py-1 text-xs">Limpiar filtros</button>
+        </div>
+      </template>
       <template #cell-estado="{ value }">
         <span
           class="rounded px-2 py-0.5 text-xs font-medium"
@@ -161,6 +184,17 @@ function handleDelete(row: any) {
       </template>
       <template #cell-prediccion="{ value }">
         <span class="text-xs text-slate-custom" :title="value">{{ value }}</span>
+      </template>
+      <template #cell-visible="{ row }">
+        <button @click.stop="toggleVisible(row)" class="mx-auto flex h-7 w-7 items-center justify-center rounded-lg transition-colors" :class="(row.visible ?? true) ? 'text-eco hover:bg-eco/10' : 'text-gray-300 hover:bg-gray-100'">
+          <svg v-if="row.visible ?? true" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
+          <svg v-else class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.878 9.878L3 3m6.878 6.878L21 21" /></svg>
+        </button>
+      </template>
+      <template #cell-archivado="{ row }">
+        <button @click.stop="toggleArchivado(row)" class="mx-auto flex h-7 w-7 items-center justify-center rounded-lg transition-colors" :class="row.archivado ? 'text-accent hover:bg-accent/10' : 'text-gray-300 hover:bg-gray-100'">
+          <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" /></svg>
+        </button>
       </template>
     </AdminDataTable>
   </div>
