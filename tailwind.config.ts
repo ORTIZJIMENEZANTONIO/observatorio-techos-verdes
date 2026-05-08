@@ -1,6 +1,7 @@
 import type { Config } from 'tailwindcss'
 
 export default <Config>{
+  darkMode: 'class',
   content: [
     './components/**/*.{js,vue,ts}',
     './layouts/**/*.vue',
@@ -67,6 +68,7 @@ export default <Config>{
       },
       fontFamily: {
         sans: ['Inter', 'system-ui', 'sans-serif'],
+        display: ['"Space Grotesk"', 'Inter', 'sans-serif'],
       },
       borderRadius: {
         card: '0.75rem',
@@ -76,6 +78,9 @@ export default <Config>{
         card: '0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04)',
         'card-hover': '0 4px 12px rgba(0,0,0,0.08)',
         panel: '0 2px 8px rgba(0,0,0,0.06)',
+        'glow-primary': '0 0 24px rgba(14, 94, 58, 0.35)',
+        'glow-eco': '0 0 24px rgba(121, 193, 65, 0.35)',
+        'glow-accent': '0 0 24px rgba(242, 168, 29, 0.35)',
       },
     },
   },

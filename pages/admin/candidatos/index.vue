@@ -16,18 +16,20 @@ function clearAdvFilters() { Object.assign(advFilter, { estatus: '', confianzaIA
 function toggleVisible(row: any) { store.updateCandidate(row.id, { visible: !(row.visible ?? true) }) }
 function toggleArchivado(row: any) { store.updateCandidate(row.id, { archivado: !row.archivado }) }
 
+import { GLOSSARY } from '~/data/admin-glossary'
+
 const columns = [
   { key: 'id', label: 'ID', class: 'w-12' },
-  { key: 'nombre', label: 'Nombre' },
-  { key: 'alcaldia', label: 'Alcaldía' },
+  { key: 'nombre', label: 'Nombre', tooltip: GLOSSARY.candidato },
+  { key: 'alcaldia', label: 'Alcaldía', tooltip: GLOSSARY.alcaldia },
   { key: 'tipoEdificio', label: 'Tipo' },
-  { key: 'scoreAptitud', label: 'Score AHP', class: 'text-right tabular-nums' },
-  { key: 'superficie', label: 'm²', class: 'text-right tabular-nums' },
-  { key: 'estatus', label: 'Estatus' },
-  { key: 'confianzaIA', label: 'Confianza' },
+  { key: 'scoreAptitud', label: 'Score AHP', class: 'text-right tabular-nums', align: 'right' as const, tooltip: GLOSSARY.scoreAptitud },
+  { key: 'superficie', label: 'm²', class: 'text-right tabular-nums', align: 'right' as const },
+  { key: 'estatus', label: 'Estatus', tooltip: GLOSSARY.estatus },
+  { key: 'confianzaIA', label: 'Confianza', tooltip: GLOSSARY.confianzaIA },
   { key: 'fechaPriorizacion', label: 'Priorizado' },
-  { key: 'visible', label: 'Visible', class: 'w-20 text-center' },
-  { key: 'archivado', label: 'Archivado', class: 'w-20 text-center' },
+  { key: 'visible', label: 'Visible', class: 'w-20 text-center', align: 'center' as const, tooltip: GLOSSARY.visible },
+  { key: 'archivado', label: 'Archivado', class: 'w-20 text-center', align: 'center' as const, tooltip: GLOSSARY.archived },
 ]
 
 const rows = computed(() =>

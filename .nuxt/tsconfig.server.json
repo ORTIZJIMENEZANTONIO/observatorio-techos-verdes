@@ -113,6 +113,9 @@
       "#color-mode-options": [
         "./color-mode-options.mjs"
       ],
+      "#icon-collections": [
+        "./icon-collections"
+      ],
       "#unhead/composables": [
         "../node_modules/nuxt/dist/head/runtime/composables/v3"
       ]
@@ -141,6 +144,7 @@
     "../node_modules/@pinia/nuxt/node_modules",
     "../node_modules/@vueuse/nuxt/node_modules",
     "../node_modules/@nuxtjs/color-mode/node_modules",
+    "../node_modules/nuxt-icon/node_modules",
     "../node_modules/@nuxt/devtools/node_modules",
     "../node_modules/@nuxt/telemetry/node_modules",
     "../dist"

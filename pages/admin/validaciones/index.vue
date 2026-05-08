@@ -18,17 +18,19 @@ function clearAdvFilters() { filterEstado.value = ''; advVisibilidad.value = '';
 function toggleVisible(row: any) { validationStore.updateRecord(row.id, { visible: !(row.visible ?? true) }) }
 function toggleArchivado(row: any) { validationStore.updateRecord(row.id, { archivado: !row.archivado }) }
 
+import { GLOSSARY } from '~/data/admin-glossary'
+
 const columns = [
   { key: 'id', label: 'ID', class: 'w-12' },
-  { key: 'nombre', label: 'Edificio candidato' },
+  { key: 'nombre', label: 'Edificio candidato', tooltip: GLOSSARY.validacion },
   { key: 'estado', label: 'Resultado' },
-  { key: 'confianza', label: 'Confianza IA' },
-  { key: 'porcentajeConfianza', label: '% conf.', class: 'text-right tabular-nums w-16' },
-  { key: 'prediccion', label: 'Predicción IA' },
+  { key: 'confianza', label: 'Confianza IA', tooltip: GLOSSARY.confianzaIA },
+  { key: 'porcentajeConfianza', label: '% conf.', class: 'text-right tabular-nums w-16', align: 'right' as const, tooltip: GLOSSARY.porcentajeConfianza },
+  { key: 'prediccion', label: 'Predicción IA', tooltip: GLOSSARY.gemini },
   { key: 'revisadoPor', label: 'Revisado por' },
   { key: 'fechaRevision', label: 'Fecha' },
-  { key: 'visible', label: 'Visible', class: 'w-20 text-center' },
-  { key: 'archivado', label: 'Archivado', class: 'w-20 text-center' },
+  { key: 'visible', label: 'Visible', class: 'w-20 text-center', align: 'center' as const, tooltip: GLOSSARY.visible },
+  { key: 'archivado', label: 'Archivado', class: 'w-20 text-center', align: 'center' as const, tooltip: GLOSSARY.archived },
 ]
 
 const rows = computed(() => {

@@ -14,17 +14,19 @@ const advFilter = reactive({ alcaldia: '', tipoEdificio: '', tipoTechoVerde: '',
 const hasAdvFilters = computed(() => Object.values(advFilter).some(v => !!v))
 function clearAdvFilters() { Object.assign(advFilter, { alcaldia: '', tipoEdificio: '', tipoTechoVerde: '', estado: '', visibilidad: '', archivo: '' }) }
 
+import { GLOSSARY } from '~/data/admin-glossary'
+
 const columns = [
   { key: 'id', label: 'ID', class: 'w-16' },
-  { key: 'nombre', label: 'Nombre' },
-  { key: 'alcaldia', label: 'Alcaldía' },
+  { key: 'nombre', label: 'Nombre', tooltip: GLOSSARY.techoVerde },
+  { key: 'alcaldia', label: 'Alcaldía', tooltip: GLOSSARY.alcaldia },
   { key: 'tipoEdificio', label: 'Tipo edificio' },
-  { key: 'tipoTechoVerde', label: 'Tipo techo' },
-  { key: 'superficie', label: 'm²', class: 'text-right tabular-nums' },
+  { key: 'tipoTechoVerde', label: 'Tipo techo', tooltip: 'Sistema: extensivo (capa fina, bajo mantenimiento), semi-intensivo o intensivo (capa gruesa, requiere refuerzo estructural).' },
+  { key: 'superficie', label: 'm²', class: 'text-right tabular-nums', align: 'right' as const },
   { key: 'estado', label: 'Estado' },
   { key: 'fechaRegistro', label: 'Fecha' },
-  { key: 'visible', label: 'Visible', class: 'w-20 text-center' },
-  { key: 'archivado', label: 'Archivado', class: 'w-20 text-center' },
+  { key: 'visible', label: 'Visible', class: 'w-20 text-center', align: 'center' as const, tooltip: GLOSSARY.visible },
+  { key: 'archivado', label: 'Archivado', class: 'w-20 text-center', align: 'center' as const, tooltip: GLOSSARY.archived },
 ]
 
 function toggleVisible(row: any) {

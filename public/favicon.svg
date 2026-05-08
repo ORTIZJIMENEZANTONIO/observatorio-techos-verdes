@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#0E5E3A"/>
+      <stop offset="100%" stop-color="#7BC47F"/>
+    </linearGradient>
+  </defs>
+  <rect x="0" y="0" width="64" height="64" rx="14" fill="url(#bg)"/>
+  <g fill="none" stroke="#ffffff" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round">
+    <!-- Edificio con techo verde estilizado -->
+    <path d="M16 44 L16 26 L32 18 L48 26 L48 44 Z" fill="#ffffff" fill-opacity="0.18"/>
+    <!-- Vegetación encima del techo -->
+    <path d="M20 26 q3-4 6 0 q3-4 6 0 q3-4 6 0 q3-4 6 0"/>
+    <!-- Vegetación adicional en racimos -->
+    <circle cx="24" cy="22" r="2.5" fill="#ffffff" fill-opacity="0.7"/>
+    <circle cx="32" cy="20" r="2.5" fill="#ffffff" fill-opacity="0.7"/>
+    <circle cx="40" cy="22" r="2.5" fill="#ffffff" fill-opacity="0.7"/>
+    <!-- Suelo -->
+    <line x1="12" y1="48" x2="52" y2="48"/>
+  </g>
+</svg>

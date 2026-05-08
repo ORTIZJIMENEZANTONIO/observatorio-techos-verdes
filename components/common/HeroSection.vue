@@ -5,12 +5,23 @@ defineProps<{
 </script>
 
 <template>
-  <section class="hero-section relative overflow-hidden flex items-center" :class="compact ? 'py-10 md:py-12' : 'py-12 md:py-16'">
+  <section
+    class="hero-section relative overflow-hidden flex items-center"
+    :class="compact ? 'py-10 md:py-12' : 'py-12 md:py-16'"
+  >
     <div class="hero-bg" aria-hidden="true">
+      <!-- Topographical isobath rings (slow drift) -->
+      <div class="hero-topo" />
+      <!-- Light dappling through canopy (slow drift) -->
+      <div class="hero-canopy" />
+      <!-- Animated lava orbs -->
       <span class="lava-orb orb--g1" />
       <span class="lava-orb orb--g2" />
       <span class="lava-orb orb--g3" />
       <span class="lava-orb orb--a1" />
+      <span class="lava-orb orb--e1" />
+      <!-- Bottom vignette -->
+      <div class="hero-vignette" />
     </div>
     <div class="container-wide relative z-10">
       <slot />
@@ -20,7 +31,9 @@ defineProps<{
 
 <style scoped>
 .hero-section {
-  background: linear-gradient(160deg, #0A4A2D 0%, #0E5E3A 35%, #1A7A4E 70%, #0E5E3A 100%);
+  background:
+    radial-gradient(ellipse 90% 60% at 50% 0%, rgba(26, 122, 78, 0.45) 0%, transparent 60%),
+    linear-gradient(160deg, #042B1A 0%, #0A4A2D 25%, #0E5E3A 55%, #1A7A4E 85%, #0E5E3A 100%);
 }
 
 .hero-bg {
@@ -30,10 +43,48 @@ defineProps<{
   z-index: 0;
 }
 
+/* --- Topographical (isobath-style) rings --- */
+.hero-topo {
+  position: absolute;
+  inset: -10%;
+  background:
+    repeating-radial-gradient(
+      circle at 30% 40%,
+      transparent 0px,
+      transparent 38px,
+      rgba(121, 193, 65, 0.06) 38px,
+      rgba(121, 193, 65, 0.06) 39px
+    ),
+    repeating-radial-gradient(
+      circle at 75% 70%,
+      transparent 0px,
+      transparent 52px,
+      rgba(197, 232, 212, 0.05) 52px,
+      rgba(197, 232, 212, 0.05) 53px
+    );
+  mix-blend-mode: screen;
+  animation: drift-slow 60s linear infinite;
+  will-change: transform;
+}
+
+/* --- Canopy light dappling --- */
+.hero-canopy {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 320px 80px at 22% 28%, rgba(197, 232, 212, 0.25), transparent 70%),
+    radial-gradient(ellipse 240px 60px at 78% 38%, rgba(143, 205, 95, 0.22), transparent 70%),
+    radial-gradient(ellipse 200px 50px at 50% 72%, rgba(121, 193, 65, 0.18), transparent 70%);
+  mix-blend-mode: screen;
+  filter: blur(2px);
+  animation: canopy-drift 18s ease-in-out infinite;
+  will-change: transform, opacity;
+}
+
 .lava-orb {
   position: absolute;
   border-radius: 50%;
-  filter: blur(26px);
+  filter: blur(28px);
   transform: translate3d(0, 0, 0);
   will-change: transform;
   mix-blend-mode: screen;
@@ -61,9 +112,25 @@ defineProps<{
 .orb--a1 {
   width: 380px; height: 380px;
   top: 30%; right: 20%;
-  background: radial-gradient(circle, rgba(121, 193, 65, 0.45) 0%, rgba(121, 193, 65, 0) 70%);
+  background: radial-gradient(circle, rgba(121, 193, 65, 0.5) 0%, rgba(121, 193, 65, 0) 70%);
   animation: lavaD 11s ease-in-out infinite;
+  opacity: 0.5;
+}
+.orb--e1 {
+  width: 280px; height: 280px;
+  bottom: 12%; right: -40px;
+  background: radial-gradient(circle, rgba(242, 168, 29, 0.35) 0%, rgba(242, 168, 29, 0) 70%);
+  animation: lavaB 14s ease-in-out infinite;
   opacity: 0.45;
+}
+
+/* --- Bottom vignette for content legibility --- */
+.hero-vignette {
+  position: absolute;
+  inset: auto 0 0 0;
+  height: 40%;
+  background: linear-gradient(to bottom, transparent 0%, rgba(4, 43, 26, 0.35) 100%);
+  pointer-events: none;
 }
 
 @keyframes lavaA {
@@ -94,7 +161,21 @@ defineProps<{
   100% { transform: translate3d(0, 0, 0) scale(1); }
 }
 
+@keyframes drift-slow {
+  0%   { transform: translate3d(0, 0, 0) rotate(0deg); }
+  100% { transform: translate3d(-2%, -1%, 0) rotate(2deg); }
+}
+
+@keyframes canopy-drift {
+  0%, 100% { transform: translate3d(0, 0, 0) scale(1); opacity: 0.85; }
+  50%      { transform: translate3d(2%, 1%, 0) scale(1.04); opacity: 1; }
+}
+
 @media (prefers-reduced-motion: reduce) {
-  .lava-orb { animation: none; }
+  .lava-orb,
+  .hero-topo,
+  .hero-canopy {
+    animation: none;
+  }
 }
 </style>

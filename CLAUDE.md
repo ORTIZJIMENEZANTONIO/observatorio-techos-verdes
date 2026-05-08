@@ -729,42 +729,173 @@ Cada sección del admin corresponde a un paso del pipeline. Los prospectos detec
 ### Admin Files
 ```
 stores/auth.ts              # Pinia auth store (login, logout, token in localStorage)
+stores/tiers.ts             # Pinia tiers store (5 modos default, CRUD soft-delete, tierForScore)
+stores/contributors.ts      # Pinia contributors store (CRUD + filtros, vinculo con prospectos via contributorId)
+data/tiers-defaults.ts      # 5 tiers (aprendiz/reportador/caracterizador/especialista/operador) + 2 contribuyentes seed
 composables/useApi.ts       # $fetch wrapper with Bearer token + 401 handling
 middleware/admin.ts          # Nuxt route middleware (redirects to /admin/login if unauthenticated)
-layouts/admin.vue            # Admin layout, sidebar en orden de pipeline, responsive
+layouts/admin.vue            # Admin layout, sidebar en orden de pipeline + Contenido/Contributors/Tiers, responsive
 components/admin/
   AdminPipelineBanner.vue    # Step indicator reutilizable (muestra paso actual en el pipeline)
-  AdminDataTable.vue         # Tabla con búsqueda, paginación configurable (10/15/25/50), filtros avanzados (#filters slot), visible/archivado toggles, responsive
+  AdminDataTable.vue         # Tabla con búsqueda, paginación, filtros, visible/archivado toggles, responsive
+  Manual.vue                 # Manual del observatorio: 10 secciones acordeón embebido en /admin
 pages/admin/
   login.vue                  # Email + password login form
-  index.vue                  # Dashboard con pipeline visual, stats, quick links
-  prospectos/index.vue       # Tabs: Cola de aprobación + Detector geoespacial
+  index.vue                  # Dashboard con pipeline visual, stats, quick links + Manual.vue
+  prospectos/index.vue       # Tabs: Cola de aprobación + Detector + selector de atribución (contributorId)
   candidatos/index.vue       # Sitios aprobados + priorizados AHP, pendientes de validación
   validaciones/index.vue     # Registros de validación IA (Gemini) y manual
   techos-verdes/index.vue    # Inventario: techos verdes implementados (57 del mapa público)
+  contributors/index.vue     # CRUD red de colaboradores (filtros role/tier/verified/search)
+  tiers/index.vue            # CRUD modos de participación (5 tiers default, modal de edición)
+  contenido/index.vue        # CMS page list (10 páginas + contributors)
+  contenido/[pageSlug].vue   # CMS section editor (auto-save a API)
   detector/index.vue         # Redirect → /admin/prospectos
 ```
 
-### Admin Routes (orden de pipeline)
+### Admin Routes (orden de pipeline + soporte)
 - `/admin/login` — login (layout default)
-- `/admin` — dashboard con pipeline visual
-- `/admin/prospectos` — tabs: Cola de aprobación + Detector (entrada del pipeline)
+- `/admin` — dashboard con pipeline visual + Manual del observatorio
+- `/admin/prospectos` — Cola de aprobación + Detector + selector de atribución (entrada del pipeline)
 - `/admin/candidatos` — candidatos aprobados, pendientes de validación
 - `/admin/validaciones` — validación IA/manual de candidatos
 - `/admin/techos-verdes` — inventario de techos verdes implementados (fin del pipeline)
+- `/admin/contenido` — CMS de las 11 páginas públicas
+- `/admin/contributors` — CRUD red de colaboradores
+- `/admin/tiers` — CRUD modos de participación
+
+### Manual del observatorio (`components/admin/Manual.vue`)
+Componente embebido en `/admin/index.vue`. 10 secciones acordeón en español accesible para personas sin formación técnica:
+1. **¿Qué es este observatorio?** — cuatro frentes integrados (inventario, AHP, IA visual, reportes ciudadanos).
+2. **Flujo de los datos** — recorrido típico desde origen hasta visualización.
+3. **Percepción remota e índices** — NDVI / NDBI / LST con fórmulas Sentinel-2 y Landsat 8/9.
+4. **Detector de candidatos OSM** — Overpass API + Turf.js sobre buildings.
+5. **AHP — Modelo multicriterio** — explicación de las 8 variables y por qué los pesos son una decisión política.
+6. **Validación visual con IA** — workflow Gemini Vision, predicción + confianza, decisión humana.
+7. **Tipologías de techo verde** — Extensivo (TVLE), Semi-intensivo, Intensivo con cargas y costos.
+8. **Tracking de uso** — eventos sin cookies en `useTracking()`, agregados en `/admin/analytics`.
+9. **Glosario de siglas** — TVLE, AHP, scoreAptitud, NDVI/NDBI, LST, SEDEMA, CIIEMAD, ODS, OSM, Turf.js.
+10. **Limitaciones honestas** — no reemplaza dictamen estructural, IA orienta no decide, cobertura sesgada, pesos AHP son política, datos satelitales con caché.
+
+### Tiers + Contributors System
+**Modelo:** cada Contributor tiene un `tier` (slug). Los tiers se editan en `/admin/tiers` y se presentan como **modos de participación distintos** (no niveles a alcanzar) — patrón compartido con humedales y arrecifes pero con vocabulario propio del dominio techos verdes.
+
+**5 tiers default:**
+| Slug | Modo | Score | Quién aporta así |
+|------|------|-------|------------------|
+| `aprendiz` | Curiosidad ciudadana | 0–19 | Vecinas/vecinos, peatones |
+| `reportador` | Observación sostenida | 20–99 | Personas que dan seguimiento a una azotea |
+| `caracterizador` | Caracterización técnica | 100–299 | Estudiantes, técnicos urbanos, ONGs |
+| `especialista` | Diseño e investigación | 300–999 | Arquitectos, ingenieros, academia |
+| `operador` | Operación institucional | 1000+ | Empresas constructoras, SEDEMA, ONGs grandes |
+
+**Score auto-calculado:** `validatedContributions × 10 − rejectedContributions × 2`. Al aprobar un prospecto con `contributorId` asignado, el contributor incrementa contadores y `tierForScore()` recalcula su tier en cliente.
+
+**Atribución a prospectos:** UI en `/admin/prospectos` (selector dentro de cada card). Persiste tanto en backend (PATCH `/admin/prospectos/:id/contributor`) como en localStorage como fallback.
+
+**Backend (cercu-backend):**
+- Tablas separadas: `obs_techos_verdes_tiers` y `obs_techos_verdes_contributors` (NO comparten con humedales ni arrecifes para evitar colisión de slugs/handles).
+- Migración: `1739000000000-CreateTechosVerdesTiersAndContributors.ts` (idempotente).
+- Migración complementaria: `1740000000000-SeedExpandedCmsSections.ts` siembra `contributors.hero` y `contributors.intro` en `obs_cms_sections` para que el admin pueda editar el copy desde `/admin/contenido/contributors` (idempotente — solo inserta secciones que falten).
+- Service: `src/modules/observatory/techos-verdes/techos-verdes-attribution.service.ts` (CRUD + `attachContributorToProspect` + `incrementContributorOnApproval`).
+- Routes: `/observatory/techos-verdes/admin/tiers`, `.../admin/contributors`, públicas en `/observatory/techos-verdes/tiers` y `.../contributors`.
+
+### Roles del Contributor
+Adaptados al dominio techos verdes (8 opciones):
+`ciudadano | propietario | arquitecto | ingeniero | empresa | gobierno | ong | academia`
+
+## Testing
+
+### Stack
+- **Vitest** — unit + integration
+- **@vue/test-utils** — Vue component testing
+- **happy-dom** — lightweight DOM environment
+- **@playwright/test** — end-to-end browser tests (chromium)
+
+### Test Files (34 unit + 14 E2E)
+| File | Type | Count | Coverage |
+|------|------|-------|----------|
+| `tests/unit/useAnalyticsMath.test.ts` | Unit | 13 | Estadísticas analytics (mean/median/std, IC bootstrap, Spearman, Kruskal-Wallis) |
+| `tests/unit/tiers.store.test.ts` | Unit | 8 | Tiers store: 5 modos default, tierForScore boundaries, CRUD soft-delete, persistencia localStorage |
+| `tests/unit/contributors.store.test.ts` | Unit | 6 | Contributors store: defaults, addContributor, 8 roles techos-verdes, filtros (role/tier/verified) |
+| `tests/unit/cms-defaults.test.ts` | Data integrity | 6 | Catalog cubre todas las páginas, contributors hero, **home.hero con campos esperados**, footer URLs válidas |
+
+### E2E Tests (Playwright)
+| File | Tests | Coverage |
+|------|-------|----------|
+| `tests/e2e/public.spec.ts` | 5 | Smoke público: home + favicon, /inventario, /mapa, /aptitud, navegación |
+| `tests/e2e/admin-manual.spec.ts` | 6 | Manual del observatorio: 10 secciones, AHP, Glosario, sidebar items nuevos |
+| `tests/e2e/admin-tiers-contributors.spec.ts` | 3 | Lista 5 modos default, lista 2 contribuyentes seed, crear contributor con role arquitecto |
+
+### Comandos
+```bash
+npm test              # Vitest unit (34 tests, ~1s)
+npm run test:watch    # Vitest watch mode
+npm run test:coverage # Coverage v8
+npm run test:e2e      # Playwright E2E (necesita dev server en :3000)
+npm run test:e2e:install  # Descarga Chromium una vez
+```
 
 ### Admin UI/UX Patterns
 - **Pipeline banner:** Indicador horizontal de pasos en cada página, resalta el paso actual (`AdminPipelineBanner.vue`)
 - **Mobile-first responsive:** Sidebar oculto en mobile (toggle hamburger), tablas con scroll horizontal edge-to-edge (`-mx-4 px-4 sm:mx-0`), grids desde `grid-cols-1`, touch targets 44px, acciones siempre visibles en mobile
 - **Collapsible methodology:** Panel cerrado por defecto explicando scoring/detección
-- **Paginated tables:** Filtros avanzados + columnas ordenables + selector de filas por página
+- **Paginated tables:** Filtros avanzados + columnas ordenables + selector de filas por página (10/15/25/50, default 15) vía `<AdminDataTable>` que internamente usa `useSortableList` + `usePaginatedList`
+- **Sortable th con flecha indicadora:** `<AdminSortableTh>` se usa internamente — cycle none → asc → desc, accesible (aria-sort)
+- **Tooltips de glosario:** `<AdminInfoTooltip text="...">` en headers de columna y labels de form. Definiciones en `data/admin-glossary.ts` (AHP, NDVI, Gemini, score AHP, ZOFEMAT, etc.)
 - **Score breakdown:** Barras de progreso expandibles por fila mostrando componentes del score
-- **Column tooltips:** `title` nativo con subrayado punteado en headers
 - **TransitionGroup:** Animaciones fade + slide en listas
 - **Modal transitions:** `fade` + `scale-in` + `backdrop-blur`
 - **Active route indicator:** Sidebar con matching exacto de ruta
 - **Welcome greeting:** Saludo personalizado con nombre del admin
 - **Empty states:** Iconos contextuales + texto descriptivo + CTAs
+
+### Componentes admin reusables
+- `components/admin/AdminDataTable.vue` — tabla genérica con search + filters slot + sort + paginación + tooltips por columna. Acepta `columns: { key, label, class?, align?, tooltip?, sortable? }[]`.
+- `components/admin/InfoTooltip.vue` — `<AdminInfoTooltip text="..." [variant=inline|icon]>`. Hover desktop, tap mobile, accesible.
+- `components/admin/SortableTh.vue` — `<th>` clickeable con flecha asc/desc/none.
+- `components/common/FilterPanel.vue` — drawer mobile-first reusable.
+- `composables/useSortableList.ts` — sort genérico con coerción inteligente.
+- `composables/usePaginatedList.ts` — paginación in-memory.
+- `composables/useCmsContent.ts` — helper para que páginas públicas consuman el CMS.
+- `data/admin-glossary.ts` — glosario centralizado con 30+ términos del dominio techos verdes (AHP, scoreAptitud, gemini, NDVI, NDWI, GEE, etc.).
+- `data/cms-defaults.ts` — catálogo CMS con copy editable de 11 páginas públicas (home/sobre/metodologia/indicadores/inventario/candidatos/mapa/aptitud/ia-validacion/contributors/footer). Incluye `home.hero` editable con eyebrow, titleLine1/2, subtitle, primary/secondary CTAs.
+
+**Hero del home editable:** `pages/index.vue` consume `home.hero` via `useCmsContent('home').one<HeroShape>('hero')` con `<template v-if>` por cada campo — los cambios desde `/admin/contenido/home → Hero principal` se reflejan inmediatamente en el sitio público.
+- `stores/cms.ts` — Pinia store que cachea secciones por pageSlug, fallback automático a defaults si el backend no responde.
+
+### Dashboard `/admin` (enriquecido)
+- 8 KPI cards con tooltips (techos instalados, candidatos, validaciones, prospectos pendientes, score AHP alto ≥80, total prospectos, aprobados, secciones CMS).
+- Banda de **Acciones rápidas**: detector OSM, score AHP, validación IA Gemini, editar contenido, analytics.
+- 6 cards de monitoreo: cola de prospectos, distribución AHP (alto/medio/bajo), candidatos por estatus, validaciones por estado, inventario por tipo, CMS.
+- Backend `getSummary` enriquecido con `candidatesByEstatus`, `validationsByEstado`, `greenRoofsByTipo`, `ahpBuckets`, `cmsSections` — todo paralelizado con `Promise.all`.
+
+### CMS — Contenido editorial editable (✅ implementado)
+Sistema multi-tenant para que un editor sin background técnico pueda cambiar el copy del sitio público desde `/admin/contenido` sin tocar código.
+
+**Arquitectura:**
+```
+data/cms-defaults.ts    ──┐  fallback síncrono (también es la verdad de origen)
+                          ├──> stores/cms.ts (Pinia)
+useCmsContent(page)  ─────┘    ├─ getSection / getOne (sync con fallback)
+                               └─ fetchPage (1 request → todas las secciones)
+                                      │
+   GET /observatory/techos-verdes/cms/<page>/_all  ◄──┘
+   PUT /observatory/techos-verdes/admin/cms/<page>/<sectionKey>
+```
+
+**Páginas y secciones registradas:**
+| pageSlug | secciones (sectionKey) |
+|----------|------------------------|
+| `home` | hero · features · cta |
+| `sobre` | hero · mission · objetivos |
+| `metodologia` | hero · pasos |
+| `indicadores` · `inventario` · `candidatos` · `mapa` · `aptitud` · `ia-validacion` | hero |
+| `footer` | brand · sources · quickLinks · institutional |
+
+**Backend:** entidad `ObsCmsSection` con columna `observatory='techos-verdes'`. Endpoint admin `PUT /:observatory/admin/cms/:pageSlug/:sectionKey`. Seed inicial siembra 18 secciones (ver `cercu-backend/src/seeds/observatory-content.seed.ts`).
+
+**Admin:** `/admin/contenido` lista las 10 páginas; `/admin/contenido/:pageSlug` muestra accordion por sección con edición in-place + auto-bind al shape del default. Mover/añadir/eliminar bloques + "Restaurar default" + chip de "Sin guardar".
 
 ### Prospect Approval Flow
 ```

@@ -83,9 +83,11 @@ declare global {
   const h: typeof import('vue').h
   const hasInjectionContext: typeof import('vue').hasInjectionContext
   const ignorableWatch: typeof import('@vueuse/core').ignorableWatch
+  const initTracking: typeof import('../../composables/useTracking').initTracking
   const inject: typeof import('vue').inject
   const injectHead: typeof import('../../node_modules/nuxt/dist/app/composables/head').injectHead
   const injectLocal: typeof import('@vueuse/core').injectLocal
+  const interpolateCmsText: typeof import('../../composables/useCmsContent').interpolateCmsText
   const isDefined: typeof import('@vueuse/core').isDefined
   const isNuxtError: typeof import('../../node_modules/nuxt/dist/app/composables/error').isNuxtError
   const isPrerendered: typeof import('../../node_modules/nuxt/dist/app/composables/payload').isPrerendered
@@ -190,6 +192,7 @@ declare global {
   const updateAppConfig: typeof import('../../node_modules/nuxt/dist/app/config').updateAppConfig
   const useActiveElement: typeof import('@vueuse/core').useActiveElement
   const useAlcaldiaEnvironmental: typeof import('../../composables/useAlcaldiaEnvironmental').useAlcaldiaEnvironmental
+  const useAnalyticsMath: typeof import('../../composables/useAnalyticsMath').useAnalyticsMath
   const useAnimate: typeof import('@vueuse/core').useAnimate
   const useApi: typeof import('../../composables/useApi').useApi
   const useAppConfig: typeof import('../../node_modules/nuxt/dist/app/config').useAppConfig
@@ -222,9 +225,13 @@ declare global {
   const useClipboard: typeof import('@vueuse/core').useClipboard
   const useClipboardItems: typeof import('@vueuse/core').useClipboardItems
   const useCloned: typeof import('@vueuse/core').useCloned
+  const useCmsContent: typeof import('../../composables/useCmsContent').useCmsContent
+  const useCmsStore: typeof import('../../stores/cms').useCmsStore
   const useColorMode: typeof import('../../node_modules/@nuxtjs/color-mode/dist/runtime/composables').useColorMode
   const useConfirmDialog: typeof import('@vueuse/core').useConfirmDialog
+  const useContributorsStore: typeof import('../../stores/contributors').useContributorsStore
   const useCookie: typeof import('../../node_modules/nuxt/dist/app/composables/cookie').useCookie
+  const useCountUp: typeof import('../../composables/useCountUp').useCountUp
   const useCountdown: typeof import('@vueuse/core').useCountdown
   const useCounter: typeof import('@vueuse/core').useCounter
   const useCssModule: typeof import('vue').useCssModule
@@ -302,10 +309,12 @@ declare global {
   const useNow: typeof import('@vueuse/core').useNow
   const useNuxtApp: typeof import('../../node_modules/nuxt/dist/app/nuxt').useNuxtApp
   const useNuxtData: typeof import('../../node_modules/nuxt/dist/app/composables/asyncData').useNuxtData
+  const useNuxtDevTools: typeof import('../../node_modules/@nuxt/devtools/dist/runtime/use-nuxt-devtools').useNuxtDevTools
   const useObjectUrl: typeof import('@vueuse/core').useObjectUrl
   const useOffsetPagination: typeof import('@vueuse/core').useOffsetPagination
   const useOnline: typeof import('@vueuse/core').useOnline
   const usePageLeave: typeof import('@vueuse/core').usePageLeave
+  const usePaginatedList: typeof import('../../composables/usePaginatedList').usePaginatedList
   const useParallax: typeof import('@vueuse/core').useParallax
   const useParentElement: typeof import('@vueuse/core').useParentElement
   const usePerformanceObserver: typeof import('@vueuse/core').usePerformanceObserver
@@ -383,6 +392,7 @@ declare global {
   const useShadowRoot: typeof import('vue').useShadowRoot
   const useShare: typeof import('@vueuse/core').useShare
   const useSlots: typeof import('vue').useSlots
+  const useSortableList: typeof import('../../composables/useSortableList').useSortableList
   const useSorted: typeof import('@vueuse/core').useSorted
   const useSpeechRecognition: typeof import('@vueuse/core').useSpeechRecognition
   const useSpeechSynthesis: typeof import('@vueuse/core').useSpeechSynthesis
@@ -401,6 +411,7 @@ declare global {
   const useThrottle: typeof import('@vueuse/core').useThrottle
   const useThrottleFn: typeof import('@vueuse/core').useThrottleFn
   const useThrottledRefHistory: typeof import('@vueuse/core').useThrottledRefHistory
+  const useTiersStore: typeof import('../../stores/tiers').useTiersStore
   const useTimeAgo: typeof import('@vueuse/core').useTimeAgo
   const useTimeout: typeof import('@vueuse/core').useTimeout
   const useTimeoutFn: typeof import('@vueuse/core').useTimeoutFn
@@ -410,6 +421,7 @@ declare global {
   const useToNumber: typeof import('@vueuse/core').useToNumber
   const useToString: typeof import('@vueuse/core').useToString
   const useToggle: typeof import('@vueuse/core').useToggle
+  const useTracking: typeof import('../../composables/useTracking').useTracking
   const useTransition: typeof import('@vueuse/core').useTransition
   const useTransitionState: typeof import('vue').useTransitionState
   const useUrlSearchParams: typeof import('@vueuse/core').useUrlSearchParams
@@ -462,6 +474,9 @@ declare global {
   // @ts-ignore
   export type { RemoteSensingQuery } from '../../composables/useRemoteSensing'
   import('../../composables/useRemoteSensing')
+  // @ts-ignore
+  export type { SortDirection } from '../../composables/useSortableList'
+  import('../../composables/useSortableList')
   // @ts-ignore
   export type { RegressionResult, DescriptiveStats, CorrelationMatrixResult, ProjectionYear, AlcaldiaNecesidadInput, NivelRiesgo, RiskIndicator, AlcaldiaRiskProfile, RiskProfileInput, InactionCostYear, InactionCostResult, ROIYear, ROIResult, PrefactibilidadInput, PrefactibilidadResult, RiskProfileWithStructuralInput, EffectiveM2Input } from '../../composables/useStatisticalAnalysis'
   import('../../composables/useStatisticalAnalysis')
@@ -555,9 +570,11 @@ declare module 'vue' {
     readonly h: UnwrapRef<typeof import('vue')['h']>
     readonly hasInjectionContext: UnwrapRef<typeof import('vue')['hasInjectionContext']>
     readonly ignorableWatch: UnwrapRef<typeof import('@vueuse/core')['ignorableWatch']>
+    readonly initTracking: UnwrapRef<typeof import('../../composables/useTracking')['initTracking']>
     readonly inject: UnwrapRef<typeof import('vue')['inject']>
     readonly injectHead: UnwrapRef<typeof import('../../node_modules/nuxt/dist/app/composables/head')['injectHead']>
     readonly injectLocal: UnwrapRef<typeof import('@vueuse/core')['injectLocal']>
+    readonly interpolateCmsText: UnwrapRef<typeof import('../../composables/useCmsContent')['interpolateCmsText']>
     readonly isDefined: UnwrapRef<typeof import('@vueuse/core')['isDefined']>
     readonly isNuxtError: UnwrapRef<typeof import('../../node_modules/nuxt/dist/app/composables/error')['isNuxtError']>
     readonly isPrerendered: UnwrapRef<typeof import('../../node_modules/nuxt/dist/app/composables/payload')['isPrerendered']>
@@ -662,6 +679,7 @@ declare module 'vue' {
     readonly updateAppConfig: UnwrapRef<typeof import('../../node_modules/nuxt/dist/app/config')['updateAppConfig']>
     readonly useActiveElement: UnwrapRef<typeof import('@vueuse/core')['useActiveElement']>
     readonly useAlcaldiaEnvironmental: UnwrapRef<typeof import('../../composables/useAlcaldiaEnvironmental')['useAlcaldiaEnvironmental']>
+    readonly useAnalyticsMath: UnwrapRef<typeof import('../../composables/useAnalyticsMath')['useAnalyticsMath']>
     readonly useAnimate: UnwrapRef<typeof import('@vueuse/core')['useAnimate']>
     readonly useApi: UnwrapRef<typeof import('../../composables/useApi')['useApi']>
     readonly useAppConfig: UnwrapRef<typeof import('../../node_modules/nuxt/dist/app/config')['useAppConfig']>
@@ -694,9 +712,13 @@ declare module 'vue' {
     readonly useClipboard: UnwrapRef<typeof import('@vueuse/core')['useClipboard']>
     readonly useClipboardItems: UnwrapRef<typeof import('@vueuse/core')['useClipboardItems']>
     readonly useCloned: UnwrapRef<typeof import('@vueuse/core')['useCloned']>
+    readonly useCmsContent: UnwrapRef<typeof import('../../composables/useCmsContent')['useCmsContent']>
+    readonly useCmsStore: UnwrapRef<typeof import('../../stores/cms')['useCmsStore']>
     readonly useColorMode: UnwrapRef<typeof import('../../node_modules/@nuxtjs/color-mode/dist/runtime/composables')['useColorMode']>
     readonly useConfirmDialog: UnwrapRef<typeof import('@vueuse/core')['useConfirmDialog']>
+    readonly useContributorsStore: UnwrapRef<typeof import('../../stores/contributors')['useContributorsStore']>
     readonly useCookie: UnwrapRef<typeof import('../../node_modules/nuxt/dist/app/composables/cookie')['useCookie']>
+    readonly useCountUp: UnwrapRef<typeof import('../../composables/useCountUp')['useCountUp']>
     readonly useCountdown: UnwrapRef<typeof import('@vueuse/core')['useCountdown']>
     readonly useCounter: UnwrapRef<typeof import('@vueuse/core')['useCounter']>
     readonly useCssModule: UnwrapRef<typeof import('vue')['useCssModule']>
@@ -774,10 +796,12 @@ declare module 'vue' {
     readonly useNow: UnwrapRef<typeof import('@vueuse/core')['useNow']>
     readonly useNuxtApp: UnwrapRef<typeof import('../../node_modules/nuxt/dist/app/nuxt')['useNuxtApp']>
     readonly useNuxtData: UnwrapRef<typeof import('../../node_modules/nuxt/dist/app/composables/asyncData')['useNuxtData']>
+    readonly useNuxtDevTools: UnwrapRef<typeof import('../../node_modules/@nuxt/devtools/dist/runtime/use-nuxt-devtools')['useNuxtDevTools']>
     readonly useObjectUrl: UnwrapRef<typeof import('@vueuse/core')['useObjectUrl']>
     readonly useOffsetPagination: UnwrapRef<typeof import('@vueuse/core')['useOffsetPagination']>
     readonly useOnline: UnwrapRef<typeof import('@vueuse/core')['useOnline']>
     readonly usePageLeave: UnwrapRef<typeof import('@vueuse/core')['usePageLeave']>
+    readonly usePaginatedList: UnwrapRef<typeof import('../../composables/usePaginatedList')['usePaginatedList']>
     readonly useParallax: UnwrapRef<typeof import('@vueuse/core')['useParallax']>
     readonly useParentElement: UnwrapRef<typeof import('@vueuse/core')['useParentElement']>
     readonly usePerformanceObserver: UnwrapRef<typeof import('@vueuse/core')['usePerformanceObserver']>
@@ -855,6 +879,7 @@ declare module 'vue' {
     readonly useShadowRoot: UnwrapRef<typeof import('vue')['useShadowRoot']>
     readonly useShare: UnwrapRef<typeof import('@vueuse/core')['useShare']>
     readonly useSlots: UnwrapRef<typeof import('vue')['useSlots']>
+    readonly useSortableList: UnwrapRef<typeof import('../../composables/useSortableList')['useSortableList']>
     readonly useSorted: UnwrapRef<typeof import('@vueuse/core')['useSorted']>
     readonly useSpeechRecognition: UnwrapRef<typeof import('@vueuse/core')['useSpeechRecognition']>
     readonly useSpeechSynthesis: UnwrapRef<typeof import('@vueuse/core')['useSpeechSynthesis']>
@@ -873,6 +898,7 @@ declare module 'vue' {
     readonly useThrottle: UnwrapRef<typeof import('@vueuse/core')['useThrottle']>
     readonly useThrottleFn: UnwrapRef<typeof import('@vueuse/core')['useThrottleFn']>
     readonly useThrottledRefHistory: UnwrapRef<typeof import('@vueuse/core')['useThrottledRefHistory']>
+    readonly useTiersStore: UnwrapRef<typeof import('../../stores/tiers')['useTiersStore']>
     readonly useTimeAgo: UnwrapRef<typeof import('@vueuse/core')['useTimeAgo']>
     readonly useTimeout: UnwrapRef<typeof import('@vueuse/core')['useTimeout']>
     readonly useTimeoutFn: UnwrapRef<typeof import('@vueuse/core')['useTimeoutFn']>
@@ -882,6 +908,7 @@ declare module 'vue' {
     readonly useToNumber: UnwrapRef<typeof import('@vueuse/core')['useToNumber']>
     readonly useToString: UnwrapRef<typeof import('@vueuse/core')['useToString']>
     readonly useToggle: UnwrapRef<typeof import('@vueuse/core')['useToggle']>
+    readonly useTracking: UnwrapRef<typeof import('../../composables/useTracking')['useTracking']>
     readonly useTransition: UnwrapRef<typeof import('@vueuse/core')['useTransition']>
     readonly useTransitionState: UnwrapRef<typeof import('vue')['useTransitionState']>
     readonly useUrlSearchParams: UnwrapRef<typeof import('@vueuse/core')['useUrlSearchParams']>

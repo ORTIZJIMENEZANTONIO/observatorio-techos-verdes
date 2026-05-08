@@ -8,29 +8,29 @@
       </div>
       <div class="container-wide relative py-20 md:py-26">
         <div class="max-w-3xl">
-          <span class="mb-4 inline-flex items-center gap-2 rounded-badge bg-white/10 px-4 py-1.5 text-xs font-semibold uppercase tracking-wider text-eco-light backdrop-blur-sm">
+          <span v-if="hero?.eyebrow" class="mb-4 inline-flex items-center gap-2 rounded-badge bg-white/10 px-4 py-1.5 text-xs font-semibold uppercase tracking-wider text-eco-light backdrop-blur-sm">
             <span class="h-1.5 w-1.5 rounded-full bg-eco animate-pulse-glow" style="animation: pulseGlow 2s ease-in-out infinite;" />
-            Plataforma abierta
+            {{ hero.eyebrow }}
           </span>
           <h1 class="mt-4 text-4xl font-extrabold leading-tight text-white md:text-5xl lg:text-6xl">
-            Observatorio de<br>
-            <span class="text-gradient-hero">Techos Verdes</span><br>
+            <template v-if="hero?.titleLine1">{{ hero.titleLine1 }}<br></template>
+            <span v-if="hero?.titleLine2" class="text-gradient-hero">{{ hero.titleLine2 }}</span><br>
             CDMX
           </h1>
-          <p class="mt-6 max-w-xl text-lg leading-relaxed text-white/80 md:text-xl">
-            Monitoreo, priorización y análisis de infraestructura verde en azoteas de la Ciudad de México. Datos abiertos, inteligencia artificial y análisis geoespacial.
+          <p v-if="hero?.subtitle" class="mt-6 max-w-xl text-lg leading-relaxed text-white/80 md:text-xl">
+            {{ hero.subtitle }}
           </p>
           <div class="mt-8 flex flex-wrap gap-4">
-            <NuxtLink to="/mapa" class="btn-primary btn-lg !bg-eco hover:!bg-eco-light">
+            <NuxtLink v-if="hero?.primaryLabel && hero?.primaryTo" :to="hero.primaryTo" class="btn-primary btn-lg !bg-eco hover:!bg-eco-light">
               <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6" />
                 <line x1="8" y1="2" x2="8" y2="18" />
                 <line x1="16" y1="6" x2="16" y2="22" />
               </svg>
-              Explorar mapa
+              {{ hero.primaryLabel }}
             </NuxtLink>
-            <NuxtLink to="/metodologia" class="btn btn-lg border border-white/30 text-white hover:bg-white/10">
-              Conocer metodología
+            <NuxtLink v-if="hero?.secondaryLabel && hero?.secondaryTo" :to="hero.secondaryTo" class="btn btn-lg border border-white/30 text-white hover:bg-white/10">
+              {{ hero.secondaryLabel }}
             </NuxtLink>
           </div>
         </div>
@@ -397,6 +397,20 @@
 <script setup lang="ts">
 import { greenRoofs } from '~/data/mock-roofs'
 import { kpiData } from '~/data/kpis'
+
+// CMS — hero editable en /admin/contenido/home → seccion "Hero principal"
+type HeroShape = {
+  eyebrow?: string
+  titleLine1?: string
+  titleLine2?: string
+  subtitle?: string
+  primaryLabel?: string
+  primaryTo?: string
+  secondaryLabel?: string
+  secondaryTo?: string
+}
+const cms = useCmsContent('home')
+const hero = cms.one<HeroShape>('hero')
 
 // Scroll-reveal for each section
 const { revealRef: kpiSection } = useScrollReveal({ stagger: true })

@@ -1,8 +1,34 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap');
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* ------------------------------------------------------------------ */
+/* Design tokens (CSS variables — light + dark)                       */
+/* ------------------------------------------------------------------ */
+:root {
+  --c-bg:           #F7F8F4;
+  --c-surface:      #FFFFFF;
+  --c-surface-2:    #F5F7F2;
+  --c-border:       #E5E7EB;
+  --c-border-soft:  #EEF1EC;
+  --c-ink:          #1F2937;
+  --c-ink-muted:    #5E6B78;
+  --c-ink-soft:     #94A3B8;
+}
+
+/* Dark mode: "bosque nocturno" — mayor componente verde, casi sin azul */
+.dark {
+  --c-bg:           #081511;   /* almost black w/ deep forest green undertone */
+  --c-surface:      #122620;   /* night canopy */
+  --c-surface-2:    #1A332B;   /* lifted forest floor */
+  --c-border:       #234138;   /* mossy divider */
+  --c-border-soft:  #1A332B66;
+  --c-ink:          #ECF4EE;   /* moonlit leaf white */
+  --c-ink-muted:    #9DB6A6;   /* sage muted */
+  --c-ink-soft:     #708876;   /* lichen soft */
+}
 
 /* ------------------------------------------------------------------ */
 /* Base layer                                                         */
@@ -13,7 +39,10 @@
   }
 
   body {
-    @apply bg-surface text-ink font-sans antialiased;
+    @apply font-sans antialiased;
+    background-color: var(--c-bg);
+    color: var(--c-ink);
+    transition: background-color 300ms, color 300ms;
   }
 
   h1,
@@ -22,11 +51,12 @@
   h4,
   h5,
   h6 {
-    @apply font-semibold tracking-tight text-ink;
+    @apply font-display font-semibold tracking-tight;
+    color: var(--c-ink);
   }
 
   h1 {
-    @apply text-3xl md:text-4xl;
+    @apply text-3xl md:text-4xl lg:text-5xl;
   }
 
   h2 {
@@ -47,6 +77,10 @@
 
   ::selection {
     @apply bg-primary/20 text-primary-dark;
+  }
+  .dark ::selection {
+    background-color: rgba(14, 94, 58, 0.4);
+    color: #C5E8D4;
   }
 }
 
@@ -73,37 +107,69 @@
 
   /* Card styles */
   .card {
-    @apply rounded-card bg-white shadow-card transition-shadow duration-200 hover:shadow-card-hover;
+    @apply rounded-2xl;
+    background-color: var(--c-surface);
+    border: 1px solid var(--c-border-soft);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+    transition: box-shadow 0.3s cubic-bezier(0.22, 1, 0.36, 1),
+                background-color 0.25s, border-color 0.25s;
+  }
+  .card:hover {
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
   }
 
   .card-flat {
-    @apply rounded-card bg-white border border-gray-100;
+    @apply rounded-2xl;
+    background-color: var(--c-surface);
+    border: 1px solid var(--c-border-soft);
   }
 
   .card-interactive {
-    @apply rounded-card bg-white shadow-card cursor-pointer;
-    transition: transform 0.3s cubic-bezier(0.22, 1, 0.36, 1),
-                box-shadow 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+    @apply rounded-2xl cursor-pointer;
+    background-color: var(--c-surface);
+    border: 1px solid var(--c-border-soft);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+    transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1),
+                box-shadow 0.35s cubic-bezier(0.22, 1, 0.36, 1),
+                border-color 0.35s ease,
+                background-color 0.25s;
   }
 
   .card-interactive:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 12px 24px -4px rgba(0, 0, 0, 0.08), 0 4px 8px -2px rgba(0, 0, 0, 0.04);
+    transform: translateY(-3px);
+    border-color: rgba(14, 94, 58, 0.35);
+    box-shadow: 0 12px 32px -8px rgba(14, 94, 58, 0.12),
+                0 4px 8px -2px rgba(0, 0, 0, 0.04);
   }
 
   .card-interactive:active {
-    transform: translateY(-1px) scale(0.99);
+    transform: translateY(-1px) scale(0.995);
     transition-duration: 0.1s;
+  }
+
+  /* Glass card (translucent backdrop blur) */
+  .card-glass {
+    @apply rounded-2xl backdrop-blur-xl;
+    background: rgba(255, 255, 255, 0.7);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.04);
+  }
+  .dark .card-glass {
+    background: rgba(20, 36, 32, 0.7);
+    border-color: rgba(148, 176, 162, 0.15);
   }
 
   /* Panel */
   .panel {
-    @apply rounded-card bg-white shadow-panel p-4 md:p-6;
+    @apply rounded-2xl p-5 md:p-7;
+    background-color: var(--c-surface);
+    border: 1px solid var(--c-border-soft);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
   }
 
   /* Badge styles */
   .badge {
-    @apply inline-flex items-center rounded-badge px-2.5 py-0.5 text-xs font-medium;
+    @apply inline-flex items-center rounded-badge px-2.5 py-0.5 text-[11px] font-semibold tracking-wide;
   }
 
   .badge-primary {
@@ -128,7 +194,7 @@
 
   /* Buttons */
   .btn {
-    @apply inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed;
+    @apply inline-flex items-center justify-center gap-2 rounded-xl px-5 py-2.5 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed;
     transition: all 0.25s cubic-bezier(0.22, 1, 0.36, 1);
   }
 
@@ -142,36 +208,61 @@
   }
 
   .btn-primary {
-    @apply btn bg-primary text-white hover:bg-primary-light focus:ring-primary/50 active:bg-primary-dark;
+    @apply btn bg-primary text-white hover:bg-primary-light focus:ring-primary/50 active:bg-primary-dark shadow-sm hover:shadow-md hover:shadow-primary/10;
   }
 
   .btn-secondary {
-    @apply btn bg-secondary text-white hover:bg-secondary-light focus:ring-secondary/50 active:bg-secondary-dark;
+    @apply btn bg-secondary text-white hover:bg-secondary-light focus:ring-secondary/50 active:bg-secondary-dark shadow-sm;
   }
 
   .btn-eco {
-    @apply btn bg-eco text-white hover:bg-eco-light focus:ring-eco/50 active:bg-eco-dark;
+    @apply btn bg-eco text-white hover:bg-eco-light focus:ring-eco/50 active:bg-eco-dark shadow-sm hover:shadow-md hover:shadow-eco/15;
+  }
+
+  .btn-accent {
+    @apply btn bg-accent text-white hover:bg-accent-light focus:ring-accent/50 active:bg-accent-dark shadow-sm hover:shadow-md hover:shadow-accent/15;
   }
 
   .btn-outline {
-    @apply btn border border-gray-300 bg-white text-ink hover:bg-gray-50 focus:ring-primary/50;
+    @apply btn focus:ring-primary/50;
+    background-color: var(--c-surface);
+    color: var(--c-ink);
+    border: 1px solid var(--c-border);
+  }
+  .btn-outline:hover {
+    background-color: var(--c-surface-2);
+    border-color: var(--c-ink-soft);
   }
 
   .btn-ghost {
-    @apply btn bg-transparent text-ink-muted hover:bg-gray-100 focus:ring-primary/50;
+    @apply btn bg-transparent focus:ring-primary/50;
+    color: var(--c-ink-muted);
+  }
+  .btn-ghost:hover {
+    background-color: var(--c-surface-2);
   }
 
   .btn-sm {
-    @apply px-3 py-1.5 text-xs;
+    @apply px-3.5 py-1.5 text-xs rounded-lg;
   }
 
   .btn-lg {
-    @apply px-6 py-3 text-base;
+    @apply px-7 py-3.5 text-base;
   }
 
   /* KPI card */
   .kpi-card {
-    @apply card p-4 md:p-5 flex flex-col gap-1;
+    @apply rounded-2xl p-4 md:p-5 flex flex-col gap-1;
+    background-color: var(--c-surface);
+    border: 1px solid var(--c-border-soft);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+  }
+
+  /* Live activity indicator */
+  .live-dot {
+    @apply inline-block h-2 w-2 rounded-full bg-eco relative;
+    box-shadow: 0 0 0 0 rgba(121, 193, 65, 0.7);
+    animation: livePulse 2s infinite;
   }
 
   /* Input styles */
@@ -213,6 +304,66 @@
 }
 
 /* ------------------------------------------------------------------ */
+/* Dark mode class remapping                                          */
+/* Lets existing components (bg-white, text-gray-*, border-gray-*)    */
+/* respond to dark mode without per-component edits.                  */
+/* ------------------------------------------------------------------ */
+.dark body { background-color: var(--c-bg); color: var(--c-ink); }
+
+.dark .bg-white { background-color: var(--c-surface) !important; }
+.dark .bg-surface { background-color: var(--c-bg) !important; }
+.dark .bg-surface-warm,
+.dark .bg-surface-cool { background-color: var(--c-surface-2) !important; }
+.dark .bg-gray-50 { background-color: var(--c-surface-2) !important; }
+.dark .bg-gray-100 { background-color: var(--c-surface-2) !important; }
+.dark .bg-gray-200 { background-color: var(--c-border) !important; }
+
+.dark .text-ink { color: var(--c-ink) !important; }
+.dark .text-ink-light,
+.dark .text-ink-muted { color: var(--c-ink-muted) !important; }
+.dark .text-gray-400 { color: var(--c-ink-soft) !important; }
+.dark .text-gray-500,
+.dark .text-gray-600 { color: var(--c-ink-muted) !important; }
+.dark .text-gray-700,
+.dark .text-gray-800,
+.dark .text-gray-900 { color: var(--c-ink) !important; }
+
+.dark .border-gray-100,
+.dark .border-gray-200 { border-color: var(--c-border-soft) !important; }
+.dark .border-gray-300 { border-color: var(--c-border) !important; }
+.dark .divide-gray-50 > :not([hidden]) ~ :not([hidden]),
+.dark .divide-gray-100 > :not([hidden]) ~ :not([hidden]),
+.dark .divide-gray-200 > :not([hidden]) ~ :not([hidden]) { border-color: var(--c-border-soft) !important; }
+
+/* Brand tinted surfaces — soften in dark mode */
+.dark .bg-primary-50 { background-color: rgba(14, 94, 58, 0.18) !important; }
+.dark .bg-primary-100 { background-color: rgba(14, 94, 58, 0.28) !important; }
+.dark .text-primary { color: #5FBF89 !important; }
+.dark .text-primary-dark { color: #93D4AF !important; }
+.dark .bg-eco\/10 { background-color: rgba(121, 193, 65, 0.18) !important; }
+.dark .text-eco-dark { color: #8FCD5F !important; }
+.dark .bg-accent\/10 { background-color: rgba(242, 168, 29, 0.18) !important; }
+.dark .text-accent-dark { color: #F5BA45 !important; }
+.dark .bg-secondary\/10 { background-color: rgba(24, 165, 227, 0.18) !important; }
+.dark .text-secondary-dark { color: #3BB5E9 !important; }
+.dark .bg-alert\/10 { background-color: rgba(217, 54, 62, 0.18) !important; }
+.dark .text-alert-dark { color: #E05A61 !important; }
+
+/* Translucent header backdrop in dark mode */
+.dark .bg-white\/95 { background-color: rgba(18, 38, 32, 0.95) !important; }
+.dark .bg-white\/80 { background-color: rgba(18, 38, 32, 0.8) !important; }
+.dark .bg-white\/70 { background-color: rgba(18, 38, 32, 0.7) !important; }
+
+/* Inputs / selects in dark mode */
+.dark .input,
+.dark .select {
+  background-color: var(--c-surface-2);
+  color: var(--c-ink);
+  border-color: var(--c-border);
+}
+.dark .input::placeholder { color: var(--c-ink-soft); }
+
+/* ------------------------------------------------------------------ */
 /* Utility layer                                                      */
 /* ------------------------------------------------------------------ */
 @layer utilities {
@@ -222,6 +373,26 @@
 
   .text-gradient-primary {
     @apply bg-gradient-to-r from-primary to-eco bg-clip-text text-transparent;
+  }
+
+  .text-gradient-secondary {
+    @apply bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent;
+  }
+
+  .text-gradient-eco {
+    @apply bg-gradient-to-r from-eco to-accent bg-clip-text text-transparent;
+  }
+
+  .text-gradient-hero {
+    background: linear-gradient(120deg, #79C141 0%, #C5E8D4 60%, #F2A81D 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  .bg-dot-pattern {
+    background-image: radial-gradient(circle at 1px 1px, currentColor 1px, transparent 0);
+    background-size: 32px 32px;
   }
 
   /* --- Entrance animations ---------------------------------------- */
@@ -365,6 +536,12 @@
 
 @keyframes progressFill {
   from { width: 0; }
+}
+
+@keyframes livePulse {
+  0%   { box-shadow: 0 0 0 0 rgba(121, 193, 65, 0.7); }
+  70%  { box-shadow: 0 0 0 10px rgba(121, 193, 65, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(121, 193, 65, 0); }
 }
 
 /* ------------------------------------------------------------------ */

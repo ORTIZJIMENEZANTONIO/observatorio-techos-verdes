@@ -101,9 +101,11 @@ const quickLinks = [
   { to: '/mapa', label: 'Mapa interactivo' },
   { to: '/inventario', label: 'Inventario de techos' },
   { to: '/candidatos', label: 'Sitios candidatos' },
-  { to: '/ia-validacion', label: 'Validación IA' },
   { to: '/indicadores', label: 'Indicadores' },
   { to: '/metodologia', label: 'Metodología y aptitud' },
+  { to: '/agenda-2030', label: 'Agenda 2030 y ODS' },
+  { to: '/referencias', label: 'Referencias' },
+  { to: '/comunidad', label: 'Comunidad y aportes' },
   { to: '/sobre', label: 'Sobre el proyecto' },
 ]
 </script>

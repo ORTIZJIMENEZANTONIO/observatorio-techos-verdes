@@ -16,6 +16,9 @@ type LazyComponent<T> = DefineComponent<HydrationStrategies, {}, {}, {}, {}, {},
 
 export const AdminDataTable: typeof import("../components/admin/AdminDataTable.vue")['default']
 export const AdminPipelineBanner: typeof import("../components/admin/AdminPipelineBanner.vue")['default']
+export const AdminInfoTooltip: typeof import("../components/admin/InfoTooltip.vue")['default']
+export const AdminManual: typeof import("../components/admin/Manual.vue")['default']
+export const AdminSortableTh: typeof import("../components/admin/SortableTh.vue")['default']
 export const ChartsBarChart: typeof import("../components/charts/BarChart.client.vue")['default']
 export const ChartsDoughnutChart: typeof import("../components/charts/DoughnutChart.client.vue")['default']
 export const ChartsLineChart: typeof import("../components/charts/LineChart.client.vue")['default']
@@ -24,12 +27,14 @@ export const ChartsRadarChart: typeof import("../components/charts/RadarChart.cl
 export const ChartsScatterChart: typeof import("../components/charts/ScatterChart.client.vue")['default']
 export const CommonAppFooter: typeof import("../components/common/AppFooter.vue")['default']
 export const CommonAppHeader: typeof import("../components/common/AppHeader.vue")['default']
+export const CommonColorModeToggle: typeof import("../components/common/ColorModeToggle.vue")['default']
 export const CommonConfidenceBadge: typeof import("../components/common/ConfidenceBadge.vue")['default']
 export const CommonDataDisclaimer: typeof import("../components/common/DataDisclaimer.vue")['default']
 export const CommonDataSourceBadge: typeof import("../components/common/DataSourceBadge.vue")['default']
 export const CommonDatasetDownloadCard: typeof import("../components/common/DatasetDownloadCard.vue")['default']
 export const CommonEmptyState: typeof import("../components/common/EmptyState.vue")['default']
 export const CommonFeatureCard: typeof import("../components/common/FeatureCard.vue")['default']
+export const CommonFilterPanel: typeof import("../components/common/FilterPanel.vue")['default']
 export const CommonHeroSection: typeof import("../components/common/HeroSection.vue")['default']
 export const CommonInfoBanner: typeof import("../components/common/InfoBanner.vue")['default']
 export const CommonMethodologyStep: typeof import("../components/common/MethodologyStep.vue")['default']
@@ -68,6 +73,8 @@ export const NuxtRouteAnnouncer: typeof import("../node_modules/nuxt/dist/app/co
 export const NuxtImg: typeof import("../node_modules/nuxt/dist/app/components/nuxt-stubs")['NuxtImg']
 export const NuxtPicture: typeof import("../node_modules/nuxt/dist/app/components/nuxt-stubs")['NuxtPicture']
 export const ColorScheme: typeof import("../node_modules/@nuxtjs/color-mode/dist/runtime/component.vue3.vue")['default']
+export const Icon: typeof import("../node_modules/nuxt-icon/dist/runtime/Icon.vue")['default']
+export const IconCSS: typeof import("../node_modules/nuxt-icon/dist/runtime/IconCSS.vue")['default']
 export const NuxtPage: typeof import("../node_modules/nuxt/dist/pages/runtime/page")['default']
 export const NoScript: typeof import("../node_modules/nuxt/dist/head/runtime/components")['NoScript']
 export const Link: typeof import("../node_modules/nuxt/dist/head/runtime/components")['Link']
@@ -81,6 +88,9 @@ export const Body: typeof import("../node_modules/nuxt/dist/head/runtime/compone
 export const NuxtIsland: typeof import("../node_modules/nuxt/dist/app/components/nuxt-island")['default']
 export const LazyAdminDataTable: LazyComponent<typeof import("../components/admin/AdminDataTable.vue")['default']>
 export const LazyAdminPipelineBanner: LazyComponent<typeof import("../components/admin/AdminPipelineBanner.vue")['default']>
+export const LazyAdminInfoTooltip: LazyComponent<typeof import("../components/admin/InfoTooltip.vue")['default']>
+export const LazyAdminManual: LazyComponent<typeof import("../components/admin/Manual.vue")['default']>
+export const LazyAdminSortableTh: LazyComponent<typeof import("../components/admin/SortableTh.vue")['default']>
 export const LazyChartsBarChart: LazyComponent<typeof import("../components/charts/BarChart.client.vue")['default']>
 export const LazyChartsDoughnutChart: LazyComponent<typeof import("../components/charts/DoughnutChart.client.vue")['default']>
 export const LazyChartsLineChart: LazyComponent<typeof import("../components/charts/LineChart.client.vue")['default']>
@@ -89,12 +99,14 @@ export const LazyChartsRadarChart: LazyComponent<typeof import("../components/ch
 export const LazyChartsScatterChart: LazyComponent<typeof import("../components/charts/ScatterChart.client.vue")['default']>
 export const LazyCommonAppFooter: LazyComponent<typeof import("../components/common/AppFooter.vue")['default']>
 export const LazyCommonAppHeader: LazyComponent<typeof import("../components/common/AppHeader.vue")['default']>
+export const LazyCommonColorModeToggle: LazyComponent<typeof import("../components/common/ColorModeToggle.vue")['default']>
 export const LazyCommonConfidenceBadge: LazyComponent<typeof import("../components/common/ConfidenceBadge.vue")['default']>
 export const LazyCommonDataDisclaimer: LazyComponent<typeof import("../components/common/DataDisclaimer.vue")['default']>
 export const LazyCommonDataSourceBadge: LazyComponent<typeof import("../components/common/DataSourceBadge.vue")['default']>
 export const LazyCommonDatasetDownloadCard: LazyComponent<typeof import("../components/common/DatasetDownloadCard.vue")['default']>
 export const LazyCommonEmptyState: LazyComponent<typeof import("../components/common/EmptyState.vue")['default']>
 export const LazyCommonFeatureCard: LazyComponent<typeof import("../components/common/FeatureCard.vue")['default']>
+export const LazyCommonFilterPanel: LazyComponent<typeof import("../components/common/FilterPanel.vue")['default']>
 export const LazyCommonHeroSection: LazyComponent<typeof import("../components/common/HeroSection.vue")['default']>
 export const LazyCommonInfoBanner: LazyComponent<typeof import("../components/common/InfoBanner.vue")['default']>
 export const LazyCommonMethodologyStep: LazyComponent<typeof import("../components/common/MethodologyStep.vue")['default']>
@@ -133,6 +145,8 @@ export const LazyNuxtRouteAnnouncer: LazyComponent<typeof import("../node_module
 export const LazyNuxtImg: LazyComponent<typeof import("../node_modules/nuxt/dist/app/components/nuxt-stubs")['NuxtImg']>
 export const LazyNuxtPicture: LazyComponent<typeof import("../node_modules/nuxt/dist/app/components/nuxt-stubs")['NuxtPicture']>
 export const LazyColorScheme: LazyComponent<typeof import("../node_modules/@nuxtjs/color-mode/dist/runtime/component.vue3.vue")['default']>
+export const LazyIcon: LazyComponent<typeof import("../node_modules/nuxt-icon/dist/runtime/Icon.vue")['default']>
+export const LazyIconCSS: LazyComponent<typeof import("../node_modules/nuxt-icon/dist/runtime/IconCSS.vue")['default']>
 export const LazyNuxtPage: LazyComponent<typeof import("../node_modules/nuxt/dist/pages/runtime/page")['default']>
 export const LazyNoScript: LazyComponent<typeof import("../node_modules/nuxt/dist/head/runtime/components")['NoScript']>
 export const LazyLink: LazyComponent<typeof import("../node_modules/nuxt/dist/head/runtime/components")['Link']>
