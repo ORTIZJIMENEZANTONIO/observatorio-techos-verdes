@@ -1,37 +1,264 @@
 <template>
   <div>
-    <!-- 1. Hero Section -->
-    <section class="relative overflow-hidden bg-gradient-to-br from-primary-800 via-primary to-primary-light">
-      <div class="absolute inset-0 opacity-10">
-        <div class="absolute -right-20 -top-20 h-96 w-96 rounded-full bg-eco" />
-        <div class="absolute -bottom-32 -left-20 h-80 w-80 rounded-full bg-secondary" />
+    <!-- 1. Hero Section — foto CIIEMAD + humedalito + flotantes -->
+    <section class="hero-home relative overflow-hidden">
+      <!-- Capa 0: foto del techo verde CIIEMAD -->
+      <div class="hero-home-photo" aria-hidden="true" />
+      <!-- Capa 1: tint verde sobre la foto -->
+      <div class="hero-home-tint" aria-hidden="true" />
+      <!-- Capa 2: anillos topográficos -->
+      <div class="hero-home-topo" aria-hidden="true" />
+      <!-- Capa 3: orbes lava lamp -->
+      <div class="hero-home-orbs" aria-hidden="true">
+        <span class="orb orb--g1" />
+        <span class="orb orb--g2" />
+        <span class="orb orb--a1" />
       </div>
-      <div class="container-wide relative py-20 md:py-26">
-        <div class="max-w-3xl">
-          <span v-if="hero?.eyebrow" class="mb-4 inline-flex items-center gap-2 rounded-badge bg-white/10 px-4 py-1.5 text-xs font-semibold uppercase tracking-wider text-eco-light backdrop-blur-sm">
-            <span class="h-1.5 w-1.5 rounded-full bg-eco animate-pulse-glow" style="animation: pulseGlow 2s ease-in-out infinite;" />
-            {{ hero.eyebrow }}
-          </span>
-          <h1 class="mt-4 text-4xl font-extrabold leading-tight text-white md:text-5xl lg:text-6xl">
-            <template v-if="hero?.titleLine1">{{ hero.titleLine1 }}<br></template>
-            <span v-if="hero?.titleLine2" class="text-gradient-hero">{{ hero.titleLine2 }}</span><br>
-            CDMX
-          </h1>
-          <p v-if="hero?.subtitle" class="mt-6 max-w-xl text-lg leading-relaxed text-white/80 md:text-xl">
-            {{ hero.subtitle }}
-          </p>
-          <div class="mt-8 flex flex-wrap gap-4">
-            <NuxtLink v-if="hero?.primaryLabel && hero?.primaryTo" :to="hero.primaryTo" class="btn-primary btn-lg !bg-eco hover:!bg-eco-light">
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6" />
-                <line x1="8" y1="2" x2="8" y2="18" />
-                <line x1="16" y1="6" x2="16" y2="22" />
-              </svg>
-              {{ hero.primaryLabel }}
-            </NuxtLink>
-            <NuxtLink v-if="hero?.secondaryLabel && hero?.secondaryTo" :to="hero.secondaryTo" class="btn btn-lg border border-white/30 text-white hover:bg-white/10">
-              {{ hero.secondaryLabel }}
-            </NuxtLink>
+
+      <div class="container-wide relative py-20 md:py-24 lg:py-10 z-10">
+        <div class="grid grid-cols-1 items-center gap-10 lg:grid-cols-12">
+          <!-- Columna texto -->
+          <div class="lg:col-span-7 xl:col-span-8">
+            <span
+              v-if="hero?.eyebrow"
+              class="mb-5 inline-flex items-center gap-2 rounded-badge bg-white/10 px-4 py-1.5 text-xs font-semibold uppercase tracking-wider text-eco-light backdrop-blur-sm"
+            >
+              <span class="live-dot" />
+              {{ hero.eyebrow }}
+            </span>
+            <h1 class="mt-2 text-4xl font-extrabold leading-tight text-white md:text-5xl lg:text-6xl">
+              <template v-if="hero?.titleLine1">{{ hero.titleLine1 }}<br></template>
+              <span v-if="hero?.titleLine2" class="text-gradient-hero">{{ hero.titleLine2 }}</span><br>
+              CDMX
+            </h1>
+            <p
+              v-if="hero?.subtitle"
+              class="mt-6 max-w-2xl text-lg leading-relaxed text-white/85 md:text-xl"
+            >
+              {{ hero.subtitle }}
+            </p>
+
+            <!-- 4 atajos visuales con iconos grandes -->
+            <div class="mt-8 grid max-w-2xl grid-cols-2 gap-3 sm:grid-cols-4">
+              <NuxtLink
+                to="/inventario"
+                class="hero-quick group"
+                title="Inventario de techos verdes"
+              >
+                <svg
+                  class="hero-quick-icon"
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1.8"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <path d="M3 21h18" />
+                  <path d="M5 21V7l7-4 7 4v14" />
+                  <path d="M9 21V13h6v8" />
+                </svg>
+                <span class="hero-quick-label">Inventario</span>
+              </NuxtLink>
+              <NuxtLink to="/mapa" class="hero-quick group" title="Mapa interactivo">
+                <svg
+                  class="hero-quick-icon"
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1.8"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6" />
+                  <line x1="8" y1="2" x2="8" y2="18" />
+                  <line x1="16" y1="6" x2="16" y2="22" />
+                </svg>
+                <span class="hero-quick-label">Mapa</span>
+              </NuxtLink>
+              <NuxtLink
+                to="/agenda-2030"
+                class="hero-quick group"
+                title="Techos verdes y Agenda 2030"
+              >
+                <svg
+                  class="hero-quick-icon"
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1.8"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <circle cx="12" cy="12" r="10" />
+                  <line x1="2" y1="12" x2="22" y2="12" />
+                  <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
+                </svg>
+                <span class="hero-quick-label">Agenda 2030</span>
+              </NuxtLink>
+              <NuxtLink
+                to="/comunidad"
+                class="hero-quick group"
+                title="Sumarse a la comunidad"
+              >
+                <svg
+                  class="hero-quick-icon"
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1.8"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                  <circle cx="9" cy="7" r="4" />
+                  <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+                  <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+                </svg>
+                <span class="hero-quick-label">Comunidad</span>
+              </NuxtLink>
+            </div>
+
+            <div class="mt-8 flex flex-wrap gap-4">
+              <NuxtLink
+                v-if="hero?.primaryLabel && hero?.primaryTo"
+                :to="hero.primaryTo"
+                class="btn-primary btn-lg !bg-eco hover:!bg-eco-light"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  class="h-5 w-5"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6" />
+                  <line x1="8" y1="2" x2="8" y2="18" />
+                  <line x1="16" y1="6" x2="16" y2="22" />
+                </svg>
+                {{ hero.primaryLabel }}
+              </NuxtLink>
+              <NuxtLink
+                v-if="hero?.secondaryLabel && hero?.secondaryTo"
+                :to="hero.secondaryTo"
+                class="btn btn-lg border border-white/30 text-white hover:bg-white/10"
+              >
+                {{ hero.secondaryLabel }}
+              </NuxtLink>
+            </div>
+          </div>
+
+          <!-- Columna mascota Techito + chips flotantes -->
+          <div class="hidden lg:flex lg:col-span-5 xl:col-span-4 items-center justify-center">
+            <div
+              class="hero-mascot-wrap"
+              :class="{ 'mascot--petted': isPetted }"
+              @mouseenter="showSpeech = true"
+              @mouseleave="showSpeech = false"
+              @touchstart="toggleSpeechMobile"
+            >
+              <!-- Chip flotante 1: NDVI -->
+              <div class="hero-chip hero-chip--ndvi">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  class="h-4 w-4 text-eco"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <path d="M3 12a9 9 0 1 0 18 0 9 9 0 0 0-18 0z" />
+                  <path d="M12 7v10" />
+                  <path d="M7 12h10" />
+                </svg>
+                <div>
+                  <p class="text-[10px] font-bold uppercase tracking-wider text-white/70">NDVI Sentinel-2</p>
+                  <p class="text-sm font-bold text-white">+0.62</p>
+                </div>
+              </div>
+              <!-- Chip flotante 2: temperatura -->
+              <div class="hero-chip hero-chip--temp">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  class="h-4 w-4 text-accent"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <path d="M14 14.76V3.5a2.5 2.5 0 0 0-5 0v11.26a4.5 4.5 0 1 0 5 0z" />
+                </svg>
+                <div>
+                  <p class="text-[10px] font-bold uppercase tracking-wider text-white/70">Reducción LST</p>
+                  <p class="text-sm font-bold text-white">−3.5 °C</p>
+                </div>
+              </div>
+              <!-- Chip flotante 3: CO2 -->
+              <div class="hero-chip hero-chip--co2">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  class="h-4 w-4 text-eco-light"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" />
+                </svg>
+                <div>
+                  <p class="text-[10px] font-bold uppercase tracking-wider text-white/70">Captura CO₂</p>
+                  <p class="text-sm font-bold text-white">0.97 kg/m²·año</p>
+                </div>
+              </div>
+
+              <!-- Speech bubble: "Hola, soy Techito" -->
+              <div
+                class="speech-bubble"
+                :class="{ 'speech-visible': showSpeech }"
+              >
+                <span class="text-xs font-bold text-primary">Hola, soy Techito</span>
+              </div>
+
+              <!-- Hearts (pet easter egg) -->
+              <div v-if="isPetted" class="mascot-hearts" aria-hidden="true">
+                <span class="mascot-heart" style="left: 15%; animation-delay: 0s">💚</span>
+                <span class="mascot-heart" style="left: 50%; animation-delay: 0.2s">🌿</span>
+                <span class="mascot-heart" style="left: 80%; animation-delay: 0.4s">💛</span>
+              </div>
+
+              <!-- Mascota Techito con parpadeo (sin animación de saludo por ahora).
+                   NOTA para iteración futura: el brazo de saludo en el SVG es un path
+                   con fill #7E532F y transform="translate(250,669)". Bbox del path
+                   localizado: x=238-290, y=669-766 (en % de 960×1088 = x:24.8%-30.2%,
+                   y:61.5%-70.4%). Pivot del hombro: (264, 669) = (27.5%, 61.5%).
+                   Para reanimarlo: clip-path basado en estos %, no en los del brazo derecho. -->
+              <CommonTechitoBlink :blinking="isBlinking">
+                <img
+                  src="/images/mascots/techito.svg"
+                  alt="Techito — mascota del Observatorio de Techos Verdes CDMX"
+                  class="hero-mascot-img"
+                  :class="{ 'mascot--speaking': showSpeech }"
+                  loading="eager"
+                  @pointerdown.prevent="petTechito"
+                />
+              </CommonTechitoBlink>
+
+              <!-- Halo verde detrás de la mascota -->
+              <div class="hero-mascot-halo" aria-hidden="true" />
+            </div>
           </div>
         </div>
       </div>
@@ -412,6 +639,84 @@ type HeroShape = {
 const cms = useCmsContent('home')
 const hero = cms.one<HeroShape>('hero')
 
+// ── Techito mascot animation system (parpadeo + speech + pet easter egg) ──
+// Adaptado del patrón de Humedalito en /observatorio-humedales
+const isBlinking = ref(false)
+const showSpeech = ref(false)
+const isPetted = ref(false)
+const petCount = ref(0)
+let lastPetTime = 0
+
+let blinkTimer: ReturnType<typeof setTimeout> | null = null
+let petResetTimer: ReturnType<typeof setTimeout> | null = null
+let petEndTimer: ReturnType<typeof setTimeout> | null = null
+let speechHideTimer: ReturnType<typeof setTimeout> | null = null
+let speechAutoTimer: ReturnType<typeof setTimeout> | null = null
+
+onMounted(() => {
+  // Blink: cada ~2.6s, párpado cierra 150ms
+  const scheduleBlink = () => {
+    blinkTimer = setTimeout(() => {
+      isBlinking.value = true
+      setTimeout(() => {
+        isBlinking.value = false
+      }, 150)
+      scheduleBlink()
+    }, 2600)
+  }
+  scheduleBlink()
+
+  // Saludo automático al cargar: muestra el bocadillo 3.5s y luego lo oculta
+  speechAutoTimer = setTimeout(() => {
+    showSpeech.value = true
+    setTimeout(() => {
+      showSpeech.value = false
+    }, 3500)
+  }, 800)
+})
+
+onUnmounted(() => {
+  if (blinkTimer) clearTimeout(blinkTimer)
+  if (petResetTimer) clearTimeout(petResetTimer)
+  if (petEndTimer) clearTimeout(petEndTimer)
+  if (speechHideTimer) clearTimeout(speechHideTimer)
+  if (speechAutoTimer) clearTimeout(speechAutoTimer)
+})
+
+// Mobile: tap toggles speech, auto-hide después de 2.5s
+function toggleSpeechMobile() {
+  showSpeech.value = !showSpeech.value
+  if (speechHideTimer) clearTimeout(speechHideTimer)
+  if (showSpeech.value) {
+    speechHideTimer = setTimeout(() => {
+      showSpeech.value = false
+    }, 2500)
+  }
+}
+
+// Easter egg: 5 taps en 3s → corazones + wiggle
+function petTechito() {
+  if (isPetted.value) return
+  const now = Date.now()
+  if (now - lastPetTime < 100) return
+  lastPetTime = now
+  petCount.value++
+
+  if (petResetTimer) clearTimeout(petResetTimer)
+  petResetTimer = setTimeout(() => {
+    petCount.value = 0
+  }, 3000)
+
+  if (petCount.value >= 5) {
+    isPetted.value = true
+    petCount.value = 0
+    if (petEndTimer) clearTimeout(petEndTimer)
+    petEndTimer = setTimeout(() => {
+      isPetted.value = false
+    }, 3000)
+  }
+}
+
 // Scroll-reveal for each section
 const { revealRef: kpiSection } = useScrollReveal({ stagger: true })
 const { revealRef: aboutSection } = useScrollReveal({ stagger: true })
@@ -545,5 +850,327 @@ function kpiIconColor(color: string) {
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
+}
+
+/* ════════════════════════════════════════════════════════════════════
+   Hero Home — capas de fondo
+   ════════════════════════════════════════════════════════════════════ */
+.hero-home {
+  background:
+    radial-gradient(ellipse 90% 60% at 50% 0%, rgba(26, 122, 78, 0.45) 0%, transparent 60%),
+    linear-gradient(160deg, #042B1A 0%, #0A4A2D 25%, #0E5E3A 55%, #1A7A4E 85%, #0E5E3A 100%);
+}
+
+.hero-home-photo {
+  position: absolute;
+  inset: 0;
+  background-image: url('/images/tesis/techo-verde-ciiemad-panoramica.jpg');
+  background-size: cover;
+  background-position: center 50%;
+  background-repeat: no-repeat;
+  z-index: 0;
+  filter: saturate(1.1) contrast(1.05) brightness(0.95);
+  animation: heroPan 30s ease-in-out infinite alternate;
+  will-change: transform;
+}
+
+.hero-home-tint {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background:
+    linear-gradient(180deg, rgba(4, 43, 26, 0.55) 0%, rgba(14, 94, 58, 0.5) 50%, rgba(4, 43, 26, 0.85) 100%),
+    linear-gradient(140deg, rgba(14, 94, 58, 0.45) 0%, rgba(26, 122, 78, 0.35) 100%);
+  mix-blend-mode: multiply;
+}
+
+.hero-home-topo {
+  position: absolute;
+  inset: -10%;
+  z-index: 2;
+  background:
+    repeating-radial-gradient(circle at 30% 40%, transparent 0, transparent 38px, rgba(121, 193, 65, 0.06) 38px, rgba(121, 193, 65, 0.06) 39px),
+    repeating-radial-gradient(circle at 75% 70%, transparent 0, transparent 52px, rgba(197, 232, 212, 0.05) 52px, rgba(197, 232, 212, 0.05) 53px);
+  mix-blend-mode: screen;
+  opacity: 0.6;
+  animation: heroDrift 60s linear infinite;
+  will-change: transform;
+  pointer-events: none;
+}
+
+.hero-home-orbs {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  z-index: 3;
+  pointer-events: none;
+}
+
+.hero-home-orbs .orb {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(36px);
+  mix-blend-mode: screen;
+  opacity: 0.5;
+  will-change: transform;
+}
+
+.hero-home-orbs .orb--g1 {
+  width: 600px; height: 600px;
+  top: -180px; left: -120px;
+  background: radial-gradient(circle, rgba(14, 94, 58, 0.85) 0%, rgba(14, 94, 58, 0) 70%);
+  animation: heroLavaA 12s ease-in-out infinite;
+}
+.hero-home-orbs .orb--g2 {
+  width: 500px; height: 500px;
+  top: -60px; right: -100px;
+  background: radial-gradient(circle, rgba(26, 122, 78, 0.75) 0%, rgba(26, 122, 78, 0) 70%);
+  animation: heroLavaB 14s ease-in-out infinite;
+}
+.hero-home-orbs .orb--a1 {
+  width: 380px; height: 380px;
+  top: 30%; right: 25%;
+  background: radial-gradient(circle, rgba(121, 193, 65, 0.5) 0%, rgba(121, 193, 65, 0) 70%);
+  animation: heroLavaC 11s ease-in-out infinite;
+  opacity: 0.45;
+}
+
+@keyframes heroPan {
+  0%   { transform: scale(1.04) translate3d(0, 0, 0); }
+  100% { transform: scale(1.08) translate3d(-12px, -8px, 0); }
+}
+@keyframes heroDrift {
+  0%   { transform: translate3d(0, 0, 0) rotate(0deg); }
+  100% { transform: translate3d(-2%, -1%, 0) rotate(2deg); }
+}
+@keyframes heroLavaA {
+  0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
+  50%      { transform: translate3d(40px, 30px, 0) scale(1.05); }
+}
+@keyframes heroLavaB {
+  0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
+  50%      { transform: translate3d(-50px, 20px, 0) scale(0.95); }
+}
+@keyframes heroLavaC {
+  0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
+  50%      { transform: translate3d(20px, -15px, 0) scale(1.05); }
+}
+
+/* ════════════════════════════════════════════════════════════════════
+   Quick action cards (icons grandes)
+   ════════════════════════════════════════════════════════════════════ */
+.hero-quick {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 1rem 0.75rem;
+  border-radius: 0.875rem;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(8px);
+  text-decoration: none;
+  transition:
+    transform 0.3s cubic-bezier(0.22, 1, 0.36, 1),
+    background 0.3s,
+    border-color 0.3s,
+    box-shadow 0.3s;
+}
+.hero-quick:hover {
+  background: rgba(255, 255, 255, 0.16);
+  border-color: rgba(121, 193, 65, 0.5);
+  transform: translateY(-3px);
+  box-shadow: 0 8px 20px -4px rgba(14, 94, 58, 0.4);
+}
+.hero-quick:active {
+  transform: translateY(-1px);
+}
+.hero-quick-icon {
+  width: 2.25rem;
+  height: 2.25rem;
+  color: #C5E8D4;
+  transition: color 0.3s, transform 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.hero-quick:hover .hero-quick-icon {
+  color: #79C141;
+  transform: scale(1.1) rotate(-3deg);
+}
+.hero-quick-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: rgba(255, 255, 255, 0.85);
+}
+
+/* ════════════════════════════════════════════════════════════════════
+   Mascot + chips flotantes
+   ════════════════════════════════════════════════════════════════════ */
+.hero-mascot-wrap {
+  position: relative;
+  width: 320px;
+  height: 360px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* El wrapper de TechitoBlink (interno al componente) flota como bloque */
+.hero-mascot-wrap :deep(.techito-blink-wrap) {
+  position: relative;
+  z-index: 2;
+  animation: mascotFloat 5s ease-in-out infinite;
+  will-change: transform;
+}
+
+.hero-mascot-img {
+  width: 240px;
+  height: 240px;
+  object-fit: contain;
+  cursor: pointer;
+  filter: drop-shadow(0 12px 24px rgba(4, 43, 26, 0.45));
+  transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.hero-mascot-img:hover {
+  transform: scale(1.04);
+}
+
+.hero-mascot-halo {
+  position: absolute;
+  inset: 50% 50% auto auto;
+  width: 320px;
+  height: 320px;
+  margin-top: -160px;
+  margin-right: -160px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(121, 193, 65, 0.45) 0%, rgba(121, 193, 65, 0) 70%);
+  filter: blur(20px);
+  z-index: 1;
+  animation: mascotHalo 4s ease-in-out infinite alternate;
+}
+
+.hero-chip {
+  position: absolute;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.85rem;
+  border-radius: 0.75rem;
+  background: rgba(4, 43, 26, 0.65);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  backdrop-filter: blur(10px);
+  box-shadow: 0 4px 16px rgba(4, 43, 26, 0.4);
+  animation: chipFloat 4s ease-in-out infinite;
+  will-change: transform;
+}
+
+.hero-chip--ndvi { top: 6%;  right: -8%; animation-delay: 0s;   }
+.hero-chip--temp { bottom: 22%; left: -16%; animation-delay: 1.3s; }
+.hero-chip--co2  { bottom: 4%;  right: 4%;  animation-delay: 2.4s; }
+
+@keyframes mascotFloat {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50%      { transform: translateY(-12px) rotate(-1deg); }
+}
+@keyframes mascotHalo {
+  0%   { opacity: 0.7; transform: scale(1); }
+  100% { opacity: 1;   transform: scale(1.1); }
+}
+@keyframes chipFloat {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-8px); }
+}
+
+/* ════════════════════════════════════════════════════════════════════
+   Techito speech bubble + pet easter egg
+   ════════════════════════════════════════════════════════════════════ */
+.speech-bubble {
+  position: absolute;
+  top: -8px;
+  right: -28px;
+  z-index: 5;
+  background: #ffffff;
+  border-radius: 14px;
+  padding: 0.5rem 0.85rem;
+  box-shadow: 0 6px 20px rgba(4, 43, 26, 0.25);
+  opacity: 0;
+  transform: translateY(8px) scale(0.85);
+  transition:
+    opacity 0.3s cubic-bezier(0.34, 1.56, 0.64, 1),
+    transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  pointer-events: none;
+  white-space: nowrap;
+}
+.speech-bubble::after {
+  /* Cola del bocadillo apuntando a la mascota */
+  content: '';
+  position: absolute;
+  bottom: -8px;
+  left: 24px;
+  width: 0;
+  height: 0;
+  border-left: 8px solid transparent;
+  border-right: 8px solid transparent;
+  border-top: 10px solid #ffffff;
+  filter: drop-shadow(0 2px 1px rgba(4, 43, 26, 0.1));
+}
+.speech-bubble.speech-visible {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+}
+
+/* Corazones flotantes del easter egg */
+.mascot-hearts {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 4;
+}
+.mascot-heart {
+  position: absolute;
+  bottom: 30%;
+  font-size: 1.5rem;
+  opacity: 0;
+  animation: heartFloat 2.4s ease-out forwards;
+  filter: drop-shadow(0 2px 4px rgba(4, 43, 26, 0.3));
+}
+@keyframes heartFloat {
+  0%   { opacity: 0; transform: translateY(0) scale(0.6); }
+  20%  { opacity: 1; transform: translateY(-20px) scale(1.1); }
+  100% { opacity: 0; transform: translateY(-120px) scale(0.8) rotate(15deg); }
+}
+
+/* Cuando está hablando, la mascota se inclina ligeramente */
+.mascot--speaking {
+  transform: scale(1.04) rotate(-2deg);
+  transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* Cuando recibe muchos pets seguidos, hace wiggle */
+.mascot--petted {
+  animation: mascotWiggle 0.6s cubic-bezier(0.36, 0.07, 0.19, 0.97) 3;
+}
+@keyframes mascotWiggle {
+  0%, 100% { transform: rotate(0deg); }
+  20%      { transform: rotate(-6deg) scale(1.04); }
+  40%      { transform: rotate(5deg) scale(1.04); }
+  60%      { transform: rotate(-4deg); }
+  80%      { transform: rotate(3deg); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-home-photo,
+  .hero-home-topo,
+  .hero-home-orbs .orb,
+  .hero-mascot-img,
+  .hero-mascot-halo,
+  .hero-chip,
+  .mascot-heart,
+  .mascot--petted,
+  .mascot--speaking {
+    animation: none;
+    transform: none;
+  }
 }
 </style>

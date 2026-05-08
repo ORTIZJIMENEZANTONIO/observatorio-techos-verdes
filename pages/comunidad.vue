@@ -97,25 +97,26 @@ const pasos = [
   },
 ]
 
-// Formulario simple de contacto (cliente, sin backend persistente todavía)
+// Formulario de aportes — POST a /observatory/techos-verdes/comunidad/aportes
+// Si el backend no responde, fallback a mailto.
 const form = reactive({
   nombre: '',
   email: '',
   alcaldia: '',
   modo: '',
   mensaje: '',
+  website: '', // honeypot anti-spam (oculto en CSS)
 })
 const enviado = ref(false)
+const enviando = ref(false)
 const errorEnvio = ref<string | null>(null)
+const mensajeExito = ref<string | null>(null)
 
-const enviar = () => {
-  errorEnvio.value = null
-  if (!form.nombre.trim() || !form.email.trim() || !form.mensaje.trim()) {
-    errorEnvio.value = 'Por favor completa nombre, correo y mensaje.'
-    return
-  }
-  // Stub: por ahora abrimos un mailto al equipo del observatorio.
-  // En producción esto debe enviarse a /admin/prospectos vía API.
+const runtimeConfig = useRuntimeConfig()
+const observatorySlug = (runtimeConfig.public.observatory as string) || 'techos-verdes'
+const { apiFetch } = useApi()
+
+const fallbackMailto = () => {
   const subject = encodeURIComponent(
     `[Comunidad] ${form.modo || 'Aporte general'} de ${form.nombre}`,
   )
@@ -123,7 +124,59 @@ const enviar = () => {
     `Nombre: ${form.nombre}\nCorreo: ${form.email}\nAlcaldía: ${form.alcaldia || '—'}\nModo de participación: ${form.modo || '—'}\n\nMensaje:\n${form.mensaje}`,
   )
   window.location.href = `mailto:contacto@techosverdes.cdmx.gob.mx?subject=${subject}&body=${body}`
-  enviado.value = true
+}
+
+const enviar = async () => {
+  errorEnvio.value = null
+  mensajeExito.value = null
+
+  if (!form.nombre.trim() || !form.email.trim() || !form.mensaje.trim()) {
+    errorEnvio.value = 'Por favor completa nombre, correo y mensaje.'
+    return
+  }
+  if (form.mensaje.trim().length < 10) {
+    errorEnvio.value = 'El mensaje debe tener al menos 10 caracteres.'
+    return
+  }
+
+  enviando.value = true
+  try {
+    await apiFetch(`/observatory/${observatorySlug}/comunidad/aportes`, {
+      method: 'POST',
+      body: {
+        nombre: form.nombre.trim(),
+        email: form.email.trim(),
+        alcaldia: form.alcaldia.trim() || undefined,
+        modo: form.modo || undefined,
+        mensaje: form.mensaje.trim(),
+        website: form.website,
+      },
+    })
+    enviado.value = true
+    mensajeExito.value =
+      '¡Gracias! Tu aporte fue recibido. El equipo lo revisará y se pondrá en contacto contigo.'
+    // Limpia el formulario
+    form.nombre = ''
+    form.email = ''
+    form.alcaldia = ''
+    form.modo = ''
+    form.mensaje = ''
+  } catch (err: any) {
+    // Fallback a mailto si el backend no responde o devuelve error de red
+    const status = err?.statusCode || err?.status
+    if (!status || status >= 500 || status === 0) {
+      errorEnvio.value =
+        'No pudimos enviar al servidor. Abrimos tu correo con el mensaje precargado.'
+      fallbackMailto()
+    } else if (status === 400) {
+      const detail = err?.data?.message || 'Revisa los datos del formulario.'
+      errorEnvio.value = detail
+    } else {
+      errorEnvio.value = 'Ocurrió un error. Intenta de nuevo o escríbenos directamente.'
+    }
+  } finally {
+    enviando.value = false
+  }
 }
 
 const roleLabel: Record<string, string> = {
@@ -205,17 +258,29 @@ const roleLabel: Record<string, string> = {
             </p>
           </div>
           <div class="grid grid-cols-2 gap-3 lg:grid-cols-1">
-            <div class="kpi-card">
-              <p class="text-3xl font-bold text-primary">5</p>
-              <p class="text-xs text-slate-custom">Modos de participación</p>
-            </div>
-            <div class="kpi-card">
-              <p class="text-3xl font-bold text-eco">{{ contributors.length }}</p>
-              <p class="text-xs text-slate-custom">Contribuyentes verificados</p>
-            </div>
-            <div class="kpi-card col-span-2 lg:col-span-1">
-              <p class="text-3xl font-bold text-accent-dark">100 %</p>
-              <p class="text-xs text-slate-custom">Datos abiertos y citables</p>
+            <CommonCountUpKPI
+              :target="tiers.length"
+              detalle="Modos de participación"
+              fuente="Aprendiz · Reportador · Caracterizador · Especialista · Operador"
+              href="#tiers"
+              number-class="text-primary"
+            />
+            <CommonCountUpKPI
+              :target="contributors.length"
+              detalle="Contribuyentes verificados"
+              fuente="CIIEMAD-IPN, SEDEMA y red en crecimiento"
+              href="#contribuyentes"
+              number-class="text-eco-dark"
+            />
+            <div class="col-span-2 lg:col-span-1">
+              <CommonCountUpKPI
+                :target="100"
+                suffix=" %"
+                detalle="Datos abiertos y citables"
+                fuente="Inventario público · DOI por publicación"
+                href="/referencias"
+                number-class="text-accent-dark"
+              />
             </div>
           </div>
         </div>
@@ -332,7 +397,7 @@ const roleLabel: Record<string, string> = {
       </section>
 
       <!-- 4. Contribuyentes actuales -->
-      <section class="reveal">
+      <section id="contribuyentes" class="reveal scroll-mt-24">
         <div class="mb-6 flex items-center gap-3">
           <span class="badge-secondary">Red de contribuyentes</span>
           <h2 class="text-2xl font-bold text-ink">Quiénes ya aportan</h2>
@@ -499,22 +564,62 @@ const roleLabel: Record<string, string> = {
                 />
               </div>
 
-              <p v-if="errorEnvio" class="text-xs text-alert">{{ errorEnvio }}</p>
-              <p v-if="enviado" class="text-xs text-eco-dark">
-                Se abrió tu cliente de correo con el mensaje listo. Si no se abrió,
-                escríbenos directamente a contacto@techosverdes.cdmx.gob.mx.
+              <!-- Honeypot anti-spam: invisible para humanos, los bots lo llenan -->
+              <input
+                v-model="form.website"
+                type="text"
+                name="website"
+                tabindex="-1"
+                autocomplete="off"
+                aria-hidden="true"
+                class="honeypot"
+              />
+
+              <p v-if="errorEnvio" class="rounded-lg bg-alert/10 px-3 py-2 text-xs text-alert-dark">
+                {{ errorEnvio }}
+              </p>
+              <p v-if="mensajeExito" class="rounded-lg bg-eco/10 px-3 py-2 text-xs text-eco-dark">
+                {{ mensajeExito }}
               </p>
 
               <div class="flex flex-wrap items-center gap-3 pt-2">
-                <button type="submit" class="btn-primary">
-                  Enviar aporte
-                  <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <button
+                  type="submit"
+                  class="btn-primary"
+                  :disabled="enviando"
+                  :class="enviando ? 'opacity-60 cursor-wait' : ''"
+                >
+                  <span v-if="enviando">Enviando…</span>
+                  <span v-else>Enviar aporte</span>
+                  <svg
+                    v-if="!enviando"
+                    xmlns="http://www.w3.org/2000/svg"
+                    class="h-4 w-4"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
                     <path d="M5 12h14" />
                     <path d="m12 5 7 7-7 7" />
                   </svg>
+                  <svg
+                    v-else
+                    xmlns="http://www.w3.org/2000/svg"
+                    class="h-4 w-4 animate-spin-smooth"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                  >
+                    <path d="M21 12a9 9 0 1 1-6.219-8.56" />
+                  </svg>
                 </button>
                 <p class="text-[11px] text-ink-muted">
-                  El formulario abre un correo precargado. No almacenamos datos en el cliente.
+                  Tu aporte se guarda en la cola pública de prospectos para revisión manual.
                 </p>
               </div>
             </form>
@@ -538,3 +643,17 @@ const roleLabel: Record<string, string> = {
     </div>
   </div>
 </template>
+
+<style scoped>
+/* Honeypot oculto: si un bot llena este campo, el backend descarta el envío */
+.honeypot {
+  position: absolute;
+  left: -10000px;
+  top: auto;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  opacity: 0;
+  pointer-events: none;
+}
+</style>

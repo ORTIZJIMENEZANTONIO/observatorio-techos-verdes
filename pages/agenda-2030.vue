@@ -104,43 +104,52 @@ const servicios = [
   },
 ]
 
-// Hechos clave del capítulo con su fuente
+// Hechos clave del capítulo con su fuente y URL referenciable
 const datos = [
   {
-    valor: '7',
+    target: 7,
+    suffix: '',
     unidad: 'ODS',
     detalle: 'directamente vinculados al techo verde',
     fuente: 'Martínez Rodríguez & Cervantes-Nájera, 2023',
+    href: 'https://doi.org/10.52501/cc.064.13',
   },
   {
-    valor: '17',
+    target: 17,
+    suffix: '',
     unidad: 'metas',
     detalle: 'de la Agenda 2030 atendidas',
     fuente: 'Tabla 1, capítulo XIII',
+    href: 'https://doi.org/10.52501/cc.064.13',
   },
   {
-    valor: '142',
+    target: 142,
+    suffix: '',
     unidad: 'proyectos',
     detalle: 'de techos verdes registrados a nivel mundial',
     fuente: 'NATURVATION, 2018',
+    href: 'https://naturvation.eu/atlas',
   },
   {
-    valor: '75 %',
+    display: '75 %',
     unidad: '',
     detalle: 'de las emisiones de carbono provienen de ciudades',
     fuente: 'Naciones Unidas, 2018',
+    href: 'https://unstats.un.org/sdgs/report/2019/goal-11/',
   },
   {
-    valor: '7 M',
+    display: '7 M',
     unidad: 'muertes/año',
     detalle: 'por contaminación atmosférica',
     fuente: 'United Nations, 2016f',
+    href: 'https://unstats.un.org/sdgs/report/2019/goal-03/',
   },
   {
-    valor: '60 %',
+    display: '60 %',
     unidad: '',
     detalle: 'del consumo energético urbano genera GEI',
     fuente: 'United Nations, 2016e',
+    href: 'https://www.un.org/sustainabledevelopment/es/energy/',
   },
 ]
 
@@ -278,22 +287,25 @@ const galeria = [
         </article>
       </section>
 
-      <!-- 2. KPIs del capítulo -->
+      <!-- 2. KPIs del capítulo (clickeables a la fuente) -->
       <section class="reveal">
         <h2 class="text-2xl font-bold text-ink">Datos clave del capítulo</h2>
         <p class="mt-2 max-w-3xl text-sm text-slate-custom">
           Cifras citadas en el capítulo XIII que justifican la urgencia de naturar las
-          azoteas urbanas.
+          azoteas urbanas. Cada tarjeta enlaza a su fuente original.
         </p>
         <div class="mt-6 grid grid-cols-2 gap-4 md:grid-cols-3">
-          <div v-for="d in datos" :key="d.fuente + d.valor" class="kpi-card">
-            <p class="text-3xl font-bold text-primary">{{ d.valor }}</p>
-            <p class="text-xs font-semibold uppercase tracking-wider text-eco-dark">
-              {{ d.unidad }}
-            </p>
-            <p class="mt-1 text-sm text-slate-custom">{{ d.detalle }}</p>
-            <p class="mt-2 text-[10px] italic text-ink-muted">{{ d.fuente }}</p>
-          </div>
+          <CommonCountUpKPI
+            v-for="(d, i) in datos"
+            :key="i"
+            :target="d.target"
+            :suffix="d.suffix"
+            :display="d.display"
+            :unidad="d.unidad"
+            :detalle="d.detalle"
+            :fuente="d.fuente"
+            :href="d.href"
+          />
         </div>
       </section>
 

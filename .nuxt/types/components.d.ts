@@ -29,6 +29,7 @@ interface _GlobalComponents {
   CommonAppHeader: typeof import("../../components/common/AppHeader.vue")['default']
   CommonColorModeToggle: typeof import("../../components/common/ColorModeToggle.vue")['default']
   CommonConfidenceBadge: typeof import("../../components/common/ConfidenceBadge.vue")['default']
+  CommonCountUpKPI: typeof import("../../components/common/CountUpKPI.vue")['default']
   CommonDataDisclaimer: typeof import("../../components/common/DataDisclaimer.vue")['default']
   CommonDataSourceBadge: typeof import("../../components/common/DataSourceBadge.vue")['default']
   CommonDatasetDownloadCard: typeof import("../../components/common/DatasetDownloadCard.vue")['default']
@@ -45,6 +46,7 @@ interface _GlobalComponents {
   CommonSectionTitle: typeof import("../../components/common/SectionTitle.vue")['default']
   CommonStatCard: typeof import("../../components/common/StatCard.vue")['default']
   CommonStatusBadge: typeof import("../../components/common/StatusBadge.vue")['default']
+  CommonTechitoBlink: typeof import("../../components/common/TechitoBlink.vue")['default']
   HomeAIBlock: typeof import("../../components/home/AIBlock.vue")['default']
   HomeFeaturedRoofs: typeof import("../../components/home/FeaturedRoofs.vue")['default']
   HomeHeroSection: typeof import("../../components/home/HeroSection.vue")['default']
@@ -101,6 +103,7 @@ interface _GlobalComponents {
   LazyCommonAppHeader: LazyComponent<typeof import("../../components/common/AppHeader.vue")['default']>
   LazyCommonColorModeToggle: LazyComponent<typeof import("../../components/common/ColorModeToggle.vue")['default']>
   LazyCommonConfidenceBadge: LazyComponent<typeof import("../../components/common/ConfidenceBadge.vue")['default']>
+  LazyCommonCountUpKPI: LazyComponent<typeof import("../../components/common/CountUpKPI.vue")['default']>
   LazyCommonDataDisclaimer: LazyComponent<typeof import("../../components/common/DataDisclaimer.vue")['default']>
   LazyCommonDataSourceBadge: LazyComponent<typeof import("../../components/common/DataSourceBadge.vue")['default']>
   LazyCommonDatasetDownloadCard: LazyComponent<typeof import("../../components/common/DatasetDownloadCard.vue")['default']>
@@ -117,6 +120,7 @@ interface _GlobalComponents {
   LazyCommonSectionTitle: LazyComponent<typeof import("../../components/common/SectionTitle.vue")['default']>
   LazyCommonStatCard: LazyComponent<typeof import("../../components/common/StatCard.vue")['default']>
   LazyCommonStatusBadge: LazyComponent<typeof import("../../components/common/StatusBadge.vue")['default']>
+  LazyCommonTechitoBlink: LazyComponent<typeof import("../../components/common/TechitoBlink.vue")['default']>
   LazyHomeAIBlock: LazyComponent<typeof import("../../components/home/AIBlock.vue")['default']>
   LazyHomeFeaturedRoofs: LazyComponent<typeof import("../../components/home/FeaturedRoofs.vue")['default']>
   LazyHomeHeroSection: LazyComponent<typeof import("../../components/home/HeroSection.vue")['default']>

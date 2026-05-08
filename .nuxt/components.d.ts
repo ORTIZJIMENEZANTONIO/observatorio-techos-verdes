@@ -29,6 +29,7 @@ export const CommonAppFooter: typeof import("../components/common/AppFooter.vue"
 export const CommonAppHeader: typeof import("../components/common/AppHeader.vue")['default']
 export const CommonColorModeToggle: typeof import("../components/common/ColorModeToggle.vue")['default']
 export const CommonConfidenceBadge: typeof import("../components/common/ConfidenceBadge.vue")['default']
+export const CommonCountUpKPI: typeof import("../components/common/CountUpKPI.vue")['default']
 export const CommonDataDisclaimer: typeof import("../components/common/DataDisclaimer.vue")['default']
 export const CommonDataSourceBadge: typeof import("../components/common/DataSourceBadge.vue")['default']
 export const CommonDatasetDownloadCard: typeof import("../components/common/DatasetDownloadCard.vue")['default']
@@ -45,6 +46,7 @@ export const CommonSearchBar: typeof import("../components/common/SearchBar.vue"
 export const CommonSectionTitle: typeof import("../components/common/SectionTitle.vue")['default']
 export const CommonStatCard: typeof import("../components/common/StatCard.vue")['default']
 export const CommonStatusBadge: typeof import("../components/common/StatusBadge.vue")['default']
+export const CommonTechitoBlink: typeof import("../components/common/TechitoBlink.vue")['default']
 export const HomeAIBlock: typeof import("../components/home/AIBlock.vue")['default']
 export const HomeFeaturedRoofs: typeof import("../components/home/FeaturedRoofs.vue")['default']
 export const HomeHeroSection: typeof import("../components/home/HeroSection.vue")['default']
@@ -101,6 +103,7 @@ export const LazyCommonAppFooter: LazyComponent<typeof import("../components/com
 export const LazyCommonAppHeader: LazyComponent<typeof import("../components/common/AppHeader.vue")['default']>
 export const LazyCommonColorModeToggle: LazyComponent<typeof import("../components/common/ColorModeToggle.vue")['default']>
 export const LazyCommonConfidenceBadge: LazyComponent<typeof import("../components/common/ConfidenceBadge.vue")['default']>
+export const LazyCommonCountUpKPI: LazyComponent<typeof import("../components/common/CountUpKPI.vue")['default']>
 export const LazyCommonDataDisclaimer: LazyComponent<typeof import("../components/common/DataDisclaimer.vue")['default']>
 export const LazyCommonDataSourceBadge: LazyComponent<typeof import("../components/common/DataSourceBadge.vue")['default']>
 export const LazyCommonDatasetDownloadCard: LazyComponent<typeof import("../components/common/DatasetDownloadCard.vue")['default']>
@@ -117,6 +120,7 @@ export const LazyCommonSearchBar: LazyComponent<typeof import("../components/com
 export const LazyCommonSectionTitle: LazyComponent<typeof import("../components/common/SectionTitle.vue")['default']>
 export const LazyCommonStatCard: LazyComponent<typeof import("../components/common/StatCard.vue")['default']>
 export const LazyCommonStatusBadge: LazyComponent<typeof import("../components/common/StatusBadge.vue")['default']>
+export const LazyCommonTechitoBlink: LazyComponent<typeof import("../components/common/TechitoBlink.vue")['default']>
 export const LazyHomeAIBlock: LazyComponent<typeof import("../components/home/AIBlock.vue")['default']>
 export const LazyHomeFeaturedRoofs: LazyComponent<typeof import("../components/home/FeaturedRoofs.vue")['default']>
 export const LazyHomeHeroSection: LazyComponent<typeof import("../components/home/HeroSection.vue")['default']>

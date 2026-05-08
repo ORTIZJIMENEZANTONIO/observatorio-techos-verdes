@@ -17,7 +17,7 @@
     <div class="absolute -bottom-24 -left-24 h-72 w-72 rounded-full bg-gradient-to-tr from-secondary/8 to-eco/5 blur-3xl" />
 
     <div class="container-wide relative">
-      <div class="flex min-h-[calc(100vh-4rem)] items-center py-16 md:py-18 lg:py-20">
+      <div class="flex min-h-[calc(100vh-4rem)] items-center py-16 md:py-18 lg:py-15">
         <div class="grid grid-cols-1 items-center gap-12 lg:grid-cols-2 lg:gap-16">
           <!-- Left content -->
           <div class="max-w-xl">

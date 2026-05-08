@@ -240,6 +240,65 @@ const bibliografia = {
     </CommonHeroSection>
 
     <div ref="revealRef" class="stagger-children container-wide section-padding space-y-20">
+      <!-- 0. Resumen del marco — KPIs clickeables -->
+      <section class="reveal">
+        <h2 class="text-2xl font-bold text-ink">El marco en cifras</h2>
+        <p class="mt-2 max-w-3xl text-sm text-slate-custom">
+          Resumen del marco académico, normativo y de fuentes de datos que sustenta el
+          observatorio. Cada tarjeta enlaza a la sección correspondiente.
+        </p>
+        <div class="mt-6 grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-6">
+          <CommonCountUpKPI
+            :target="3"
+            unidad="trabajos"
+            detalle="académicos del CIIEMAD-IPN"
+            fuente="Tesis 2025, Cap. 2023, Tesis 2021"
+            href="#tesis"
+            number-class="text-primary"
+          />
+          <CommonCountUpKPI
+            :target="7"
+            unidad="ODS"
+            detalle="conectados al techo verde"
+            fuente="Martínez Rodríguez & Cervantes-Nájera (2023)"
+            href="/agenda-2030"
+            number-class="text-eco-dark"
+          />
+          <CommonCountUpKPI
+            :target="6"
+            unidad="fuentes"
+            detalle="oficiales de gobierno"
+            fuente="SIGCDMX · SEDEMA · SIMAT · INEGI · SGIRPC · Catastro"
+            href="#datos-oficiales"
+            number-class="text-secondary-dark"
+          />
+          <CommonCountUpKPI
+            :target="3"
+            unidad="sensores"
+            detalle="satelitales gratuitos"
+            fuente="Sentinel-2 · Landsat 8/9 · Google Earth Engine"
+            href="#sensores"
+            number-class="text-accent-dark"
+          />
+          <CommonCountUpKPI
+            :target="4"
+            unidad="normas"
+            detalle="técnicas aplicables"
+            fuente="NTC-CDMX 2017 · NADF-013 · RCDF · NMX-AA-164"
+            href="#normativa"
+            number-class="text-alert-dark"
+          />
+          <CommonCountUpKPI
+            :target="41"
+            unidad="referencias"
+            detalle="bibliográficas en 6 bloques"
+            fuente="CIIEMAD · Agenda 2030 · SbN · Beneficios · Métodos"
+            href="#bibliografia"
+            number-class="text-primary"
+          />
+        </div>
+      </section>
+
       <!-- 1. Sede académica: IPN / CIIEMAD -->
       <section class="reveal">
         <div class="mb-6 flex items-center gap-3">
@@ -357,7 +416,7 @@ const bibliografia = {
       </section>
 
       <!-- 2. Tesis académicas y publicaciones -->
-      <section class="reveal">
+      <section id="tesis" class="reveal scroll-mt-24">
         <div class="mb-6 flex items-center gap-3">
           <span class="badge-eco">Producción académica</span>
           <h2 class="text-2xl font-bold text-ink">Trabajos de referencia del CIIEMAD-IPN</h2>
@@ -446,7 +505,7 @@ const bibliografia = {
       </section>
 
       <!-- 4. Fuentes oficiales de datos -->
-      <section class="reveal">
+      <section id="datos-oficiales" class="reveal scroll-mt-24">
         <div class="mb-6 flex items-center gap-3">
           <span class="badge-secondary">Datos oficiales</span>
           <h2 class="text-2xl font-bold text-ink">Fuentes gubernamentales</h2>
@@ -487,7 +546,7 @@ const bibliografia = {
       </section>
 
       <!-- 4. Sensores satelitales -->
-      <section class="reveal">
+      <section id="sensores" class="reveal scroll-mt-24">
         <div class="mb-6 flex items-center gap-3">
           <span class="badge-accent">Percepción remota</span>
           <h2 class="text-2xl font-bold text-ink">Sensores satelitales</h2>
@@ -515,7 +574,7 @@ const bibliografia = {
       </section>
 
       <!-- 5. Marco normativo -->
-      <section class="reveal">
+      <section id="normativa" class="reveal scroll-mt-24">
         <div class="mb-6 flex items-center gap-3">
           <span class="badge-alert">Normativa</span>
           <h2 class="text-2xl font-bold text-ink">Marco normativo aplicable</h2>
@@ -536,7 +595,7 @@ const bibliografia = {
       </section>
 
       <!-- 6. Bibliografía técnica organizada por bloques -->
-      <section class="reveal">
+      <section id="bibliografia" class="reveal scroll-mt-24">
         <div class="mb-6 flex items-center gap-3">
           <span class="badge-primary">Bibliografía</span>
           <h2 class="text-2xl font-bold text-ink">Referencias bibliográficas</h2>

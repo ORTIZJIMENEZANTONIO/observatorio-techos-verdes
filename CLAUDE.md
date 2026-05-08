@@ -34,7 +34,7 @@ npm run preview    # Preview production build
 observatorio-techos-verdes/
   assets/css/main.css       # Global styles, animations, Leaflet overrides
   components/
-    common/                 # AppHeader, AppFooter, SectionTitle, StatCard, StatusBadge, PaginationControls, HeroSection (lava lamp)
+    common/                 # AppHeader (dropdowns Datos/Conocimiento + Comunidad CTA), AppFooter, ColorModeToggle, SectionTitle, StatCard, StatusBadge, PaginationControls, HeroSection (lava lamp + topo + canopy + vignette), TechitoBlink (overlay de párpados sobre la mascota), CountUpKPI (números animados clickeables)
     home/                   # HeroSection, KPIGrid, HowItWorks, FeaturedRoofs, AIBlock, MapTeaser, MethodologySummary
     inventory/              # RoofCard, RoofDetailDrawer
     map/                    # MapPanel.client.vue, FilterSidebar, SuitabilityLegend
@@ -50,6 +50,8 @@ observatorio-techos-verdes/
     useStatisticalAnalysis.ts # Linear regression, Pearson correlation, projections, necesidad index, risk profile, structural pre-feasibility, cost of inaction, ROI
     useVisionAI.ts          # Gemini Vision composable (analyzeFromFile, fileToBase64, analyzing/lastResult/error refs)
     useSystemDynamics.ts    # System Dynamics simulation engine (Euler solver, 4 feedback loops, 4 scenarios, policy levers)
+    useCountUp.ts           # Animated number transitions (easeOutExpo, respects prefers-reduced-motion)
+    useApi.ts               # $fetch wrapper to cercu-backend with Bearer token + 401 handling
   data/
     mock-roofs.ts           # 57 GreenRoof records (exported as `greenRoofs`)
     mock-candidates.ts      # 60 CandidateRoof records (exported as `candidateRoofs`)
@@ -86,6 +88,9 @@ observatorio-techos-verdes/
     indicadores/            # Charts dashboard (tabbed: Territorial, Aptitud, Medio Ambiente, Analisis Estadistico, Simulacion Dinamica)
     metodologia/            # AHP methodology detail + official sources section
     sobre/                  # About page + normative section
+    referencias.vue         # Marco académico CIIEMAD-IPN, tesis, capítulo 2023, ODS, fuentes oficiales, normativa, bibliografía organizada en bloques colapsables
+    agenda-2030.vue         # Techos verdes y Agenda 2030 — 7 ODS conectados, MEA 2003, galería del techo verde CIIEMAD, vínculo al capítulo 10.52501/cc.064.13
+    comunidad.vue           # 5 modos de participación (tiers), contribuyentes, formulario de aporte que POSTea a /comunidad/aportes (fallback mailto)
   public/
     geojson/                # CDMX alcaldia boundaries
     images/tesis/           # Images extracted from thesis PDFs (capas, CIIEMAD photos, maps, charts)
@@ -642,6 +647,12 @@ Images extracted from the two CIIEMAD-IPN theses by Ana Laura Cervantes Najera:
 | `sitios-potenciales-125.png` | Map of priority zones for TVLE | Doctoral thesis (2025), Figura 34 |
 | `terrazas-alcazar.png` | Terrazas del Alcazar historic green roof | Doctoral thesis (2025), Figura 14 |
 | `prospectiva-indicadores-130.png` | Sustainability indicators projection | Doctoral thesis (2025), Figura 35 |
+| `techo-verde-ciiemad-panoramica.jpg` | Panorámica del techo verde con contexto urbano de Zacatenco | TECHOS VERDES.pptx (CIIEMAD, jul 2023) |
+| `techo-verde-ciiemad-suculentas.jpg` | Detalle de echeverias y crasuláceas | TECHOS VERDES.pptx (CIIEMAD, jul 2023) |
+| `techo-verde-ciiemad-modulo.jpg` | Módulo experimental con cubierta vegetal mixta | TECHOS VERDES.pptx (CIIEMAD, jul 2023) |
+| `techo-verde-ciiemad-floracion.jpg` | Floración estacional en suculentas del techo | TECHOS VERDES.pptx (CIIEMAD, jul 2023) |
+| `techo-verde-ciiemad-mantenimiento.jpg` | Equipo CIIEMAD durante trabajos de mantenimiento | TECHOS VERDES.pptx (CIIEMAD, jul 2023) |
+| `techo-verde-ciiemad-edificio.jpg` | Vista del techo desde lo alto con edificio académico al fondo | TECHOS VERDES.pptx (CIIEMAD, jul 2023) |
 
 ## Inventory Images (`public/img/roofs/`)
 22 building-specific photos from Wikimedia Commons (CC BY-SA / CC0 / CC BY, 800px wide):
@@ -704,6 +715,108 @@ Attribution footer at bottom of inventory page.
 - 514,000 m² potential installation area
 - 2.8 million kWh/year potential energy savings
 - $8 million MXN annual economic benefit
+
+## Header Navigation
+
+`AppHeader.vue` agrupa la navegación en **4 slots primarios** (en lugar de 8 links planos):
+
+```
+[Logo] [Inicio] [Datos ▾] [Conocimiento ▾] [Comunidad]   [logos] [☀/🌙] [+ Aportar]
+```
+
+- **Datos ▾** — Inventario · Candidatos · Mapa interactivo · Indicadores
+- **Conocimiento ▾** — Sobre · Metodología · Agenda 2030 · Referencias
+- **Comunidad** — link directo (color eco)
+- **+ Aportar** — CTA verde que lleva a `/comunidad#aportar`
+
+Dropdowns: cada link muestra `description` bajo el nombre. Animación `dropdown` (scaleY+fade, 180ms). Abre en hover (desktop) y click toggleable. Detecta sub-rutas activas via `isGroupActive(g)` y resalta el grupo.
+
+Mobile drawer: secciones agrupadas con cabecera tipográfica (Datos / Conocimiento) + dos CTAs al pie (Aportar + Mapa).
+
+## Public Pages — Marco académico, ODS y Comunidad
+
+### `/agenda-2030` — Techos verdes y la Agenda 2030
+Página completa basada en el capítulo XIII de Martínez Rodríguez & Cervantes-Nájera (2023, *Repensar la Agenda 2030*, Comunicación Científica, DOI [10.52501/cc.064.13](https://doi.org/10.52501/cc.064.13)). Estructura:
+1. Cita académica destacada del capítulo
+2. KPIs (7 ODS, 17 metas, 142 proyectos NATURVATION, 75 % emisiones urbanas, 7M muertes contaminación, 60 % GEI energía)
+3. 4 servicios ecosistémicos (MEA 2003): SC · SR · SA · SS
+4. Las 7 tarjetas de ODS conectados (2, 3, 6, 7, 11, 13, 15) con colores oficiales ONU + metas + cita justificativa
+5. Galería del techo verde CIIEMAD (6 imágenes de `techo-verde-ciiemad-*.jpg`)
+6. Aterrizaje territorial: links a /mapa, /indicadores, /candidatos
+7. Cierre ODS 17 con CTA a /referencias y al capítulo en acceso abierto
+
+### `/referencias` — Marco académico institucional
+Página de referencias organizadas por bloques. Estructura:
+1. **Sede académica IPN/CIIEMAD** — card destacada con logos y links externos
+2. **Tesis y publicaciones** (3 cards): doctoral 2025, capítulo 2023, maestría 2021
+3. **Agenda 2030 y ODS** (7 mini-cards de los ODS conectados, link a `/agenda-2030`)
+4. **Fuentes oficiales de datos** (SIGCDMX, SEDEMA, SIMAT, INEGI, SGIRPC, Catastro)
+5. **Sensores satelitales** (Sentinel-2, Landsat 8/9, GEE)
+6. **Marco normativo** (NTC-CDMX 2017, NADF-013-RNAT-2017, RCDF, NMX-AA-164)
+7. **Bibliografía técnica** organizada en 6 `<details>` colapsables: CIIEMAD-IPN (3) · Agenda 2030 (10) · SbN/ecosistemas (7) · Techos verdes historia/política (8) · Beneficios (7) · Metodología (6). Total: 41 referencias.
+
+### `/comunidad` — Aportes ciudadanos
+Página pública para que cualquier persona pueda sumar al observatorio. Estructura:
+1. Hero con CTAs ancla `#aportar` y `#tiers`
+2. KPIs (5 modos · contribuyentes verificados · 100 % datos abiertos)
+3. 3 pasos: identifica → documenta → equipo valida
+4. **5 modos de participación** (tarjetas tier importadas de `tiersDefaults`): Aprendiz · Reportador · Caracterizador · Especialista · Operador
+5. **Contribuyentes actuales** (CIIEMAD-IPN + SEDEMA) con badge de tier, validados, meses activos, tasa de aceptación
+6. **Formulario de aporte** que POSTea a `POST /api/v1/observatory/techos-verdes/comunidad/aportes`. Honeypot anti-spam (campo `website` oculto). Estados: `enviando`, `errorEnvio`, `mensajeExito`. Si el backend no responde, fallback a `mailto:contacto@techosverdes.cdmx.gob.mx`
+
+#### Endpoint /comunidad/aportes (cercu-backend)
+```
+POST /api/v1/observatory/:observatory/comunidad/aportes
+```
+Público (sin auth). Validado con `comunidadAporteSchema` (Joi). Crea un `ProspectSubmission` con `source='comunidad'` y `status='pendiente'` para revisión manual desde `/admin/prospectos`. Soporta cualquier observatorio (`techos-verdes`, `humedales`, `arrecifes`).
+
+**Payload:**
+```typescript
+{
+  nombre: string        // 2-150 chars, required
+  email: string         // valid email, required
+  alcaldia?: string     // 0-120 chars
+  modo?: 'aprendiz' | 'reportador' | 'caracterizador' | 'especialista' | 'operador' | ''
+  rol?: 'ciudadano' | 'propietario' | 'arquitecto' | 'ingeniero' | 'empresa' | 'gobierno' | 'ong' | 'academia' | ''
+  mensaje: string       // 10-4000 chars, required
+  lat?: number          // -90..90 (cuando el aporte es geolocalizado)
+  lng?: number          // -180..180
+  direccion?: string    // 0-255 chars
+  imagen?: string       // URL
+  website?: string      // honeypot — si tiene contenido, response 200 sin guardar
+}
+```
+
+**Backend module:** `cercu-backend/src/modules/observatory/comunidad/`
+- `comunidad.routes.ts` — POST `/:observatory/comunidad/aportes` (sin auth)
+- `comunidad.controller.ts` — wrapper sobre el service
+- `comunidad.service.ts` — `submitAporteComunidad()` crea ProspectSubmission con `source=ProspectSource.COMUNIDAD`
+- `submitProspectSchema` y `comunidadAporteSchema` — ambos en `observatory-admin.validation.ts`
+- `ProspectSource.COMUNIDAD = 'comunidad'` añadido al enum
+
+## Mascota Techito (`components/common/TechitoBlink.vue`)
+
+Mascota del observatorio: edificio de ladrillo con techo verde + ojos cartoon. SVG ubicado en `public/images/mascots/techito.svg` (origen: `utils/techito (1).svg`, ~879 KB, dimensiones nativas 960×1088).
+
+### Animaciones (en `pages/index.vue`)
+- **Parpadeo**: cada 2.6s × 150ms via `TechitoBlink.vue` con dos `<ellipse>` que cierran de `ry: 0` → `ry: 28` cuando `blinking=true`. Coords actuales `cx=550 cy=740` (izq) y `cx=695 cy=740` (der), `rx=34`, color `#807a72`.
+- **Saludo automático**: en `onMounted` muestra el bocadillo "Hola, soy Techito" desde t=800ms durante 3.5s
+- **Hover/touch**: `showSpeech` toggle del bocadillo (auto-hide 2.5s en mobile)
+- **Easter egg de petting**: 5 taps en 3s → `mascotWiggle` 0.6s × 3 + 3 corazones flotantes (💚 🌿 💛) con `heartFloat` keyframe
+- **Float idle**: 5s loop sobre `:deep(.techito-blink-wrap)` (no sobre el `<img>`, para que los párpados no se desincronicen)
+- Respeta `prefers-reduced-motion`
+
+### Animación del brazo (NO implementada — knowledge guardado)
+El SVG es image-traced (path único monolítico), por lo que no se puede aislar el brazo con clip-path basado en color clustering del PNG (mi primer intento clippeó el brazo derecho equivocado). El path real del brazo de saludo está identificado:
+- Selector: `<path fill="#7E532F" transform="translate(250,669)" d="M0 0 C0.93423645 3.01031744 ...">`
+- Bbox absoluto en SVG: x=238-290, y=669-766 (en %: 24.8%-30.2% × 61.5%-70.4%)
+- Pivot del hombro: (264, 669) = 27.5%/61.5%
+Para reactivar la animación: dual-layer img con clip-path basado en estos % + `transform-origin` en el hombro + keyframe rotando el overlay de la capa-arm.
+
+### Hero del home (`pages/index.vue`)
+- Hero embebido (NO usa `CommonHeroSection`) con foto de fondo `/images/tesis/techo-verde-ciiemad-panoramica.jpg`
+- 5 capas: foto + tint verde (mix-blend multiply) + topo isobath + lava orbs + vignette inferior
+- Grid 12 cols: 7-8 cols con texto + 4 quick links (Inventario, Mapa, Agenda 2030, Comunidad) con iconos 2.25rem; 4-5 cols con mascota Techito + 3 chips flotantes (NDVI Sentinel-2 +0.62 / Reducción LST −3.5°C / Captura CO₂ 0.97 kg/m²·año)
 
 ## Admin System
 

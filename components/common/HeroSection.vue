@@ -1,6 +1,8 @@
 <script setup lang="ts">
 defineProps<{
   compact?: boolean
+  /** Override de imagen de fondo (URL absoluta o relativa). Si se omite, usa el techo verde del CIIEMAD. */
+  image?: string
 }>()
 </script>
 
@@ -8,19 +10,24 @@ defineProps<{
   <section
     class="hero-section relative overflow-hidden flex items-center"
     :class="compact ? 'py-10 md:py-12' : 'py-12 md:py-16'"
+    :style="image ? { '--hero-image': `url('${image}')` } : undefined"
   >
     <div class="hero-bg" aria-hidden="true">
-      <!-- Topographical isobath rings (slow drift) -->
+      <!-- Foto real del techo verde CIIEMAD (capa base) -->
+      <div class="hero-photo" />
+      <!-- Tint verde para integrar con la paleta -->
+      <div class="hero-photo-tint" />
+      <!-- Anillos isobáticos (topo) -->
       <div class="hero-topo" />
-      <!-- Light dappling through canopy (slow drift) -->
+      <!-- Manchas de luz tipo dosel vegetal -->
       <div class="hero-canopy" />
-      <!-- Animated lava orbs -->
+      <!-- Lava orbs (atenuados sobre la foto) -->
       <span class="lava-orb orb--g1" />
       <span class="lava-orb orb--g2" />
       <span class="lava-orb orb--g3" />
       <span class="lava-orb orb--a1" />
       <span class="lava-orb orb--e1" />
-      <!-- Bottom vignette -->
+      <!-- Vignette inferior para legibilidad -->
       <div class="hero-vignette" />
     </div>
     <div class="container-wide relative z-10">
@@ -30,7 +37,9 @@ defineProps<{
 </template>
 
 <style scoped>
+/* Override --hero-image desde el componente padre o desde otra página/sección */
 .hero-section {
+  --hero-image: url('/images/tesis/techo-verde-ciiemad-panoramica.jpg');
   background:
     radial-gradient(ellipse 90% 60% at 50% 0%, rgba(26, 122, 78, 0.45) 0%, transparent 60%),
     linear-gradient(160deg, #042B1A 0%, #0A4A2D 25%, #0E5E3A 55%, #1A7A4E 85%, #0E5E3A 100%);
@@ -43,52 +52,89 @@ defineProps<{
   z-index: 0;
 }
 
+/* --- Foto real del techo verde CIIEMAD (capa base, protagonista sutil) --- */
+.hero-photo {
+  position: absolute;
+  inset: 0;
+  background-image: var(--hero-image);
+  background-size: cover;
+  background-position: center 50%;
+  background-repeat: no-repeat;
+  z-index: 0;
+  filter: saturate(1.1) contrast(1.05) brightness(0.95);
+  animation: photo-pan 30s ease-in-out infinite alternate;
+  will-change: transform;
+}
+
+/* --- Tint verde sobre la foto para integrar con la paleta --- */
+.hero-photo-tint {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background:
+    linear-gradient(180deg, rgba(4, 43, 26, 0.55) 0%, rgba(14, 94, 58, 0.50) 50%, rgba(4, 43, 26, 0.80) 100%),
+    linear-gradient(140deg, rgba(14, 94, 58, 0.45) 0%, rgba(26, 122, 78, 0.35) 100%);
+  mix-blend-mode: multiply;
+}
+
+@keyframes photo-pan {
+  0%   { transform: scale(1.04) translate3d(0, 0, 0); }
+  100% { transform: scale(1.08) translate3d(-12px, -8px, 0); }
+}
+
 /* --- Topographical (isobath-style) rings --- */
 .hero-topo {
   position: absolute;
   inset: -10%;
+  z-index: 2;
   background:
     repeating-radial-gradient(
       circle at 30% 40%,
       transparent 0px,
       transparent 38px,
-      rgba(121, 193, 65, 0.06) 38px,
-      rgba(121, 193, 65, 0.06) 39px
+      rgba(121, 193, 65, 0.05) 38px,
+      rgba(121, 193, 65, 0.05) 39px
     ),
     repeating-radial-gradient(
       circle at 75% 70%,
       transparent 0px,
       transparent 52px,
-      rgba(197, 232, 212, 0.05) 52px,
-      rgba(197, 232, 212, 0.05) 53px
+      rgba(197, 232, 212, 0.04) 52px,
+      rgba(197, 232, 212, 0.04) 53px
     );
   mix-blend-mode: screen;
+  opacity: 0.65;
   animation: drift-slow 60s linear infinite;
   will-change: transform;
+  pointer-events: none;
 }
 
 /* --- Canopy light dappling --- */
 .hero-canopy {
   position: absolute;
   inset: 0;
+  z-index: 2;
   background:
-    radial-gradient(ellipse 320px 80px at 22% 28%, rgba(197, 232, 212, 0.25), transparent 70%),
-    radial-gradient(ellipse 240px 60px at 78% 38%, rgba(143, 205, 95, 0.22), transparent 70%),
-    radial-gradient(ellipse 200px 50px at 50% 72%, rgba(121, 193, 65, 0.18), transparent 70%);
+    radial-gradient(ellipse 320px 80px at 22% 28%, rgba(197, 232, 212, 0.18), transparent 70%),
+    radial-gradient(ellipse 240px 60px at 78% 38%, rgba(143, 205, 95, 0.16), transparent 70%),
+    radial-gradient(ellipse 200px 50px at 50% 72%, rgba(121, 193, 65, 0.14), transparent 70%);
   mix-blend-mode: screen;
   filter: blur(2px);
   animation: canopy-drift 18s ease-in-out infinite;
   will-change: transform, opacity;
+  pointer-events: none;
 }
 
+/* --- Lava orbs (atenuados, dejan respirar la foto) --- */
 .lava-orb {
   position: absolute;
   border-radius: 50%;
-  filter: blur(28px);
+  filter: blur(32px);
   transform: translate3d(0, 0, 0);
   will-change: transform;
   mix-blend-mode: screen;
-  opacity: 0.9;
+  opacity: 0.55;
+  z-index: 3;
 }
 
 .orb--g1 {
@@ -114,22 +160,23 @@ defineProps<{
   top: 30%; right: 20%;
   background: radial-gradient(circle, rgba(121, 193, 65, 0.5) 0%, rgba(121, 193, 65, 0) 70%);
   animation: lavaD 11s ease-in-out infinite;
-  opacity: 0.5;
+  opacity: 0.4;
 }
 .orb--e1 {
   width: 280px; height: 280px;
   bottom: 12%; right: -40px;
   background: radial-gradient(circle, rgba(242, 168, 29, 0.35) 0%, rgba(242, 168, 29, 0) 70%);
   animation: lavaB 14s ease-in-out infinite;
-  opacity: 0.45;
+  opacity: 0.4;
 }
 
 /* --- Bottom vignette for content legibility --- */
 .hero-vignette {
   position: absolute;
   inset: auto 0 0 0;
-  height: 40%;
-  background: linear-gradient(to bottom, transparent 0%, rgba(4, 43, 26, 0.35) 100%);
+  height: 50%;
+  z-index: 4;
+  background: linear-gradient(to bottom, transparent 0%, rgba(4, 43, 26, 0.45) 100%);
   pointer-events: none;
 }
 
@@ -174,7 +221,8 @@ defineProps<{
 @media (prefers-reduced-motion: reduce) {
   .lava-orb,
   .hero-topo,
-  .hero-canopy {
+  .hero-canopy,
+  .hero-photo {
     animation: none;
   }
 }

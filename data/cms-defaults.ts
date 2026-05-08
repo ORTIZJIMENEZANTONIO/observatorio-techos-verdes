@@ -188,6 +188,53 @@ export const cmsDefaults: Record<string, Record<string, CmsItem[]>> = {
   },
 
   // ─────────────── FOOTER ───────────────
+  'agenda-2030': {
+    hero: [
+      {
+        eyebrow: 'ODS 13 · Acción por el clima',
+        titleLine1: 'Techos verdes en las áreas urbanas',
+        titleLine2: 'y su relación con la Agenda 2030',
+        subtitle:
+          'Las soluciones basadas en la naturaleza (SbN) responden a 7 Objetivos de Desarrollo Sostenible. Este observatorio toma como base el capítulo de Martínez Rodríguez y Cervantes-Nájera (CIIEMAD-IPN, 2023) y lo aterriza al territorio de la Ciudad de México.',
+      },
+    ],
+    intro: [
+      {
+        title: 'Argumento del capítulo',
+        body: 'Las ciudades enfrentan la disminución de espacios abiertos y naturales, los cuales aportan servicios ecosistémicos esenciales. Las SbN aprovechan los ecosistemas en beneficio de la sociedad; los techos verdes son una de estas soluciones para recuperar áreas verdes urbanas (AVU).',
+      },
+    ],
+  },
+  referencias: {
+    hero: [
+      {
+        eyebrow: 'Marco académico e institucional',
+        titleLine1: 'Referencias del observatorio',
+        subtitle:
+          'Las fuentes académicas, técnicas y normativas que respaldan los datos, modelos y decisiones presentadas en esta plataforma.',
+      },
+    ],
+  },
+  comunidad: {
+    hero: [
+      {
+        eyebrow: 'Comunidad abierta',
+        titleLine1: 'Sé parte del observatorio',
+        subtitle:
+          'Este observatorio se construye en colectivo. Cinco modos de participar — desde el reporte ciudadano hasta la operación institucional — abiertos a quien quiera sumar.',
+        primaryLabel: 'Quiero aportar',
+        primaryTo: '#aportar',
+        secondaryLabel: 'Ver modos de participación',
+        secondaryTo: '#tiers',
+      },
+    ],
+    intro: [
+      {
+        title: 'El observatorio se construye en colectivo',
+        body: 'Mapear los techos verdes de la Ciudad de México requiere muchos ojos. Algunas azoteas son visibles desde la calle, otras solo desde edificios vecinos, otras están documentadas en tesis y reportes técnicos que no han sido digitalizados.',
+      },
+    ],
+  },
   footer: {
     brand: [
       {
@@ -327,6 +374,36 @@ export const cmsPageCatalog: CmsPageMeta[] = [
     sections: [
       { key: 'hero', label: 'Hero' },
       { key: 'intro', label: 'Introducción a los modos' },
+    ],
+  },
+  {
+    slug: 'agenda-2030',
+    title: 'Agenda 2030',
+    description: 'Conexión del techo verde con los 7 ODS y argumento del capítulo CIIEMAD-IPN 2023.',
+    preview: '/agenda-2030',
+    icon: 'lucide:globe',
+    sections: [
+      { key: 'hero', label: 'Hero' },
+      { key: 'intro', label: 'Argumento del capítulo' },
+    ],
+  },
+  {
+    slug: 'referencias',
+    title: 'Referencias',
+    description: 'Marco académico (CIIEMAD-IPN), tesis, fuentes oficiales y bibliografía.',
+    preview: '/referencias',
+    icon: 'lucide:book',
+    sections: [{ key: 'hero', label: 'Hero' }],
+  },
+  {
+    slug: 'comunidad',
+    title: 'Comunidad',
+    description: 'Hero de la página de aportes ciudadanos y formulario de comunidad.',
+    preview: '/comunidad',
+    icon: 'lucide:users-2',
+    sections: [
+      { key: 'hero', label: 'Hero' },
+      { key: 'intro', label: 'Introducción' },
     ],
   },
   {
