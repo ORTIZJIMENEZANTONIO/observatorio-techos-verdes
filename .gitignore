@@ -1,12 +1,51 @@
+# Dependencias
 node_modules
+.pnp
+.pnp.*
 
-# OS / IDE
+# Nuxt build / runtime artifacts (no commitear)
+.nuxt
+.output
+.nitro
+.cache
+.data
+dist
+
+# Variables de entorno — mantener .env.example tracked
+.env
+.env.local
+.env.*.local
+
+# Tests
+test-results
+playwright-report
+playwright/.cache
+coverage
+.vitest-cache
+
+# Editor / OS
 .DS_Store
+._*
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+.idea
+*.swp
+*.swo
 
-# Build / runtime artifacts (no commitear)
-.output/
-test-results/
-playwright-report/
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# TypeScript / Vite cache
+*.tsbuildinfo
+.vite
+
+# Claude Code (config local)
+.claude/settings.local.json
 
 # Archivos academicos pesados (>100 MB — exceden el limite de GitHub).
 # Quedan locales en /utils como referencia; si necesitan commitearse,

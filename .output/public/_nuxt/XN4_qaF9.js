@@ -1,1 +1,0 @@
-import{X as i,z as e}from"./Cc_MqecJ.js";import{u as o}from"./BmY9ZYtl.js";const d=i(t=>{const a=o();if(a.loadFromStorage(),t.path.startsWith("/admin")&&t.path!=="/admin/login"&&!a.isAuthenticated)return e("/admin/login")});export{d as default};

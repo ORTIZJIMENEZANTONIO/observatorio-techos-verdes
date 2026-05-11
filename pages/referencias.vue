@@ -655,14 +655,14 @@ const bibliografia = {
             <div
               v-for="k in articuloDestacado.kpis"
               :key="k.detalle"
-              class="featured-article-kpi flex flex-col gap-1 bg-white p-5"
+              class="featured-article-kpi flex min-w-0 flex-col gap-1 bg-white p-4 sm:p-5"
             >
               <span
                 class="inline-flex h-1 w-10 rounded-full"
                 :style="{ backgroundColor: k.color }"
               />
               <span
-                class="text-3xl font-extrabold tabular-nums leading-none md:text-4xl"
+                class="text-xl font-extrabold tabular-nums leading-none break-words sm:text-2xl md:text-3xl lg:text-4xl"
                 :style="{ color: k.color }"
               >
                 {{ k.valor }}
@@ -745,7 +745,7 @@ const bibliografia = {
                   </svg>
                 </a>
                 <span
-                  class="inline-flex items-center gap-1 rounded-full border border-gray-200 px-3 py-2 text-xs font-mono text-ink-muted"
+                  class="inline-flex max-w-full items-center gap-1 break-all rounded-full border border-gray-200 px-3 py-2 text-xs font-mono text-ink-muted"
                 >
                   PII: {{ articuloDestacado.pii }}
                 </span>
@@ -872,7 +872,7 @@ const bibliografia = {
                   <path d="M7 7h10v10" />
                 </svg>
               </a>
-              <p class="mt-3 text-[11px] font-mono text-white/60">
+              <p class="mt-3 break-all text-[11px] font-mono text-white/60">
                 DOI: {{ referenciaInternacional.doi }}
               </p>
             </div>
@@ -905,9 +905,9 @@ const bibliografia = {
             <div
               v-for="k in referenciaInternacional.kpis"
               :key="k.detalle"
-              class="flex flex-col gap-1 bg-white p-5"
+              class="flex min-w-0 flex-col gap-1 bg-white p-4 sm:p-5"
             >
-              <span class="text-3xl font-extrabold tabular-nums leading-none text-secondary md:text-4xl">
+              <span class="text-xl font-extrabold tabular-nums leading-none break-words text-secondary sm:text-2xl md:text-3xl lg:text-4xl">
                 {{ k.valor }}
               </span>
               <span class="text-xs font-semibold uppercase tracking-wider text-ink-muted">
@@ -1180,71 +1180,71 @@ const bibliografia = {
 
         <div class="space-y-4">
           <details class="panel" open>
-            <summary class="flex cursor-pointer items-center justify-between gap-2">
+            <summary class="bib-summary flex cursor-pointer items-center justify-between gap-2">
               <span class="text-base font-bold text-ink">CIIEMAD-IPN — fuentes primarias</span>
               <span class="badge-primary">{{ bibliografia.ciiemad.length }}</span>
             </summary>
-            <ol class="mt-4 list-inside list-decimal space-y-3 text-sm leading-relaxed text-slate-custom">
+            <ol class="bib-list mt-4 list-inside list-decimal space-y-3 text-sm leading-relaxed text-slate-custom">
               <li v-for="(b, i) in bibliografia.ciiemad" :key="i" class="pl-2">{{ b }}</li>
             </ol>
           </details>
 
           <details class="panel">
-            <summary class="flex cursor-pointer items-center justify-between gap-2">
+            <summary class="bib-summary flex cursor-pointer items-center justify-between gap-2">
               <span class="text-base font-bold text-ink">Agenda 2030 y ODS</span>
               <span class="badge-secondary">{{ bibliografia.agenda2030.length }}</span>
             </summary>
-            <ol class="mt-4 list-inside list-decimal space-y-3 text-sm leading-relaxed text-slate-custom">
+            <ol class="bib-list mt-4 list-inside list-decimal space-y-3 text-sm leading-relaxed text-slate-custom">
               <li v-for="(b, i) in bibliografia.agenda2030" :key="i" class="pl-2">{{ b }}</li>
             </ol>
           </details>
 
           <details class="panel">
-            <summary class="flex cursor-pointer items-center justify-between gap-2">
+            <summary class="bib-summary flex cursor-pointer items-center justify-between gap-2">
               <span class="text-base font-bold text-ink">Soluciones basadas en la naturaleza y servicios ecosistémicos</span>
               <span class="badge-eco">{{ bibliografia.sbnEcosistemas.length }}</span>
             </summary>
-            <ol class="mt-4 list-inside list-decimal space-y-3 text-sm leading-relaxed text-slate-custom">
+            <ol class="bib-list mt-4 list-inside list-decimal space-y-3 text-sm leading-relaxed text-slate-custom">
               <li v-for="(b, i) in bibliografia.sbnEcosistemas" :key="i" class="pl-2">{{ b }}</li>
             </ol>
           </details>
 
           <details class="panel">
-            <summary class="flex cursor-pointer items-center justify-between gap-2">
+            <summary class="bib-summary flex cursor-pointer items-center justify-between gap-2">
               <span class="text-base font-bold text-ink">Techos verdes — historia, política y diseño</span>
               <span class="badge-accent">{{ bibliografia.techosVerdes.length }}</span>
             </summary>
-            <ol class="mt-4 list-inside list-decimal space-y-3 text-sm leading-relaxed text-slate-custom">
+            <ol class="bib-list mt-4 list-inside list-decimal space-y-3 text-sm leading-relaxed text-slate-custom">
               <li v-for="(b, i) in bibliografia.techosVerdes" :key="i" class="pl-2">{{ b }}</li>
             </ol>
           </details>
 
           <details class="panel">
-            <summary class="flex cursor-pointer items-center justify-between gap-2">
+            <summary class="bib-summary flex cursor-pointer items-center justify-between gap-2">
               <span class="text-base font-bold text-ink">Beneficios documentados (energía, agua, salud, biodiversidad)</span>
               <span class="badge-eco">{{ bibliografia.beneficios.length }}</span>
             </summary>
-            <ol class="mt-4 list-inside list-decimal space-y-3 text-sm leading-relaxed text-slate-custom">
+            <ol class="bib-list mt-4 list-inside list-decimal space-y-3 text-sm leading-relaxed text-slate-custom">
               <li v-for="(b, i) in bibliografia.beneficios" :key="i" class="pl-2">{{ b }}</li>
             </ol>
           </details>
 
           <details class="panel">
-            <summary class="flex cursor-pointer items-center justify-between gap-2">
+            <summary class="bib-summary flex cursor-pointer items-center justify-between gap-2">
               <span class="text-base font-bold text-ink">Metodología (AHP, ecosistemas urbanos)</span>
               <span class="badge-primary">{{ bibliografia.metodologia.length }}</span>
             </summary>
-            <ol class="mt-4 list-inside list-decimal space-y-3 text-sm leading-relaxed text-slate-custom">
+            <ol class="bib-list mt-4 list-inside list-decimal space-y-3 text-sm leading-relaxed text-slate-custom">
               <li v-for="(b, i) in bibliografia.metodologia" :key="i" class="pl-2">{{ b }}</li>
             </ol>
           </details>
 
           <details class="panel">
-            <summary class="flex cursor-pointer items-center justify-between gap-2">
+            <summary class="bib-summary flex cursor-pointer items-center justify-between gap-2">
               <span class="text-base font-bold text-ink">Estado del arte — mapeo automatizado</span>
               <span class="badge-secondary">{{ bibliografia.estadoArte.length }}</span>
             </summary>
-            <ol class="mt-4 list-inside list-decimal space-y-3 text-sm leading-relaxed text-slate-custom">
+            <ol class="bib-list mt-4 list-inside list-decimal space-y-3 text-sm leading-relaxed text-slate-custom">
               <li v-for="(b, i) in bibliografia.estadoArte" :key="i" class="pl-2">{{ b }}</li>
             </ol>
           </details>
@@ -1326,5 +1326,19 @@ const bibliografia = {
   .featured-article-kpi:hover {
     transform: none;
   }
+}
+
+.bib-list li {
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.bib-summary > span:first-child {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.bib-summary > span:last-child {
+  flex-shrink: 0;
 }
 </style>
