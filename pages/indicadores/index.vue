@@ -228,7 +228,7 @@
       <section class="bg-white py-12">
         <div class="container-wide">
           <h3 class="text-xl font-semibold text-ink">Avance de validaciones</h3>
-          <p class="mt-1 text-sm text-slate-custom">Estado de las validaciones con inteligencia artificial</p>
+          <p class="mt-1 text-sm text-slate-custom">Estado de las validaciones de campo realizadas por expertos del CIIEMAD-IPN</p>
           <div class="mt-6 grid grid-cols-1 gap-6 md:grid-cols-2">
             <div class="panel p-6">
               <ClientOnly>
@@ -1258,7 +1258,7 @@
                     </svg>
                   </div>
                   <div>
-                    <p class="text-xs font-semibold text-ink">Validaciones IA</p>
+                    <p class="text-xs font-semibold text-ink">Validaciones de campo</p>
                     <p class="text-[10px] text-slate-custom">CSV, 30 reg.</p>
                   </div>
                 </div>

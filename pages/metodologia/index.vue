@@ -13,7 +13,7 @@
             El Observatorio de Techos Verdes CDMX utiliza un modelo de análisis multicriterio para evaluar la aptitud territorial de las distintas zonas de la Ciudad de México. Este modelo integra variables ambientales, urbanas y de calidad del aire, ponderadas según su relevancia para la implementación de infraestructura verde en azoteas.
           </p>
           <p class="mt-4 text-base leading-relaxed text-slate-custom">
-            El enfoque combina sistemas de información geográfica (SIG), datos de sensores remotos, estadísticas de calidad del aire y técnicas de inteligencia artificial para detectar, clasificar y priorizar sitios candidatos.
+            El enfoque combina sistemas de información geográfica (SIG), datos de sensores remotos (Sentinel-2, Landsat 8/9), estadísticas de calidad del aire y validación de campo con expertos del CIIEMAD-IPN para detectar, clasificar y priorizar sitios candidatos.
           </p>
         </div>
 
@@ -51,23 +51,43 @@
           <!-- Connection line -->
           <div class="absolute left-1/2 top-14 hidden h-0.5 w-3/4 -translate-x-1/2 bg-gradient-to-r from-primary via-secondary to-eco lg:block" />
           <div class="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-4">
-            <div
+            <article
               v-for="step in methodologySteps"
               :key="step.number"
-              class="card p-6 text-center"
+              class="fun-card"
+              :style="funStyle(step.color)"
             >
-              <div class="relative mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-primary text-white shadow-lg">
-                <span class="text-lg font-bold">{{ step.number }}</span>
+              <div class="fun-card-icon-wrap" aria-hidden="true">
+                <span class="fun-card-icon-halo" />
+                <span class="fun-card-icon-bubble" />
+                <svg
+                  class="fun-card-icon-svg"
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1.6"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <path v-for="(d, i) in funPaths(step.icono)" :key="i" :d="d" />
+                </svg>
+                <span class="fun-card-badge">{{ step.number }}</span>
+                <span class="fun-card-spark fun-card-spark--1" />
+                <span class="fun-card-spark fun-card-spark--2" />
               </div>
-              <h4 class="text-base font-semibold text-ink">{{ step.title }}</h4>
-              <p class="mt-3 text-sm leading-relaxed text-slate-custom">{{ step.description }}</p>
-              <ul v-if="step.details" class="mt-4 space-y-1 text-left">
+              <h4 class="fun-card-label">{{ step.title }}</h4>
+              <p class="fun-card-desc">{{ step.description }}</p>
+              <ul v-if="step.details" class="mt-4 w-full space-y-1 text-left">
                 <li v-for="detail in step.details" :key="detail" class="flex items-start gap-2 text-xs text-slate-custom">
-                  <span class="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-primary/40" />
+                  <span
+                    class="mt-1 h-1.5 w-1.5 shrink-0 rounded-full"
+                    :style="{ backgroundColor: funHex(step.color) }"
+                  />
                   {{ detail }}
                 </li>
               </ul>
-            </div>
+            </article>
           </div>
         </div>
       </div>
@@ -111,32 +131,44 @@
 
         <!-- Variable cards -->
         <div class="mt-8 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
-          <div
+          <article
             v-for="peso in pesos"
             :key="peso.codigo"
-            class="card p-5"
+            class="fun-card"
+            :style="{
+              '--fun-color': peso.color,
+              '--fun-light': peso.color + '1F',
+            }"
           >
-            <div class="flex items-center gap-3">
-              <div
-                class="flex h-10 w-10 items-center justify-center rounded-lg"
-                :style="{ backgroundColor: peso.color + '15' }"
+            <span class="fun-card-hint">{{ peso.codigo }}</span>
+            <div class="fun-card-icon-wrap" aria-hidden="true">
+              <span class="fun-card-icon-halo" />
+              <span class="fun-card-icon-bubble" />
+              <svg
+                class="fun-card-icon-svg"
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.6"
+                stroke-linecap="round"
+                stroke-linejoin="round"
               >
-                <div class="h-4 w-4 rounded-full" :style="{ backgroundColor: peso.color }" />
-              </div>
-              <div>
-                <p class="text-sm font-semibold text-ink leading-tight">{{ peso.variable }}</p>
-                <p class="text-xs font-mono text-slate-custom">{{ peso.codigo }}</p>
-              </div>
+                <path v-for="(d, i) in funPaths(pesoIcono(peso.codigo))" :key="i" :d="d" />
+              </svg>
+              <span class="fun-card-spark fun-card-spark--1" />
+              <span class="fun-card-spark fun-card-spark--2" />
             </div>
+            <p class="fun-card-value tabular-nums">
+              {{ peso.peso.toFixed(1) }}<span class="fun-card-unit">%</span>
+            </p>
+            <h4 class="fun-card-label">{{ peso.variable }}</h4>
 
-            <div class="mt-4">
-              <div class="flex items-center justify-between text-xs">
-                <span class="text-slate-custom">Peso</span>
-                <span class="font-bold" :style="{ color: peso.color }">{{ peso.peso.toFixed(1) }}%</span>
-              </div>
-              <div class="mt-1.5 h-2 w-full overflow-hidden rounded-full bg-gray-100">
+            <!-- Barra de peso -->
+            <div class="mt-3 w-full">
+              <div class="h-2 w-full overflow-hidden rounded-full bg-gray-100">
                 <div
-                  class="h-full rounded-full"
+                  class="h-full rounded-full transition-all"
                   :style="{
                     width: `${(peso.peso / maxWeight) * 100}%`,
                     backgroundColor: peso.color,
@@ -145,8 +177,8 @@
               </div>
             </div>
 
-            <p class="mt-4 text-xs leading-relaxed text-slate-custom">{{ peso.descripcion }}</p>
-          </div>
+            <p class="fun-card-desc">{{ peso.descripcion }}</p>
+          </article>
         </div>
       </div>
     </section>
@@ -378,6 +410,26 @@
 import { aptitudPesos, aptitudPesosOriginal } from '~/data/aptitud-pesos'
 import { APTITUD_LEVELS } from '~/utils/constants'
 
+const { funPaths, funStyle, funHex } = useFunPalette()
+
+// Mapeo de código AHP → icono semántico
+const pesoIconMap: Record<string, string> = {
+  T_LST: 'thermometer',
+  DEN_POB: 'people',
+  USO_SUELO: 'map',
+  COB_VEG: 'leaf',
+  PRECIP: 'water',
+  PENDIENTE: 'layers',
+  ACC_VIAL: 'flag',
+  CALIDAD_AIRE: 'cloud',
+  BIO_SHANNON: 'leaf',
+  BIO_RIQUEZA: 'community',
+  HIDRO_DEFICIT: 'water',
+}
+function pesoIcono(codigo: string) {
+  return pesoIconMap[codigo] || 'chart'
+}
+
 useHead({
   title: 'Metodología | Observatorio Techos Verdes CDMX',
   meta: [
@@ -416,6 +468,8 @@ const methodologySteps = [
     number: 1,
     title: 'Recopilación de datos geoespaciales',
     description: 'Integración de múltiples fuentes de datos espaciales, incluyendo imágenes satelitales, datos censales y estaciones de monitoreo.',
+    icono: 'satellite',
+    color: 'secondary',
     details: [
       'Imágenes Landsat y MODIS para temperatura superficial',
       'Datos del INEGI para población y área urbanizada',
@@ -427,6 +481,8 @@ const methodologySteps = [
     number: 2,
     title: 'Construcción del índice de aptitud',
     description: 'Normalización y ponderación de variables en un índice multicriterio de aptitud territorial.',
+    icono: 'scale',
+    color: 'violet',
     details: [
       'Normalización 0-100 por variable',
       'Ponderación por Proceso Analítico Jerárquico (AHP)',
@@ -436,19 +492,23 @@ const methodologySteps = [
   },
   {
     number: 3,
-    title: 'Detección y validación con IA',
-    description: 'Modelos de visión por computadora para detectar techos verdes en imágenes aéreas, con validación humana integrada.',
+    title: 'Validación de campo',
+    description: 'Verificación manual con expertos del CIIEMAD-IPN siguiendo la metodología de Cervantes-Nájera. Fotografía aérea, observaciones de campo y revisión de catastro.',
+    icono: 'shield',
+    color: 'accent',
     details: [
-      'Redes neuronales convolucionales (CNN)',
-      'Imágenes aéreas de alta resolución',
-      'Sistema humano-en-el-bucle',
-      'Nivel de confianza por predicción',
+      'Revisión de imagen aérea de alta resolución',
+      'Validación territorial con expertos',
+      'Cruce con catastro y dictámenes oficiales',
+      'Nivel de confianza por sitio',
     ],
   },
   {
     number: 4,
     title: 'Priorización territorial',
-    description: 'Integración de resultados del modelo de aptitud con las detecciones de IA para identificar y priorizar sitios candidatos.',
+    description: 'Integración de los resultados del modelo de aptitud con las validaciones de campo para identificar y priorizar sitios candidatos.',
+    icono: 'flag',
+    color: 'rose',
     details: [
       'Cruce de aptitud con inventario existente',
       'Identificación de zonas de alta prioridad',
@@ -458,14 +518,9 @@ const methodologySteps = [
   },
 ]
 
-const limitations = [
-  'Los datos de calidad del aire corresponden a promedios anuales y no reflejan variaciones estacionales ni episodios de contingencia.',
-  'La resolución espacial de las imágenes satelitales (30m Landsat) limita la precisión del análisis a nivel de predio individual.',
-  'El modelo no incorpora variables estructurales de los edificios (carga, estado de impermeabilización, accesos).',
-  'La ponderación de variables se basó en consulta a expertos y puede ser sensible a la composición del panel.',
-  'Los datos poblacionales se derivan del Censo 2020 y pueden no reflejar cambios recientes en la distribución de población.',
-  'El modelo de IA para detección tiene una precisión del 87% y puede generar falsos positivos y falsos negativos.',
-  'Los datos de densidad vial no distinguen entre vialidades primarias y secundarias.',
-  'No se consideraron variables económicas, normativas ni de gobernanza en el índice de aptitud.',
-]
+// Limitaciones — editables desde /admin/contenido/metodologia
+type Limitation = { text: string }
+const cmsMetodologia = useCmsContent('metodologia')
+const limitationsList = cmsMetodologia.list<Limitation>('limitations')
+const limitations = computed(() => limitationsList.value.map((l) => l.text))
 </script>

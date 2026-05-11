@@ -17,13 +17,16 @@ interface AnalyticsSummary {
   totals: {
     events: number
     sessions: number
+    /** Pageviews únicos: deduplicado por (sessionId, día, path canónico). */
     pageviews: number
+    /** Conteo crudo de eventos pageview (incluye reloads y revisitas). */
+    pageviewsRaw?: number
     clicks: number
     submits: number
     downloads: number
   }
   byType: Record<string, number>
-  series: { date: string; events: number; sessions: number }[]
+  series: { date: string; events: number; sessions: number; pageviews?: number }[]
   topPaths: { key: string; count: number }[]
   topTargets: { key: string; count: number }[]
 }
@@ -63,13 +66,43 @@ const greenRoofs = computed<GreenRoof[]>(() => store.greenRoofs as GreenRoof[])
 const candidates = computed<CandidateRoof[]>(() => store.candidateRoofs as CandidateRoof[])
 
 // ────────── INTERACCIONES ──────────
+// NOTA: Los componentes de gráfica esperan props discretas (`labels`+`datasets`
+// para Line/Bar; `labels`+`data`+`colors` para Doughnut; `points`+`regressionLine`
+// para Scatter), NO un objeto `{ labels, datasets }` al estilo Chart.js crudo.
+// Por eso los computeds devuelven el shape exacto de cada componente para
+// usarse con v-bind="xChart" en el template.
+//
+// Paletas asignadas por categoría para que dos charts adyacentes nunca usen
+// el mismo color base. Cada paleta es monocromática armónica.
+const PALETTE_TIPO_EVENTO   = ['#10B981', '#34D399', '#6EE7B7', '#A7F3D0'] // verdes
+const PALETTE_TIPO_EDIFICIO = ['#8B5CF6', '#A78BFA', '#C4B5FD', '#DDD6FE', '#EDE9FE', '#F5F3FF'] // violetas
+const PALETTE_TIPO_TECHO    = ['#0EA5E9', '#38BDF8', '#7DD3FC'] // cyans
+const PALETTE_ESTADO        = ['#22C55E', '#F59E0B', '#EF4444', '#0EA5E9'] // semáforo
+const PALETTE_ESTATUS       = ['#0EA5E9', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6']
+
+// Colores discretos para las 3 series de "Evolución diaria"
+const SERIES_COLORS = {
+  eventos:    '#10B981', // verde
+  sesiones:   '#0EA5E9', // azul
+  pageviews:  '#8B5CF6', // violeta
+}
+
 const seriesChart = computed(() => {
   if (!summary.value) return null
+  const hasUniquePageviews = summary.value.series.some((s) => typeof s.pageviews === 'number')
   return {
     labels: summary.value.series.map((s) => s.date.slice(5)),
     datasets: [
-      { label: 'Eventos', data: summary.value.series.map((s) => s.events), borderColor: '#10B981', backgroundColor: 'rgba(16,185,129,0.15)', fill: true, tension: 0.3 },
-      { label: 'Sesiones únicas', data: summary.value.series.map((s) => s.sessions), borderColor: '#0EA5E9', backgroundColor: 'rgba(14,165,233,0.15)', fill: true, tension: 0.3 },
+      { label: 'Eventos (brutos)', data: summary.value.series.map((s) => s.events), borderColor: SERIES_COLORS.eventos, fill: true },
+      { label: 'Sesiones únicas', data: summary.value.series.map((s) => s.sessions), borderColor: SERIES_COLORS.sesiones, fill: true },
+      ...(hasUniquePageviews
+        ? [{
+            label: 'Pageviews únicos',
+            data: summary.value.series.map((s) => s.pageviews ?? 0),
+            borderColor: SERIES_COLORS.pageviews,
+            fill: false,
+          }]
+        : []),
     ],
   }
 })
@@ -79,7 +112,8 @@ const eventTypeChart = computed(() => {
   const entries = Object.entries(summary.value.byType)
   return {
     labels: entries.map(([k]) => k),
-    datasets: [{ data: entries.map(([, v]) => v), backgroundColor: ['#10B981', '#0EA5E9', '#F59E0B', '#EF4444', '#8B5CF6', '#06B6D4', '#FF7A66', '#94A3B8'] }],
+    data: entries.map(([, v]) => v),
+    colors: PALETTE_TIPO_EVENTO.slice(0, entries.length),
   }
 })
 
@@ -87,7 +121,7 @@ const topPathsChart = computed(() => {
   if (!summary.value) return null
   return {
     labels: summary.value.topPaths.map((p) => p.key.length > 30 ? p.key.slice(0, 30) + '…' : p.key),
-    datasets: [{ label: 'Pageviews', data: summary.value.topPaths.map((p) => p.count), backgroundColor: '#10B981' }],
+    datasets: [{ label: 'Pageviews únicos', data: summary.value.topPaths.map((p) => p.count), backgroundColor: '#0EA5E9' }],
   }
 })
 
@@ -95,7 +129,7 @@ const topTargetsChart = computed(() => {
   if (!summary.value) return null
   return {
     labels: summary.value.topTargets.map((p) => p.key),
-    datasets: [{ label: 'Clicks', data: summary.value.topTargets.map((p) => p.count), backgroundColor: '#0EA5E9' }],
+    datasets: [{ label: 'Clicks', data: summary.value.topTargets.map((p) => p.count), backgroundColor: '#F59E0B' }],
   }
 })
 
@@ -121,37 +155,41 @@ const scoreHist = computed(() => math.histogram(scoreValues.value, 10))
 
 const alcaldiaChart = computed(() => ({
   labels: alcaldiaDist.value.map((d) => d.key),
-  datasets: [{ label: 'Techos', data: alcaldiaDist.value.map((d) => d.count), backgroundColor: '#10B981' }],
+  datasets: [{ label: 'Techos verdes', data: alcaldiaDist.value.map((d) => d.count), backgroundColor: '#10B981' }],
 }))
 
 const tipoEdificioChart = computed(() => ({
   labels: tipoEdificioDist.value.map((d) => d.key),
-  datasets: [{ data: tipoEdificioDist.value.map((d) => d.count), backgroundColor: ['#10B981', '#0EA5E9', '#F59E0B', '#8B5CF6', '#06B6D4', '#FF7A66'] }],
+  data: tipoEdificioDist.value.map((d) => d.count),
+  colors: PALETTE_TIPO_EDIFICIO.slice(0, tipoEdificioDist.value.length),
 }))
 
 const tipoTechoChart = computed(() => ({
   labels: tipoTechoDist.value.map((d) => d.key),
-  datasets: [{ data: tipoTechoDist.value.map((d) => d.count), backgroundColor: ['#10B981', '#84CC16', '#22C55E'] }],
+  data: tipoTechoDist.value.map((d) => d.count),
+  colors: PALETTE_TIPO_TECHO.slice(0, tipoTechoDist.value.length),
 }))
 
 const estadoChart = computed(() => ({
   labels: estadoDist.value.map((d) => d.key),
-  datasets: [{ data: estadoDist.value.map((d) => d.count), backgroundColor: ['#10B981', '#F59E0B', '#EF4444', '#0EA5E9'] }],
+  data: estadoDist.value.map((d) => d.count),
+  colors: PALETTE_ESTADO.slice(0, estadoDist.value.length),
 }))
 
 const candidatosEstatusChart = computed(() => ({
   labels: candidatosByEstatus.value.map((d) => d.key),
-  datasets: [{ data: candidatosByEstatus.value.map((d) => d.count), backgroundColor: ['#0EA5E9', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6'] }],
+  data: candidatosByEstatus.value.map((d) => d.count),
+  colors: PALETTE_ESTATUS.slice(0, candidatosByEstatus.value.length),
 }))
 
 const superficieHistChart = computed(() => ({
   labels: superficieHist.value.map((b) => b.bin + ' m²'),
-  datasets: [{ label: 'Techos', data: superficieHist.value.map((b) => b.count), backgroundColor: '#10B981' }],
+  datasets: [{ label: 'Techos verdes', data: superficieHist.value.map((b) => b.count), backgroundColor: '#10B981' }],
 }))
 
 const scoreHistChart = computed(() => ({
   labels: scoreHist.value.map((b) => b.bin),
-  datasets: [{ label: 'Candidatos', data: scoreHist.value.map((b) => b.count), backgroundColor: '#0EA5E9' }],
+  datasets: [{ label: 'Candidatos AHP', data: scoreHist.value.map((b) => b.count), backgroundColor: '#F59E0B' }],
 }))
 
 // ────────── INFERENCIAL ──────────
@@ -270,36 +308,14 @@ const regressionTop = computed(() => {
 const regressionScatterChart = computed(() => {
   const r = regressionTop.value
   if (!r) return null
-  const xs = r.points.map((p) => p.x)
-  const minX = Math.min(...xs)
-  const maxX = Math.max(...xs)
   return {
-    datasets: [
-      { label: 'Candidato', data: r.points, backgroundColor: '#10B981', pointRadius: 5 },
-      {
-        label: `Regresión (R²=${r.reg.r2.toFixed(2)})`,
-        data: [{ x: minX, y: r.reg.predict(minX) }, { x: maxX, y: r.reg.predict(maxX) }],
-        type: 'line', borderColor: '#0EA5E9', backgroundColor: 'transparent', pointRadius: 0, showLine: true,
-      },
-    ],
+    points: r.points,
+    regressionLine: { slope: r.reg.slope, intercept: r.reg.intercept, r2: r.reg.r2 },
+    xLabel: r.vars.map((v) => v.variable).join(' + '),
+    yLabel: 'Score AHP',
+    pointColor: '#10B981',
   }
 })
-
-const baseLineOptions = { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' as const } } }
-const baseBarOptions = { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, indexAxis: 'y' as const }
-const baseDoughnutOptions = { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'right' as const } } }
-const corrBarOptions = {
-  responsive: true,
-  maintainAspectRatio: false,
-  plugins: { legend: { display: false } },
-  scales: { x: { min: -1, max: 1, title: { display: true, text: 'Coeficiente de correlación r' } } },
-  indexAxis: 'y' as const,
-}
-const scatterOptions = {
-  responsive: true,
-  maintainAspectRatio: false,
-  plugins: { legend: { position: 'bottom' as const } },
-}
 
 const formatNumber = (v: number) => v.toLocaleString('es-MX', { maximumFractionDigits: 2 })
 </script>
@@ -347,11 +363,29 @@ const formatNumber = (v: number) => v.toLocaleString('es-MX', { maximumFractionD
     </div>
 
     <!-- INTERACCIONES -->
-    <section v-if="activeTab === 'interacciones'" class="space-y-5">
-      <div class="grid gap-4 md:grid-cols-4">
+    <section v-if="activeTab === 'interacciones'" class="space-y-8">
+      <div class="grid gap-5 sm:grid-cols-2 xl:grid-cols-4">
         <div class="rounded-2xl border border-gray-200 bg-white p-5">
-          <p class="text-xs uppercase tracking-wide text-gray-500">Pageviews</p>
+          <p class="flex items-center gap-1 text-xs uppercase tracking-wide text-gray-500">
+            Pageviews únicos
+            <span
+              class="ml-1 inline-flex h-4 w-4 cursor-help items-center justify-center rounded-full border border-gray-300 text-[10px] font-semibold text-gray-500"
+              title="Deduplicado por sesión + día + ruta. Una sesión recargando la misma página el mismo día cuenta 1, no N."
+            >?</span>
+          </p>
           <p class="mt-1 text-3xl font-bold text-eco">{{ summary?.totals.pageviews ?? 0 }}</p>
+          <p
+            v-if="summary?.totals.pageviewsRaw && summary.totals.pageviewsRaw !== summary.totals.pageviews"
+            class="mt-1 text-xs text-gray-500"
+          >
+            {{ summary.totals.pageviewsRaw }} eventos crudos
+            <span
+              class="text-gray-400"
+              :title="`Tasa de reload: ${(summary.totals.pageviewsRaw / Math.max(1, summary.totals.pageviews)).toFixed(1)}× — cada pageview único se ve este # de veces en promedio.`"
+            >
+              ({{ (summary.totals.pageviewsRaw / Math.max(1, summary.totals.pageviews)).toFixed(1) }}× reload)
+            </span>
+          </p>
         </div>
         <div class="rounded-2xl border border-gray-200 bg-white p-5">
           <p class="text-xs uppercase tracking-wide text-gray-500">Sesiones únicas</p>
@@ -367,111 +401,113 @@ const formatNumber = (v: number) => v.toLocaleString('es-MX', { maximumFractionD
         </div>
       </div>
 
-      <div class="rounded-2xl border border-gray-200 bg-white p-5">
-        <h3 class="mb-3 text-sm font-semibold text-ink">Evolución diaria</h3>
-        <div class="h-72">
-          <ChartsLineChart v-if="seriesChart" :data="seriesChart" :options="baseLineOptions" />
+      <div class="rounded-2xl border border-gray-200 bg-white p-6">
+        <h3 class="mb-4 text-sm font-semibold text-ink">Evolución diaria</h3>
+        <div class="h-80">
+          <ChartsLineChart v-if="seriesChart" v-bind="seriesChart" />
           <p v-else class="text-sm text-gray-500">Sin datos</p>
         </div>
       </div>
 
-      <div class="grid gap-4 md:grid-cols-2">
-        <div class="rounded-2xl border border-gray-200 bg-white p-5">
-          <h3 class="mb-3 text-sm font-semibold text-ink">Tipo de evento</h3>
-          <div class="h-64">
-            <ChartsDoughnutChart v-if="eventTypeChart" :data="eventTypeChart" :options="baseDoughnutOptions" />
+      <div class="grid gap-5 lg:grid-cols-2">
+        <div class="rounded-2xl border border-gray-200 bg-white p-6">
+          <h3 class="mb-4 text-sm font-semibold text-ink">Tipo de evento</h3>
+          <div class="h-72">
+            <ChartsDoughnutChart v-if="eventTypeChart" v-bind="eventTypeChart" />
             <p v-else class="text-sm text-gray-500">Sin datos</p>
           </div>
         </div>
-        <div class="rounded-2xl border border-gray-200 bg-white p-5">
-          <h3 class="mb-3 text-sm font-semibold text-ink">Top rutas (pageviews)</h3>
-          <div class="h-64">
-            <ChartsBarChart v-if="topPathsChart && summary?.topPaths.length" :data="topPathsChart" :options="baseBarOptions" />
+        <div class="rounded-2xl border border-gray-200 bg-white p-6">
+          <h3 class="mb-4 text-sm font-semibold text-ink">Top rutas (pageviews únicos)</h3>
+          <div class="h-72">
+            <ChartsBarChart v-if="topPathsChart && summary?.topPaths.length" v-bind="topPathsChart" :horizontal="true" />
             <p v-else class="text-sm text-gray-500">Sin tráfico todavía</p>
           </div>
         </div>
       </div>
 
-      <div class="rounded-2xl border border-gray-200 bg-white p-5">
-        <h3 class="mb-3 text-sm font-semibold text-ink">Top elementos clickeados (data-track)</h3>
-        <div class="h-64">
-          <ChartsBarChart v-if="topTargetsChart && summary?.topTargets.length" :data="topTargetsChart" :options="baseBarOptions" />
+      <div class="rounded-2xl border border-gray-200 bg-white p-6">
+        <h3 class="mb-4 text-sm font-semibold text-ink">Top elementos clickeados (data-track)</h3>
+        <div class="h-72">
+          <ChartsBarChart v-if="topTargetsChart && summary?.topTargets.length" v-bind="topTargetsChart" :horizontal="true" />
           <p v-else class="text-sm text-gray-500">Sin clicks instrumentados todavía. Marca elementos con <code>data-track="..."</code>.</p>
         </div>
       </div>
     </section>
 
     <!-- DESCRIPTIVO -->
-    <section v-if="activeTab === 'descriptivo'" class="space-y-5">
-      <div class="grid gap-4 md:grid-cols-4">
-        <div class="rounded-2xl border border-gray-200 bg-white p-5">
+    <section v-if="activeTab === 'descriptivo'" class="space-y-8">
+      <div class="grid gap-5 sm:grid-cols-2 xl:grid-cols-4">
+        <div class="rounded-2xl border border-gray-200 bg-white p-6">
           <p class="text-xs uppercase tracking-wide text-gray-500">Techos verdes</p>
           <p class="mt-1 text-3xl font-bold text-eco">{{ greenRoofs.length }}</p>
         </div>
-        <div class="rounded-2xl border border-gray-200 bg-white p-5">
+        <div class="rounded-2xl border border-gray-200 bg-white p-6">
           <p class="text-xs uppercase tracking-wide text-gray-500">Candidatos AHP</p>
           <p class="mt-1 text-3xl font-bold text-secondary">{{ candidates.length }}</p>
         </div>
-        <div class="rounded-2xl border border-gray-200 bg-white p-5">
+        <div class="rounded-2xl border border-gray-200 bg-white p-6">
           <p class="text-xs uppercase tracking-wide text-gray-500">Superficie media (m²)</p>
           <p class="mt-1 text-3xl font-bold text-primary">{{ formatNumber(superficieStats.mean) }}</p>
           <p class="mt-1 text-xs text-gray-500">σ = {{ formatNumber(superficieStats.std) }}</p>
         </div>
-        <div class="rounded-2xl border border-gray-200 bg-white p-5">
+        <div class="rounded-2xl border border-gray-200 bg-white p-6">
           <p class="text-xs uppercase tracking-wide text-gray-500">Score AHP medio</p>
           <p class="mt-1 text-3xl font-bold text-accent">{{ formatNumber(scoreStats.mean) }}</p>
           <p class="mt-1 text-xs text-gray-500">σ = {{ formatNumber(scoreStats.std) }}</p>
         </div>
       </div>
 
-      <div class="grid gap-4 md:grid-cols-2">
-        <div class="rounded-2xl border border-gray-200 bg-white p-5">
-          <h3 class="mb-3 text-sm font-semibold text-ink">Techos por alcaldía</h3>
-          <div class="h-64">
-            <ChartsBarChart :data="alcaldiaChart" :options="baseBarOptions" />
+      <!-- Techos por alcaldía: ancho completo porque tiene 16 categorías -->
+      <div class="rounded-2xl border border-gray-200 bg-white p-6">
+        <h3 class="mb-4 text-sm font-semibold text-ink">Techos por alcaldía</h3>
+        <div class="h-96">
+          <ChartsBarChart v-bind="alcaldiaChart" :horizontal="true" />
+        </div>
+      </div>
+
+      <div class="grid gap-5 lg:grid-cols-3">
+        <div class="rounded-2xl border border-gray-200 bg-white p-6">
+          <h3 class="mb-4 text-sm font-semibold text-ink">Tipo de edificio</h3>
+          <div class="h-72">
+            <ChartsDoughnutChart v-bind="tipoEdificioChart" />
           </div>
         </div>
-        <div class="rounded-2xl border border-gray-200 bg-white p-5">
-          <h3 class="mb-3 text-sm font-semibold text-ink">Tipo de edificio</h3>
-          <div class="h-64">
-            <ChartsDoughnutChart :data="tipoEdificioChart" :options="baseDoughnutOptions" />
+        <div class="rounded-2xl border border-gray-200 bg-white p-6">
+          <h3 class="mb-4 text-sm font-semibold text-ink">Tipo de techo verde</h3>
+          <div class="h-72">
+            <ChartsDoughnutChart v-bind="tipoTechoChart" />
           </div>
         </div>
-        <div class="rounded-2xl border border-gray-200 bg-white p-5">
-          <h3 class="mb-3 text-sm font-semibold text-ink">Tipo de techo verde</h3>
-          <div class="h-64">
-            <ChartsDoughnutChart :data="tipoTechoChart" :options="baseDoughnutOptions" />
-          </div>
-        </div>
-        <div class="rounded-2xl border border-gray-200 bg-white p-5">
-          <h3 class="mb-3 text-sm font-semibold text-ink">Estado de techos</h3>
-          <div class="h-64">
-            <ChartsDoughnutChart :data="estadoChart" :options="baseDoughnutOptions" />
+        <div class="rounded-2xl border border-gray-200 bg-white p-6">
+          <h3 class="mb-4 text-sm font-semibold text-ink">Estado de techos</h3>
+          <div class="h-72">
+            <ChartsDoughnutChart v-bind="estadoChart" />
           </div>
         </div>
       </div>
 
-      <div class="grid gap-4 md:grid-cols-2">
-        <div class="rounded-2xl border border-gray-200 bg-white p-5">
-          <h3 class="mb-3 text-sm font-semibold text-ink">Distribución de superficie (m²)</h3>
-          <div class="h-64">
-            <ChartsBarChart :data="superficieHistChart" :options="{ ...baseBarOptions, indexAxis: 'x' }" />
+      <div class="grid gap-5 lg:grid-cols-2">
+        <div class="rounded-2xl border border-gray-200 bg-white p-6">
+          <h3 class="mb-4 text-sm font-semibold text-ink">Distribución de superficie (m²)</h3>
+          <div class="h-72">
+            <ChartsBarChart v-bind="superficieHistChart" />
           </div>
         </div>
-        <div class="rounded-2xl border border-gray-200 bg-white p-5">
-          <h3 class="mb-3 text-sm font-semibold text-ink">Distribución de score AHP</h3>
-          <div class="h-64">
-            <ChartsBarChart :data="scoreHistChart" :options="{ ...baseBarOptions, indexAxis: 'x' }" />
+        <div class="rounded-2xl border border-gray-200 bg-white p-6">
+          <h3 class="mb-4 text-sm font-semibold text-ink">Distribución de score AHP</h3>
+          <div class="h-72">
+            <ChartsBarChart v-bind="scoreHistChart" />
           </div>
         </div>
-        <div class="rounded-2xl border border-gray-200 bg-white p-5">
-          <h3 class="mb-3 text-sm font-semibold text-ink">Candidatos por estatus</h3>
-          <div class="h-64">
-            <ChartsDoughnutChart :data="candidatosEstatusChart" :options="baseDoughnutOptions" />
+        <div class="rounded-2xl border border-gray-200 bg-white p-6">
+          <h3 class="mb-4 text-sm font-semibold text-ink">Candidatos por estatus</h3>
+          <div class="h-72">
+            <ChartsDoughnutChart v-bind="candidatosEstatusChart" />
           </div>
         </div>
-        <div class="rounded-2xl border border-gray-200 bg-white p-5">
-          <h3 class="mb-3 text-sm font-semibold text-ink">Confianza IA por candidato</h3>
+        <div class="rounded-2xl border border-gray-200 bg-white p-6">
+          <h3 class="mb-4 text-sm font-semibold text-ink">Confianza IA por candidato</h3>
           <ul class="space-y-2 text-sm">
             <li v-for="d in candidatosByConfianza" :key="d.key" class="flex items-center justify-between border-b border-gray-100 py-2">
               <span class="text-gray-600">{{ d.key }}</span>
@@ -484,21 +520,21 @@ const formatNumber = (v: number) => v.toLocaleString('es-MX', { maximumFractionD
     </section>
 
     <!-- INFERENCIAL -->
-    <section v-if="activeTab === 'inferencial'" class="space-y-5">
-      <div class="rounded-2xl border border-gray-200 bg-white p-5">
+    <section v-if="activeTab === 'inferencial'" class="space-y-8">
+      <div class="rounded-2xl border border-gray-200 bg-white p-6">
         <h3 class="mb-3 text-sm font-semibold text-ink">Correlación de variables AHP con score</h3>
-        <p class="mb-3 text-xs text-gray-500">
+        <p class="mb-4 text-xs text-gray-500">
           Coeficiente de Pearson entre cada variable de aptitud (LST, NDVI, contaminación, etc.)
           y el score final. Los valores positivos sugieren que mayor variable → mayor aptitud;
           los negativos sugieren lo opuesto.
         </p>
-        <div class="h-72">
-          <ChartsBarChart :data="ahpCorrChart" :options="corrBarOptions" />
+        <div class="h-80">
+          <ChartsBarChart v-bind="ahpCorrChart" :horizontal="true" />
         </div>
       </div>
 
-      <div class="rounded-2xl border border-gray-200 bg-white p-5">
-        <h3 class="mb-3 text-sm font-semibold text-ink">Detalle de correlaciones</h3>
+      <div class="rounded-2xl border border-gray-200 bg-white p-6">
+        <h3 class="mb-4 text-sm font-semibold text-ink">Detalle de correlaciones</h3>
         <div class="overflow-x-auto">
           <table class="w-full text-sm">
             <thead class="bg-gray-50 text-xs">
@@ -526,9 +562,9 @@ const formatNumber = (v: number) => v.toLocaleString('es-MX', { maximumFractionD
         </div>
       </div>
 
-      <div class="grid gap-4 md:grid-cols-2">
-        <div class="rounded-2xl border border-gray-200 bg-white p-5">
-          <h3 class="mb-3 text-sm font-semibold text-ink">Score por alcaldía</h3>
+      <div class="grid gap-5 lg:grid-cols-2">
+        <div class="rounded-2xl border border-gray-200 bg-white p-6">
+          <h3 class="mb-4 text-sm font-semibold text-ink">Score por alcaldía</h3>
           <div class="overflow-x-auto">
             <table class="w-full text-sm">
               <thead class="bg-gray-50 text-xs">
@@ -553,9 +589,9 @@ const formatNumber = (v: number) => v.toLocaleString('es-MX', { maximumFractionD
           </div>
         </div>
 
-        <div class="rounded-2xl border border-gray-200 bg-white p-5">
-          <h3 class="mb-3 text-sm font-semibold text-ink">Anomalías de score (|z|&gt;1.5)</h3>
-          <div v-if="scoreAnomalies.length > 0" class="space-y-2 max-h-64 overflow-y-auto">
+        <div class="rounded-2xl border border-gray-200 bg-white p-6">
+          <h3 class="mb-4 text-sm font-semibold text-ink">Anomalías de score (|z|&gt;1.5)</h3>
+          <div v-if="scoreAnomalies.length > 0" class="space-y-2 max-h-72 overflow-y-auto">
             <div v-for="row in scoreAnomalies" :key="row.candidate.id" class="flex items-center justify-between border-b border-gray-100 py-2">
               <div>
                 <p class="text-sm font-medium text-ink">{{ row.candidate.nombre }}</p>
@@ -572,32 +608,32 @@ const formatNumber = (v: number) => v.toLocaleString('es-MX', { maximumFractionD
     </section>
 
     <!-- MODELADO -->
-    <section v-if="activeTab === 'modelado'" class="space-y-5">
-      <div class="rounded-2xl border border-gray-200 bg-white p-5">
+    <section v-if="activeTab === 'modelado'" class="space-y-8">
+      <div class="rounded-2xl border border-gray-200 bg-white p-6">
         <h3 class="mb-3 text-sm font-semibold text-ink">Regresión: variables top vs score AHP</h3>
         <p v-if="!regressionTop" class="text-sm text-gray-500">Datos insuficientes para regresión.</p>
         <div v-else>
-          <p class="mb-3 text-xs text-gray-500">
+          <p class="mb-4 text-xs text-gray-500">
             Combina las 3 variables más correlacionadas con el score
             ({{ regressionTop.vars.map(v => v.variable).join(', ') }})
             en una variable compuesta y ajusta una regresión lineal.
             R² = {{ formatNumber(regressionTop.reg.r2) }}.
           </p>
-          <div class="h-72">
-            <ChartsScatterChart :data="regressionScatterChart!" :options="scatterOptions" />
+          <div class="h-80">
+            <ChartsScatterChart v-bind="regressionScatterChart!" />
           </div>
         </div>
       </div>
 
-      <div class="rounded-2xl border border-gray-200 bg-white p-5">
-        <div class="mb-3 flex items-center justify-between gap-3">
+      <div class="rounded-2xl border border-gray-200 bg-white p-6">
+        <div class="mb-4 flex items-center justify-between gap-3">
           <h3 class="text-sm font-semibold text-ink">K-means de candidatos por similitud AHP</h3>
           <div class="flex items-center gap-2 text-xs">
             <label class="text-gray-500">k =</label>
             <input v-model.number="k" type="number" min="2" max="6" class="w-16 rounded-md border border-gray-200 px-2 py-1 text-xs" />
           </div>
         </div>
-        <p class="mb-3 text-xs text-gray-500">
+        <p class="mb-4 text-xs text-gray-500">
           Agrupa candidatos por similitud combinando las 8 variables AHP normalizadas.
           Los clusters se ordenan por score promedio descendente.
         </p>

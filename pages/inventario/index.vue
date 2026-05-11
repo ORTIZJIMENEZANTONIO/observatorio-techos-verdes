@@ -99,9 +99,80 @@
               :data-tipo="roof.tipoEdificio"
               @click="selectedRoof = roof"
             >
-              <!-- Image -->
+              <!-- Image / Gallery -->
               <div class="relative h-36 overflow-hidden bg-gradient-to-br from-primary-50 to-eco/10">
+                <!-- Si tiene galería, muestra el carrusel; si no, una imagen única -->
+                <template v-if="roof.imagenes && roof.imagenes.length > 0">
+                  <img
+                    v-for="(img, i) in roof.imagenes"
+                    :key="img.src"
+                    :src="img.src"
+                    :alt="img.caption || roof.nombre"
+                    class="absolute inset-0 h-full w-full object-cover transition-opacity duration-500"
+                    :class="(galleryIndex[roof.id] || 0) === i ? 'opacity-100' : 'opacity-0'"
+                    loading="lazy"
+                    @error="onImgError($event)"
+                  />
+                  <!-- Counter top-left -->
+                  <span
+                    class="absolute left-3 top-3 inline-flex items-center gap-1 rounded-full bg-black/60 px-2 py-0.5 text-[10px] font-bold text-white backdrop-blur-sm"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                      <rect x="3" y="3" width="18" height="18" rx="2" />
+                      <circle cx="9" cy="9" r="2" />
+                      <path d="m21 15-5-5L5 21" />
+                    </svg>
+                    {{ (galleryIndex[roof.id] || 0) + 1 }} / {{ roof.imagenes.length }}
+                  </span>
+                  <!-- Prev / next (solo si hay más de 1) -->
+                  <template v-if="roof.imagenes.length > 1">
+                    <button
+                      class="gallery-nav gallery-nav--prev"
+                      :aria-label="`Foto anterior de ${roof.nombre}`"
+                      @click.stop="prevImage(roof.id, roof.imagenes!.length)"
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="15 18 9 12 15 6" />
+                      </svg>
+                    </button>
+                    <button
+                      class="gallery-nav gallery-nav--next"
+                      :aria-label="`Siguiente foto de ${roof.nombre}`"
+                      @click.stop="nextImage(roof.id, roof.imagenes!.length)"
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="9 18 15 12 9 6" />
+                      </svg>
+                    </button>
+                    <!-- Dots -->
+                    <div class="absolute bottom-2 left-1/2 z-[2] flex -translate-x-1/2 gap-1">
+                      <button
+                        v-for="(_, i) in roof.imagenes"
+                        :key="i"
+                        :aria-label="`Foto ${i + 1}`"
+                        :class="['h-1.5 w-1.5 rounded-full transition-colors', (galleryIndex[roof.id] || 0) === i ? 'bg-white' : 'bg-white/40']"
+                        @click.stop="galleryIndex[roof.id] = i"
+                      />
+                    </div>
+                  </template>
+                  <!-- Credit (foto actual) -->
+                  <div
+                    class="absolute bottom-0 left-0 right-0 z-[1] bg-gradient-to-t from-black/70 to-transparent px-3 pb-1.5 pt-6 text-[9px] text-white/90"
+                  >
+                    <a
+                      :href="roof.imagenes[galleryIndex[roof.id] || 0].sourceUrl"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      class="hover:underline"
+                      @click.stop
+                    >
+                      © {{ roof.imagenes[galleryIndex[roof.id] || 0].credit }} ·
+                      {{ roof.imagenes[galleryIndex[roof.id] || 0].license }}
+                    </a>
+                  </div>
+                </template>
                 <img
+                  v-else
                   :src="roofImageSrc(roof)"
                   :alt="roof.nombre"
                   class="h-full w-full object-cover"
@@ -139,6 +210,44 @@
                     </svg>
                     {{ roof.fechaRegistro }}
                   </div>
+                </div>
+
+                <!-- Verificación visual: Street View + Earth + Maps (sin pesar el servidor) -->
+                <div
+                  v-if="roof.lat && roof.lng"
+                  class="mt-3 flex flex-wrap items-center gap-1.5 border-t border-gray-50 pt-3"
+                  @click.stop
+                >
+                  <span class="text-[10px] font-semibold uppercase tracking-wider text-ink-muted">
+                    Ver:
+                  </span>
+                  <a
+                    :href="`https://www.google.com/maps?q=&layer=c&cbll=${roof.lat},${roof.lng}`"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="inline-flex items-center gap-1 rounded-md bg-secondary/10 px-2 py-0.5 text-[10px] font-semibold text-secondary-dark transition-colors hover:bg-secondary hover:text-white"
+                    @click.stop
+                  >
+                    Street View
+                  </a>
+                  <a
+                    :href="`https://earth.google.com/web/@${roof.lat},${roof.lng},150a,500d,30y,0h,60t,0r`"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="inline-flex items-center gap-1 rounded-md bg-eco/10 px-2 py-0.5 text-[10px] font-semibold text-eco-dark transition-colors hover:bg-eco hover:text-white"
+                    @click.stop
+                  >
+                    Earth
+                  </a>
+                  <a
+                    :href="`https://www.google.com/maps/place/${roof.lat},${roof.lng}/@${roof.lat},${roof.lng},19z`"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="inline-flex items-center gap-1 rounded-md bg-primary/10 px-2 py-0.5 text-[10px] font-semibold text-primary transition-colors hover:bg-primary hover:text-white"
+                    @click.stop
+                  >
+                    Maps
+                  </a>
                 </div>
               </div>
             </div>
@@ -324,6 +433,16 @@ const sortBy = ref('nombre_asc')
 const currentPage = ref(1)
 const perPage = 15
 
+// Estado del carrusel: índice activo por roof.id (no reactivo profundo —
+// usamos un reactive shallow record para mutación sin clonar todo el objeto)
+const galleryIndex = reactive<Record<number, number>>({})
+function nextImage(id: number, total: number) {
+  galleryIndex[id] = ((galleryIndex[id] || 0) + 1) % total
+}
+function prevImage(id: number, total: number) {
+  galleryIndex[id] = ((galleryIndex[id] || 0) - 1 + total) % total
+}
+
 const alcaldias = computed(() => {
   const set = new Set(greenRoofs.map(r => r.alcaldia))
   return Array.from(set).sort()
@@ -461,5 +580,46 @@ function onImgError(event: Event) {
 .drawer-slide-enter-from,
 .drawer-slide-leave-to {
   transform: translateX(100%);
+}
+
+/* ════════════════════════════════════════════════════════════════════
+   Gallery carrusel — botones prev/next visibles sólo en hover
+   ════════════════════════════════════════════════════════════════════ */
+.gallery-nav {
+  position: absolute;
+  top: 50%;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.75rem;
+  height: 1.75rem;
+  border-radius: 9999px;
+  background: rgba(0, 0, 0, 0.55);
+  color: #ffffff;
+  transform: translateY(-50%);
+  opacity: 0;
+  backdrop-filter: blur(4px);
+  transition: opacity 0.25s ease, background-color 0.2s ease;
+  cursor: pointer;
+}
+.gallery-nav--prev {
+  left: 0.4rem;
+}
+.gallery-nav--next {
+  right: 0.4rem;
+}
+.gallery-nav:hover {
+  background: rgba(0, 0, 0, 0.8);
+}
+/* Mostrar al pasar el cursor sobre la card padre */
+.card-interactive:hover .gallery-nav {
+  opacity: 1;
+}
+/* En mobile (touch) siempre visibles */
+@media (max-width: 768px) {
+  .gallery-nav {
+    opacity: 0.9;
+  }
 }
 </style>

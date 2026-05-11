@@ -11,22 +11,145 @@ useHead({
 })
 
 const { revealRef } = useScrollReveal({ stagger: true })
+const { funPaths, funStyle } = useFunPalette()
+
+// Publicación destacada — artículo Q1 en Sustainable Cities and Society (Elsevier, 2025)
+const articuloDestacado = {
+  titulo:
+    'Spatial suitability analysis for the implementation of green rooftops in highly urbanized Mexico City: A GIS-based multicriteria decision analysis to alleviate urban heat island (UHI)',
+  autores: [
+    'Ana Laura Cervantes-Nájera',
+    'María Concepción Martínez-Rodríguez',
+    'Godwyn-Paulson Pitchaimani',
+    'Jonathan Muthuswamy Ponniah',
+    'Xochitl Virginia Bello-Yáñez',
+  ],
+  revista: 'Sustainable Cities and Society',
+  editorial: 'Elsevier',
+  cuartil: 'Q1',
+  anio: 2025,
+  pii: 'S2210670725006547',
+  url: 'https://www.sciencedirect.com/science/article/pii/S2210670725006547',
+  resumen:
+    'Análisis SIG multicriterio (AHP con 8 parámetros) aplicado al territorio de la Ciudad de México para priorizar la instalación de techos verdes como estrategia de mitigación de la isla de calor urbana (UHI). El estudio cuantifica la captura actual del inventario y delimita la superficie potencial de implementación a escala metropolitana.',
+  kpis: [
+    {
+      valor: '60.81',
+      unidad: 'tCO₂/año',
+      detalle: 'capturadas por los techos verdes existentes',
+      color: '#0E5E3A',
+    },
+    {
+      valor: '423,451',
+      unidad: 'm²',
+      detalle: 'identificados como superficie potencial',
+      color: '#18A5E3',
+    },
+    {
+      valor: '1.09',
+      unidad: 'millones kg CO₂',
+      detalle: 'potencial de captura si se instalan los m² priorizados',
+      color: '#79C141',
+    },
+    {
+      valor: '8',
+      unidad: 'parámetros AHP',
+      detalle: 'variables ponderadas para el modelo de aptitud',
+      color: '#F2A81D',
+    },
+  ],
+  vinculos: [
+    {
+      titulo: 'Metodología AHP del observatorio',
+      detalle: '8 variables territoriales con pesos derivados',
+      to: '/metodologia',
+      icon: 'method',
+    },
+    {
+      titulo: 'Candidatos priorizados',
+      detalle: 'Sitios con mayor score de aptitud',
+      to: '/candidatos',
+      icon: 'target',
+    },
+    {
+      titulo: 'Indicadores territoriales',
+      detalle: 'Isla de calor (LST) y cobertura vegetal',
+      to: '/indicadores',
+      icon: 'chart',
+    },
+  ],
+}
+
+// Estado del arte internacional — referencia complementaria que sitúa la
+// metodología del observatorio en el contexto de la investigación global.
+const referenciaInternacional = {
+  titulo:
+    'Roofpedia: Automatic mapping of green and solar roofs for an open roofscape registry and evaluation of urban sustainability',
+  autores: ['Abraham Noah Wu', 'Filip Biljecki'],
+  afiliacion: 'National University of Singapore',
+  revista: 'Landscape and Urban Planning',
+  editorial: 'Elsevier',
+  cuartil: 'Q1',
+  anio: 2021,
+  volumen: '214',
+  pagina: '104167',
+  doi: '10.1016/j.landurbplan.2021.104167',
+  url: 'https://doi.org/10.1016/j.landurbplan.2021.104167',
+  resumen:
+    'Mapeo automatizado de techos verdes y solares vía redes neuronales convolucionales (CNN) sobre imágenes satelitales. Cubre más de un millón de edificios en 17 ciudades del mundo y propone el "Roofpedia Index" para comparar la penetración de techos sustentables a escala urbana. Inspirado en Treepedia.',
+  keywords: [
+    'Sustainable development',
+    'Convolutional Neural Network',
+    'Computer vision',
+    'Carbon neutrality',
+    'Building data',
+    'OpenStreetMap',
+  ],
+  kpis: [
+    { valor: '17', unidad: 'ciudades', detalle: 'cubiertas por el dataset abierto' },
+    { valor: '1M+', unidad: 'edificios', detalle: 'mapeados con techo verde o solar' },
+    { valor: '100%', unidad: 'accuracy', detalle: 'de detección en algunas ciudades' },
+    { valor: 'OSM', unidad: 'data', detalle: 'mismo backbone que nuestro detector' },
+  ],
+  porQue:
+    'Sitúa la metodología del observatorio en el estado del arte global. Roofpedia demuestra que el mapeo automatizado de techos verdes a escala urbana es factible y reproducible. El observatorio CDMX comparte el backbone OpenStreetMap pero prioriza validación de campo + AHP (no detección automática vía CNN) porque la cobertura satelital para azoteas individuales en CDMX aún requiere validación humana.',
+}
 
 const tesis = [
+  {
+    tipo: 'Artículo indexado Q1',
+    anio: 2025,
+    titulo:
+      'Spatial suitability analysis for the implementation of green rooftops in highly urbanized Mexico City: A GIS-based multicriteria decision analysis to alleviate urban heat island (UHI)',
+    autora:
+      'Cervantes-Nájera · Martínez-Rodríguez · Godwyn-Paulson · Muthuswamy Ponniah · Bello-Yáñez',
+    directora: 'Sustainable Cities and Society · Elsevier (Q1)',
+    institucion: 'CIIEMAD-IPN',
+    grado: 'Artículo en revista internacional indexada · 2025',
+    aportes: [
+      'AHP con 8 parámetros aplicado a toda la zona urbana de CDMX',
+      '60.81 tCO₂/año capturadas por el inventario actual',
+      '423,451 m² de superficie potencial identificada',
+      '1.09 millones kg CO₂ de captura potencial si se prioriza',
+    ],
+    url: 'https://www.sciencedirect.com/science/article/pii/S2210670725006547',
+  },
   {
     tipo: 'Tesis doctoral',
     anio: 2025,
     titulo:
       'Techos verdes una solución sustentable para la adaptación al cambio climático en la Ciudad de México',
-    autora: 'M. en C. Ana Laura Cervantes Najera',
+    autora: 'M. en C. Ana Laura Cervantes Nájera',
     directora: 'Dra. María Concepción Martínez Rodríguez',
-    institucion: 'CIIEMAD-IPN',
-    grado: 'Doctorado en Ciencias en Estudios Ambientales y de la Sustentabilidad',
+    institucion: 'CIIEMAD-IPN · Defensa 28 nov 2025',
+    grado:
+      'Doctorado en Ciencias en Estudios Ambientales y de la Sustentabilidad · Marco: economía circular + SbN',
     aportes: [
       'Inventario georreferenciado de techos verdes en CDMX',
       'Análisis multicriterio AHP con 8 variables territoriales',
       'Identificación de 428 km² de zonas prioritarias',
-      'Estimación de 514,000 m² de potencial de instalación',
+      'TVLE de 6 m² diseñado bajo principios de economía circular',
+      'Comité tutorial: Ochman Ikanowicz · Mendoza · Terán Cuevas · Abeldaño Zuñiga',
     ],
   },
   {
@@ -81,36 +204,48 @@ const fuentesOficiales = [
     sigla: 'SIGCDMX',
     descripcion: 'Datos catastrales, cartografía base y capas territoriales oficiales de la Ciudad de México.',
     url: 'https://sig.cdmx.gob.mx',
+    icono: 'map',
+    color: 'primary',
   },
   {
     nombre: 'SEDEMA — Secretaría del Medio Ambiente',
     sigla: 'SEDEMA',
     descripcion: 'Capas ambientales, áreas verdes urbanas y programas de azoteas verdes de la CDMX.',
     url: 'https://datos.cdmx.gob.mx',
+    icono: 'leaf',
+    color: 'eco',
   },
   {
     nombre: 'SIMAT — Sistema de Monitoreo Atmosférico',
     sigla: 'SIMAT',
     descripcion: 'Lecturas de calidad del aire (O₃, NO₂, PM₂.₅, PM₁₀) y estaciones de monitoreo en CDMX.',
     url: 'http://www.aire.cdmx.gob.mx',
+    icono: 'cloud',
+    color: 'secondary',
   },
   {
     nombre: 'INEGI — Censo de Población y Vivienda 2020',
     sigla: 'INEGI',
     descripcion: 'Densidad poblacional, materiales de construcción en techos y muros, viviendas particulares.',
     url: 'https://www.inegi.org.mx',
+    icono: 'people',
+    color: 'violet',
   },
   {
     nombre: 'SGIRPC — Atlas de Riesgos CDMX',
     sigla: 'SGIRPC',
     descripcion: 'Zonificación sísmica, riesgo de inundación y dictámenes post-sismo 19S (2017).',
     url: 'https://www.atlas.cdmx.gob.mx',
+    icono: 'shield',
+    color: 'alert',
   },
   {
     nombre: 'Catastro CDMX',
     sigla: 'Catastro',
     descripcion: 'Tipo estructural, edad de construcción, niveles y material de techumbre por predio.',
     url: 'https://data.consejeria.cdmx.gob.mx',
+    icono: 'building',
+    color: 'rose',
   },
 ]
 
@@ -121,6 +256,8 @@ const sensores = [
     detalle:
       'Sensor multiespectral con bandas B02-B08; usado para NDVI, EVI, SAVI y NDWI. Producto S2MSI2A (Level-2A), revisita cada 5 días.',
     url: 'https://dataspace.copernicus.eu',
+    icono: 'satellite',
+    color: 'secondary',
   },
   {
     nombre: 'Landsat 8/9 (NASA / USGS)',
@@ -128,6 +265,8 @@ const sensores = [
     detalle:
       'Banda térmica TIRS ST_B10 a 100 m de resolución; producto Collection 2 Level-2. Único satélite gratuito con banda térmica calibrada.',
     url: 'https://earthexplorer.usgs.gov',
+    icono: 'thermometer',
+    color: 'alert',
   },
   {
     nombre: 'Google Earth Engine',
@@ -135,6 +274,8 @@ const sensores = [
     detalle:
       'Catálogo de Sentinel-2 (COPERNICUS/S2_SR_HARMONIZED) y Landsat (LANDSAT/LC08-09/C02/T1_L2). Procesamiento server-side de series temporales.',
     url: 'https://earthengine.google.com',
+    icono: 'layers',
+    color: 'teal',
   },
 ]
 
@@ -143,27 +284,36 @@ const normativa = [
     titulo: 'NTC-CDMX 2017 — Normas Técnicas Complementarias',
     descripcion: 'Capacidad de carga mínima en azoteas: 100 kg/m² para TVLE; 300 kg/m² para techo verde intensivo.',
     fuente: 'Gobierno de la Ciudad de México',
+    icono: 'scale',
+    color: 'primary',
   },
   {
     titulo: 'Norma Ambiental NADF-013-RNAT-2017',
     descripcion: 'Especificaciones técnicas para diseño, instalación y mantenimiento de azoteas verdes en la CDMX.',
     fuente: 'SEDEMA',
+    icono: 'leaf',
+    color: 'eco',
   },
   {
     titulo: 'Reglamento de Construcciones del Distrito Federal',
     descripcion: 'Criterios estructurales, sísmicos y de uso del suelo aplicables a edificaciones existentes y nuevas.',
     fuente: 'Gobierno de la Ciudad de México',
+    icono: 'building',
+    color: 'rose',
   },
   {
     titulo: 'NMX-AA-164-SCFI-2013 — Edificación sustentable',
     descripcion: 'Criterios y requerimientos ambientales mínimos para edificios sustentables.',
     fuente: 'Secretaría de Economía',
+    icono: 'shield',
+    color: 'violet',
   },
 ]
 
 // Bibliografía organizada por bloques temáticos con citas clave del capítulo 2023
 const bibliografia = {
   ciiemad: [
+    'Cervantes-Nájera, A. L., Martínez-Rodríguez, M. C., Godwyn-Paulson, P., Muthuswamy Ponniah, J., y Bello-Yáñez, X. V. (2025). Spatial suitability analysis for the implementation of green rooftops in highly urbanized Mexico City: A GIS-based multicriteria decision analysis to alleviate urban heat island (UHI). Sustainable Cities and Society, Elsevier. https://www.sciencedirect.com/science/article/pii/S2210670725006547',
     'Martínez Rodríguez, M. C., y Cervantes-Nájera, A. L. (2023). Techos verdes en las áreas urbanas y su relación con la Agenda 2030. En P. Rivera Acosta y J. C. Neri Guzmán (Coords.), Repensar la Agenda 2030: Tendencias de sostenibilidad (pp. 301-321). Ediciones Comunicación Científica. https://doi.org/10.52501/cc.064.13',
     'Cervantes Najera, A. L. (2025). Techos verdes una solución sustentable para la adaptación al cambio climático en la Ciudad de México [Tesis doctoral, CIIEMAD-IPN].',
     'Cervantes Najera, A. L. (2021). Diseño, aplicación y evaluación de un techo verde ligero extensivo como estrategia para la adaptación al cambio climático en la alcaldía Gustavo A. Madero [Tesis de maestría, CIIEMAD-IPN].',
@@ -216,6 +366,9 @@ const bibliografia = {
     'Susca, T., Gaffin, S. R., y Dell\'Osso, G. R. (2011). Positive effects of vegetation: Urban heat island and green roofs. Environmental Pollution, 159(8-9), 2119-2126.',
     'IPCC (2022). Climate Change 2022: Impacts, Adaptation and Vulnerability. Contribution of Working Group II to the Sixth Assessment Report.',
   ],
+  estadoArte: [
+    'Wu, A. N., y Biljecki, F. (2021). Roofpedia: Automatic mapping of green and solar roofs for an open roofscape registry and evaluation of urban sustainability. Landscape and Urban Planning, 214, 104167. https://doi.org/10.1016/j.landurbplan.2021.104167',
+  ],
 }
 </script>
 
@@ -249,10 +402,10 @@ const bibliografia = {
         </p>
         <div class="mt-6 grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-6">
           <CommonCountUpKPI
-            :target="3"
+            :target="4"
             unidad="trabajos"
             detalle="académicos del CIIEMAD-IPN"
-            fuente="Tesis 2025, Cap. 2023, Tesis 2021"
+            fuente="Artículo SCS 2025, Tesis 2025, Cap. 2023, Tesis 2021"
             href="#tesis"
             number-class="text-primary"
           />
@@ -289,10 +442,10 @@ const bibliografia = {
             number-class="text-alert-dark"
           />
           <CommonCountUpKPI
-            :target="41"
+            :target="42"
             unidad="referencias"
-            detalle="bibliográficas en 6 bloques"
-            fuente="CIIEMAD · Agenda 2030 · SbN · Beneficios · Métodos"
+            detalle="bibliográficas en 7 bloques"
+            fuente="CIIEMAD · Agenda 2030 · SbN · Beneficios · Métodos · Estado del arte"
             href="#bibliografia"
             number-class="text-primary"
           />
@@ -415,6 +568,369 @@ const bibliografia = {
         </div>
       </section>
 
+      <!-- 1.5 Artículo destacado en Sustainable Cities and Society (2025) -->
+      <section id="articulo-destacado" class="reveal scroll-mt-24">
+        <div class="mb-6 flex items-center gap-3">
+          <span class="badge-accent">Publicación destacada · 2025</span>
+          <span class="text-xs uppercase tracking-wider text-ink-muted">
+            Revista internacional indexada
+          </span>
+        </div>
+
+        <article class="featured-article overflow-hidden rounded-2xl shadow-card-hover">
+          <!-- Cabecera con gradiente y silueta de techo verde -->
+          <header class="featured-article-header relative px-6 py-8 md:px-10 md:py-10">
+            <!-- Decorativo: anillos topo + chevrones -->
+            <svg
+              class="featured-article-deco"
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 800 240"
+              aria-hidden="true"
+            >
+              <defs>
+                <linearGradient id="featGrad" x1="0" y1="0" x2="1" y2="1">
+                  <stop offset="0%" stop-color="#79C141" stop-opacity="0.18" />
+                  <stop offset="100%" stop-color="#18A5E3" stop-opacity="0.12" />
+                </linearGradient>
+              </defs>
+              <g stroke="#ffffff" stroke-opacity="0.18" fill="none" stroke-width="1.2">
+                <ellipse cx="700" cy="100" rx="220" ry="90" />
+                <ellipse cx="700" cy="100" rx="170" ry="70" />
+                <ellipse cx="700" cy="100" rx="120" ry="50" />
+                <ellipse cx="700" cy="100" rx="70" ry="30" />
+              </g>
+              <!-- Silueta de skyline + techo verde -->
+              <g fill="#ffffff" fill-opacity="0.10">
+                <rect x="40" y="170" width="60" height="60" />
+                <rect x="110" y="140" width="80" height="90" />
+                <rect x="200" y="120" width="70" height="110" />
+                <rect x="280" y="155" width="55" height="75" />
+                <rect x="345" y="135" width="90" height="95" />
+                <rect x="445" y="160" width="50" height="70" />
+                <rect x="505" y="125" width="75" height="105" />
+              </g>
+              <!-- Bandas vegetales sobre los techos -->
+              <g fill="#79C141" fill-opacity="0.55">
+                <rect x="40" y="166" width="60" height="6" />
+                <rect x="110" y="136" width="80" height="6" />
+                <rect x="200" y="116" width="70" height="6" />
+                <rect x="280" y="151" width="55" height="6" />
+                <rect x="345" y="131" width="90" height="6" />
+                <rect x="445" y="156" width="50" height="6" />
+                <rect x="505" y="121" width="75" height="6" />
+              </g>
+              <rect width="800" height="240" fill="url(#featGrad)" />
+            </svg>
+
+            <div class="relative">
+              <div class="flex flex-wrap items-center gap-2">
+                <span class="rounded-full bg-white/15 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-white backdrop-blur">
+                  {{ articuloDestacado.revista }}
+                </span>
+                <span class="rounded-full bg-eco/90 px-3 py-1 text-xs font-bold uppercase tracking-wider text-white">
+                  {{ articuloDestacado.cuartil }} · {{ articuloDestacado.editorial }}
+                </span>
+                <span class="rounded-full bg-white/10 px-3 py-1 text-xs font-semibold text-white/90 backdrop-blur">
+                  {{ articuloDestacado.anio }}
+                </span>
+              </div>
+              <h2 class="mt-4 max-w-3xl text-xl font-bold leading-snug text-white md:text-2xl lg:text-3xl">
+                {{ articuloDestacado.titulo }}
+              </h2>
+              <p class="mt-3 max-w-3xl text-sm leading-relaxed text-white/85 md:text-base">
+                <span
+                  v-for="(autor, i) in articuloDestacado.autores"
+                  :key="autor"
+                  class="font-semibold"
+                >
+                  {{ autor }}<span v-if="i < articuloDestacado.autores.length - 1">, </span>
+                </span>
+                · CIIEMAD-IPN
+              </p>
+            </div>
+          </header>
+
+          <!-- KPIs visuales -->
+          <div class="grid grid-cols-2 gap-px bg-gray-200 md:grid-cols-4">
+            <div
+              v-for="k in articuloDestacado.kpis"
+              :key="k.detalle"
+              class="featured-article-kpi flex flex-col gap-1 bg-white p-5"
+            >
+              <span
+                class="inline-flex h-1 w-10 rounded-full"
+                :style="{ backgroundColor: k.color }"
+              />
+              <span
+                class="text-3xl font-extrabold tabular-nums leading-none md:text-4xl"
+                :style="{ color: k.color }"
+              >
+                {{ k.valor }}
+              </span>
+              <span class="text-xs font-semibold uppercase tracking-wider text-ink-muted">
+                {{ k.unidad }}
+              </span>
+              <span class="mt-1 text-xs leading-snug text-slate-custom">
+                {{ k.detalle }}
+              </span>
+            </div>
+          </div>
+
+          <!-- Resumen + vínculos -->
+          <div class="grid grid-cols-1 gap-0 bg-white md:grid-cols-5">
+            <div class="border-b border-gray-100 p-6 md:col-span-3 md:border-b-0 md:border-r md:p-8">
+              <p class="text-xs font-semibold uppercase tracking-wider text-primary">
+                Resumen del estudio
+              </p>
+              <p class="mt-3 text-sm leading-relaxed text-ink md:text-base">
+                {{ articuloDestacado.resumen }}
+              </p>
+
+              <!-- Mini diagrama: pipeline AHP del artículo -->
+              <div class="mt-6 rounded-xl border border-gray-100 bg-primary-50/50 p-4">
+                <p class="mb-3 text-xs font-semibold uppercase tracking-wider text-primary">
+                  Flujo metodológico del artículo
+                </p>
+                <div class="flex flex-wrap items-center gap-2 text-xs font-semibold text-ink">
+                  <span class="rounded-full bg-white px-3 py-1.5 shadow-card">
+                    8 capas SIG
+                  </span>
+                  <svg class="h-4 w-4 text-primary" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M5 12h14" /><path d="m12 5 7 7-7 7" />
+                  </svg>
+                  <span class="rounded-full bg-white px-3 py-1.5 shadow-card">
+                    AHP (Saaty 1980)
+                  </span>
+                  <svg class="h-4 w-4 text-primary" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M5 12h14" /><path d="m12 5 7 7-7 7" />
+                  </svg>
+                  <span class="rounded-full bg-white px-3 py-1.5 shadow-card">
+                    Pesos relativos
+                  </span>
+                  <svg class="h-4 w-4 text-primary" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M5 12h14" /><path d="m12 5 7 7-7 7" />
+                  </svg>
+                  <span class="rounded-full bg-white px-3 py-1.5 shadow-card">
+                    Mapa de aptitud
+                  </span>
+                  <svg class="h-4 w-4 text-primary" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M5 12h14" /><path d="m12 5 7 7-7 7" />
+                  </svg>
+                  <span class="rounded-full bg-eco px-3 py-1.5 text-white shadow-card">
+                    Mitigación UHI
+                  </span>
+                </div>
+              </div>
+
+              <div class="mt-6 flex flex-wrap gap-2">
+                <a
+                  :href="articuloDestacado.url"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="btn-primary"
+                >
+                  Leer el artículo en ScienceDirect
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    class="h-4 w-4"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <path d="M7 17L17 7" />
+                    <path d="M7 7h10v10" />
+                  </svg>
+                </a>
+                <span
+                  class="inline-flex items-center gap-1 rounded-full border border-gray-200 px-3 py-2 text-xs font-mono text-ink-muted"
+                >
+                  PII: {{ articuloDestacado.pii }}
+                </span>
+              </div>
+            </div>
+
+            <div class="bg-surface p-6 md:col-span-2 md:p-8">
+              <p class="text-xs font-semibold uppercase tracking-wider text-primary">
+                Cómo se conecta con el observatorio
+              </p>
+              <ul class="mt-4 space-y-3">
+                <li v-for="v in articuloDestacado.vinculos" :key="v.titulo">
+                  <NuxtLink
+                    :to="v.to"
+                    class="group flex items-start gap-3 rounded-xl border border-gray-200 bg-white p-3 transition-all hover:border-primary hover:shadow-card-hover"
+                  >
+                    <span
+                      class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary-50 text-primary"
+                    >
+                      <svg
+                        v-if="v.icon === 'method'"
+                        xmlns="http://www.w3.org/2000/svg"
+                        class="h-5 w-5"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                      >
+                        <path d="M3 3h7v7H3z" />
+                        <path d="M14 3h7v7h-7z" />
+                        <path d="M14 14h7v7h-7z" />
+                        <path d="M3 14h7v7H3z" />
+                      </svg>
+                      <svg
+                        v-else-if="v.icon === 'target'"
+                        xmlns="http://www.w3.org/2000/svg"
+                        class="h-5 w-5"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                      >
+                        <circle cx="12" cy="12" r="10" />
+                        <circle cx="12" cy="12" r="6" />
+                        <circle cx="12" cy="12" r="2" />
+                      </svg>
+                      <svg
+                        v-else
+                        xmlns="http://www.w3.org/2000/svg"
+                        class="h-5 w-5"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                      >
+                        <path d="M3 3v18h18" />
+                        <path d="M7 14l4-4 4 4 5-5" />
+                      </svg>
+                    </span>
+                    <div>
+                      <p class="text-sm font-semibold text-ink group-hover:text-primary">
+                        {{ v.titulo }}
+                      </p>
+                      <p class="text-xs leading-snug text-slate-custom">
+                        {{ v.detalle }}
+                      </p>
+                    </div>
+                  </NuxtLink>
+                </li>
+              </ul>
+            </div>
+          </div>
+        </article>
+      </section>
+
+      <!-- 1.75 Estado del arte internacional — Roofpedia (Wu & Biljecki 2021) -->
+      <section id="estado-del-arte" class="reveal scroll-mt-24">
+        <div class="mb-6 flex items-center gap-3">
+          <span class="badge-secondary">Estado del arte internacional · 2021</span>
+          <span class="text-xs uppercase tracking-wider text-ink-muted">
+            Referencia complementaria
+          </span>
+        </div>
+
+        <article class="overflow-hidden rounded-2xl border border-secondary/15 bg-white shadow-card">
+          <!-- Cabecera -->
+          <header class="grid grid-cols-1 gap-0 md:grid-cols-12">
+            <div class="bg-gradient-to-br from-secondary to-secondary-dark p-6 text-white md:col-span-5 md:p-8">
+              <div class="flex flex-wrap items-center gap-2">
+                <span class="rounded-full bg-white/15 px-3 py-1 text-xs font-semibold uppercase tracking-wider backdrop-blur">
+                  {{ referenciaInternacional.revista }}
+                </span>
+                <span class="rounded-full bg-eco/90 px-3 py-1 text-xs font-bold uppercase tracking-wider text-white">
+                  {{ referenciaInternacional.cuartil }} · {{ referenciaInternacional.editorial }}
+                </span>
+              </div>
+              <h2 class="mt-4 text-lg font-bold leading-snug md:text-xl">
+                {{ referenciaInternacional.titulo }}
+              </h2>
+              <p class="mt-3 text-sm text-white/85">
+                <span class="font-semibold">
+                  {{ referenciaInternacional.autores.join(' · ') }}
+                </span>
+                <br>
+                <span class="text-white/70">
+                  {{ referenciaInternacional.afiliacion }} · {{ referenciaInternacional.anio }}
+                </span>
+              </p>
+              <a
+                :href="referenciaInternacional.url"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="mt-5 inline-flex items-center gap-2 rounded-xl bg-white px-4 py-2 text-xs font-semibold text-secondary-dark shadow-sm transition-transform hover:-translate-y-0.5"
+              >
+                Leer en ScienceDirect
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M7 17L17 7" />
+                  <path d="M7 7h10v10" />
+                </svg>
+              </a>
+              <p class="mt-3 text-[11px] font-mono text-white/60">
+                DOI: {{ referenciaInternacional.doi }}
+              </p>
+            </div>
+
+            <div class="bg-white p-6 md:col-span-7 md:p-8">
+              <p class="text-xs font-bold uppercase tracking-wider text-secondary-dark">
+                Resumen
+              </p>
+              <p class="mt-3 text-sm leading-relaxed text-ink">
+                {{ referenciaInternacional.resumen }}
+              </p>
+
+              <p class="mt-5 text-xs font-bold uppercase tracking-wider text-secondary-dark">
+                Palabras clave
+              </p>
+              <div class="mt-2 flex flex-wrap gap-1.5">
+                <span
+                  v-for="kw in referenciaInternacional.keywords"
+                  :key="kw"
+                  class="rounded-full border border-secondary/20 bg-secondary/5 px-2.5 py-0.5 text-[11px] text-secondary-dark"
+                >
+                  {{ kw }}
+                </span>
+              </div>
+            </div>
+          </header>
+
+          <!-- KPIs -->
+          <div class="grid grid-cols-2 gap-px bg-gray-200 md:grid-cols-4">
+            <div
+              v-for="k in referenciaInternacional.kpis"
+              :key="k.detalle"
+              class="flex flex-col gap-1 bg-white p-5"
+            >
+              <span class="text-3xl font-extrabold tabular-nums leading-none text-secondary md:text-4xl">
+                {{ k.valor }}
+              </span>
+              <span class="text-xs font-semibold uppercase tracking-wider text-ink-muted">
+                {{ k.unidad }}
+              </span>
+              <span class="mt-1 text-xs leading-snug text-slate-custom">
+                {{ k.detalle }}
+              </span>
+            </div>
+          </div>
+
+          <!-- Por qué relevante -->
+          <div class="border-t border-gray-100 bg-surface p-6 md:p-8">
+            <p class="text-xs font-bold uppercase tracking-wider text-primary">
+              Por qué es relevante para el observatorio CDMX
+            </p>
+            <p class="mt-3 text-sm leading-relaxed text-ink">
+              {{ referenciaInternacional.porQue }}
+            </p>
+          </div>
+        </article>
+      </section>
+
       <!-- 2. Tesis académicas y publicaciones -->
       <section id="tesis" class="reveal scroll-mt-24">
         <div class="mb-6 flex items-center gap-3">
@@ -514,33 +1030,44 @@ const bibliografia = {
           Datos abiertos de gobierno que alimentan los modelos de aptitud, riesgo y
           pre-factibilidad estructural.
         </p>
-        <div class="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+        <div class="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3">
           <a
             v-for="f in fuentesOficiales"
             :key="f.sigla"
             :href="f.url"
             target="_blank"
             rel="noopener noreferrer"
-            class="card-interactive flex flex-col p-5"
+            class="fun-card fun-card-link"
+            :style="funStyle(f.color)"
           >
-            <div class="flex items-center justify-between">
-              <span class="badge-secondary">{{ f.sigla }}</span>
+            <span class="fun-card-hint">{{ f.sigla }}</span>
+            <div class="fun-card-icon-wrap" aria-hidden="true">
+              <span class="fun-card-icon-halo" />
+              <span class="fun-card-icon-bubble" />
               <svg
+                class="fun-card-icon-svg"
                 xmlns="http://www.w3.org/2000/svg"
-                class="h-4 w-4 text-ink-muted"
                 viewBox="0 0 24 24"
                 fill="none"
                 stroke="currentColor"
-                stroke-width="2"
+                stroke-width="1.6"
                 stroke-linecap="round"
                 stroke-linejoin="round"
               >
+                <path v-for="(d, i) in funPaths(f.icono)" :key="i" :d="d" />
+              </svg>
+              <span class="fun-card-spark fun-card-spark--1" />
+              <span class="fun-card-spark fun-card-spark--2" />
+            </div>
+            <h3 class="fun-card-label">{{ f.nombre }}</h3>
+            <p class="fun-card-desc">{{ f.descripcion }}</p>
+            <span class="fun-card-cta">
+              Visitar
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M7 17L17 7" />
                 <path d="M7 7h10v10" />
               </svg>
-            </div>
-            <h3 class="mt-3 text-sm font-bold text-ink">{{ f.nombre }}</h3>
-            <p class="mt-2 text-xs leading-relaxed text-slate-custom">{{ f.descripcion }}</p>
+            </span>
           </a>
         </div>
       </section>
@@ -555,20 +1082,44 @@ const bibliografia = {
           Imágenes satelitales gratuitas que se procesan vía Google Earth Engine para los
           índices NDVI, EVI, SAVI, NDWI y temperatura superficial (LST).
         </p>
-        <div class="grid grid-cols-1 gap-4 md:grid-cols-3">
+        <div class="grid grid-cols-1 gap-5 md:grid-cols-3">
           <a
             v-for="s in sensores"
             :key="s.nombre"
             :href="s.url"
             target="_blank"
             rel="noopener noreferrer"
-            class="card-interactive flex flex-col p-5"
+            class="fun-card fun-card-link"
+            :style="funStyle(s.color)"
           >
-            <div class="flex items-center gap-2">
-              <span class="badge-accent">{{ s.rol }}</span>
+            <span class="fun-card-hint">{{ s.rol }}</span>
+            <div class="fun-card-icon-wrap" aria-hidden="true">
+              <span class="fun-card-icon-halo" />
+              <span class="fun-card-icon-bubble" />
+              <svg
+                class="fun-card-icon-svg"
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.6"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path v-for="(d, i) in funPaths(s.icono)" :key="i" :d="d" />
+              </svg>
+              <span class="fun-card-spark fun-card-spark--1" />
+              <span class="fun-card-spark fun-card-spark--2" />
             </div>
-            <h3 class="mt-3 text-sm font-bold text-ink">{{ s.nombre }}</h3>
-            <p class="mt-2 text-xs leading-relaxed text-slate-custom">{{ s.detalle }}</p>
+            <h3 class="fun-card-label">{{ s.nombre }}</h3>
+            <p class="fun-card-desc">{{ s.detalle }}</p>
+            <span class="fun-card-cta">
+              Ir al portal
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M7 17L17 7" />
+                <path d="M7 7h10v10" />
+              </svg>
+            </span>
           </a>
         </div>
       </section>
@@ -583,13 +1134,34 @@ const bibliografia = {
           Normas técnicas y reglamentos que rigen la viabilidad estructural y los criterios
           ambientales de los techos verdes en la CDMX.
         </p>
-        <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
-          <article v-for="n in normativa" :key="n.titulo" class="card p-5">
-            <h3 class="text-sm font-bold text-ink">{{ n.titulo }}</h3>
-            <p class="mt-2 text-xs leading-relaxed text-slate-custom">{{ n.descripcion }}</p>
-            <p class="mt-3 text-[11px] font-semibold uppercase tracking-wider text-ink-muted">
-              {{ n.fuente }}
-            </p>
+        <div class="grid grid-cols-1 gap-5 md:grid-cols-2">
+          <article
+            v-for="n in normativa"
+            :key="n.titulo"
+            class="fun-card"
+            :style="funStyle(n.color)"
+          >
+            <span class="fun-card-hint">{{ n.fuente }}</span>
+            <div class="fun-card-icon-wrap" aria-hidden="true">
+              <span class="fun-card-icon-halo" />
+              <span class="fun-card-icon-bubble" />
+              <svg
+                class="fun-card-icon-svg"
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.6"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path v-for="(d, i) in funPaths(n.icono)" :key="i" :d="d" />
+              </svg>
+              <span class="fun-card-spark fun-card-spark--1" />
+              <span class="fun-card-spark fun-card-spark--2" />
+            </div>
+            <h3 class="fun-card-label">{{ n.titulo }}</h3>
+            <p class="fun-card-desc">{{ n.descripcion }}</p>
           </article>
         </div>
       </section>
@@ -666,6 +1238,16 @@ const bibliografia = {
               <li v-for="(b, i) in bibliografia.metodologia" :key="i" class="pl-2">{{ b }}</li>
             </ol>
           </details>
+
+          <details class="panel">
+            <summary class="flex cursor-pointer items-center justify-between gap-2">
+              <span class="text-base font-bold text-ink">Estado del arte — mapeo automatizado</span>
+              <span class="badge-secondary">{{ bibliografia.estadoArte.length }}</span>
+            </summary>
+            <ol class="mt-4 list-inside list-decimal space-y-3 text-sm leading-relaxed text-slate-custom">
+              <li v-for="(b, i) in bibliografia.estadoArte" :key="i" class="pl-2">{{ b }}</li>
+            </ol>
+          </details>
         </div>
       </section>
 
@@ -707,3 +1289,42 @@ const bibliografia = {
     </div>
   </div>
 </template>
+
+<style scoped>
+.featured-article {
+  background: var(--c-surface);
+  border: 1px solid var(--c-border-soft);
+}
+
+.featured-article-header {
+  background: linear-gradient(135deg, #094a2e 0%, #0e5e3a 45%, #1a7a4e 100%);
+  position: relative;
+  overflow: hidden;
+}
+
+.featured-article-deco {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  opacity: 0.9;
+}
+
+.featured-article-kpi {
+  position: relative;
+  transition: transform 0.3s cubic-bezier(0.22, 1, 0.36, 1),
+    background-color 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.featured-article-kpi:hover {
+  transform: translateY(-2px);
+  background-color: #f7f8f4;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .featured-article-kpi:hover {
+    transform: none;
+  }
+}
+</style>

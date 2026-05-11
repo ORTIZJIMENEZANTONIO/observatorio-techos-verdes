@@ -99,21 +99,44 @@
           :centered="true"
         />
         <div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
-          <div
+          <NuxtLink
             v-for="principle in principles"
             :key="principle.title"
-            class="card-interactive p-6 text-center"
+            :to="principle.to"
+            class="fun-card fun-card-link"
+            :style="funStyle(principle.color)"
+            :aria-label="`Más sobre ${principle.title}`"
           >
-            <div
-              :class="['mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-xl', principle.bg]"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" :class="['h-7 w-7', principle.iconColor]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path v-for="(d, i) in principle.paths" :key="i" :d="d" />
+            <span class="fun-card-hint">{{ principle.hint }}</span>
+            <div class="fun-card-icon-wrap" aria-hidden="true">
+              <span class="fun-card-icon-halo" />
+              <span class="fun-card-icon-bubble" />
+              <svg
+                class="fun-card-icon-svg"
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.6"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path v-for="(d, i) in funPaths(principle.icono)" :key="i" :d="d" />
               </svg>
+              <span class="fun-card-spark fun-card-spark--1" />
+              <span class="fun-card-spark fun-card-spark--2" />
+              <span class="fun-card-spark fun-card-spark--3" />
             </div>
-            <h4 class="text-base font-semibold text-ink">{{ principle.title }}</h4>
-            <p class="mt-2 text-sm leading-relaxed text-slate-custom">{{ principle.description }}</p>
-          </div>
+            <h4 class="fun-card-label">{{ principle.title }}</h4>
+            <p class="fun-card-desc">{{ principle.description }}</p>
+            <span class="fun-card-cta">
+              Ver más
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="5" y1="12" x2="19" y2="12" />
+                <polyline points="12 5 19 12 12 19" />
+              </svg>
+            </span>
+          </NuxtLink>
         </div>
       </div>
     </section>
@@ -183,43 +206,44 @@
     <!-- Enfoque -->
     <section class="bg-white py-16">
       <div class="container-wide">
-        <h3 class="text-2xl font-bold text-ink">Enfoque</h3>
-        <p class="mt-2 text-sm text-slate-custom max-w-3xl">
-          Tres dimensiones complementarias orientan el análisis y las acciones del observatorio.
-        </p>
-        <div class="mt-8 grid grid-cols-1 gap-8 md:grid-cols-3">
-          <div>
-            <div class="mb-3 inline-flex items-center gap-2 rounded-badge bg-primary-50 px-3 py-1">
-              <span class="h-2 w-2 rounded-full bg-primary" />
-              <span class="text-xs font-semibold text-primary">Territorial</span>
+        <CommonSectionTitle
+          title="Enfoque"
+          subtitle="Tres dimensiones complementarias orientan el análisis y las acciones del observatorio."
+          :centered="true"
+        />
+        <div class="mt-8 grid grid-cols-1 gap-6 md:grid-cols-3">
+          <article
+            v-for="d in dimensiones"
+            :key="d.titulo"
+            class="fun-card"
+            :style="funStyle(d.color)"
+          >
+            <span class="fun-card-hint">{{ d.titulo }}</span>
+            <div class="fun-card-icon-wrap" aria-hidden="true">
+              <span class="fun-card-icon-halo" />
+              <span class="fun-card-icon-bubble" />
+              <svg
+                class="fun-card-icon-svg"
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.6"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path v-for="(p, i) in funPaths(d.icono)" :key="i" :d="p" />
+              </svg>
+              <span class="fun-card-spark fun-card-spark--1" />
+              <span class="fun-card-spark fun-card-spark--2" />
             </div>
-            <p class="text-sm leading-relaxed text-slate-custom">
-              Análisis espacial de la Ciudad de México para identificar zonas de alta prioridad ambiental. La dimensión territorial considera la distribución de islas de calor, déficit de vegetación y densidad urbana.
-            </p>
-          </div>
-          <div>
-            <div class="mb-3 inline-flex items-center gap-2 rounded-badge bg-alert/10 px-3 py-1">
-              <span class="h-2 w-2 rounded-full bg-alert" />
-              <span class="text-xs font-semibold text-alert-dark">Climático</span>
-            </div>
-            <p class="text-sm leading-relaxed text-slate-custom">
-              Evaluación del impacto de los techos verdes en la mitigación de islas de calor urbano, la captura de CO2 y la retención de agua pluvial. Se monitorean indicadores climáticos clave para medir beneficios.
-            </p>
-          </div>
-          <div>
-            <div class="mb-3 inline-flex items-center gap-2 rounded-badge bg-secondary/10 px-3 py-1">
-              <span class="h-2 w-2 rounded-full bg-secondary" />
-              <span class="text-xs font-semibold text-secondary-dark">Tecnológico</span>
-            </div>
-            <p class="text-sm leading-relaxed text-slate-custom">
-              Uso de inteligencia artificial, sistemas de información geográfica y sensores remotos para la detección, clasificación y monitoreo de infraestructura verde. Tecnología al servicio del análisis ambiental.
-            </p>
-          </div>
+            <p class="fun-card-desc">{{ d.descripcion }}</p>
+          </article>
         </div>
       </div>
     </section>
 
-    <!-- Datos, SIG e IA -->
+    <!-- Datos, SIG y percepción remota -->
     <section class="py-16">
       <div class="container-wide">
         <div class="overflow-hidden rounded-card bg-gradient-to-br from-primary-800 to-primary shadow-panel">
@@ -227,9 +251,9 @@
             <span class="mb-3 inline-flex items-center gap-2 rounded-badge bg-white/10 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-eco-light backdrop-blur-sm">
               Tecnología
             </span>
-            <h3 class="mt-4 text-2xl font-bold text-white">Datos, SIG e Inteligencia Artificial</h3>
+            <h3 class="mt-4 text-2xl font-bold text-white">Datos, SIG y percepción remota</h3>
             <p class="mt-4 max-w-2xl text-base leading-relaxed text-white/75">
-              El observatorio integra múltiples capas de tecnología para generar conocimiento accionable sobre la infraestructura verde de la CDMX.
+              El observatorio integra múltiples capas de tecnología — datos abiertos, sensores satelitales (Sentinel-2, Landsat 8/9) y análisis multicriterio AHP — para generar conocimiento accionable sobre la infraestructura verde de la CDMX.
             </p>
             <div class="mt-8 grid grid-cols-1 gap-6 md:grid-cols-3">
               <div class="rounded-card bg-white/10 p-5 backdrop-blur-sm">
@@ -245,9 +269,9 @@
                 </p>
               </div>
               <div class="rounded-card bg-white/10 p-5 backdrop-blur-sm">
-                <h4 class="text-sm font-semibold text-white">Inteligencia artificial</h4>
+                <h4 class="text-sm font-semibold text-white">Validación con expertos</h4>
                 <p class="mt-2 text-xs leading-relaxed text-white/60">
-                  Modelos de visión por computadora para detección automática de techos verdes en imágenes aéreas. Sistema humano-en-el-bucle para validación y mejora continua del modelo.
+                  Revisión manual con expertos del CIIEMAD-IPN siguiendo la metodología de Cervantes-Nájera. Validación de campo, fotografía aérea y observación territorial.
                 </p>
               </div>
             </div>
@@ -429,6 +453,17 @@ import { candidateRoofs } from '~/data/mock-candidates'
 import { aptitudPesos } from '~/data/aptitud-pesos'
 import { ALCALDIAS } from '~/utils/constants'
 
+const { funPaths, funStyle } = useFunPalette()
+
+// CMS — secciones editables en /admin/contenido/sobre
+type Dimension = { titulo: string; descripcion: string; icono?: string; color?: string }
+type Finding = { value: string; label: string; color?: string }
+type Principle = { title: string; description: string; hint?: string; icono?: string; color?: string; to?: string }
+const cmsSobre = useCmsContent('sobre')
+const dimensiones = cmsSobre.list<Dimension>('dimensiones')
+const ciiemadFindings = cmsSobre.list<Finding>('findings')
+const principles = cmsSobre.list<Principle>('principles')
+
 useHead({
   title: 'Sobre el observatorio | Observatorio Techos Verdes CDMX',
   meta: [
@@ -440,13 +475,6 @@ const greenRoofsCount = greenRoofs.length
 const candidatesCount = candidateRoofs.length
 const variablesCount = aptitudPesos.length
 const alcaldiasCount = ALCALDIAS.length
-
-const ciiemadFindings = [
-  { value: '3.5°C', label: 'Reducción de temperatura superficial', color: 'text-secondary' },
-  { value: '432.95', label: 'kWh/m² ahorro energético anual', color: 'text-accent' },
-  { value: '0.077', label: 'tonCO₂/año capturadas (inventario)', color: 'text-eco-dark' },
-  { value: '18', label: 'Meses de recuperación de inversión', color: 'text-primary' },
-]
 
 const normativas = [
   {
@@ -484,51 +512,6 @@ const normativas = [
     tipo: 'Incentivo fiscal',
     descripcion: 'Reducción del 10% en el impuesto predial para inmuebles que instalen y mantengan azoteas naturadas conforme a la NADF-013-RNAT-2017.',
     color: '#0E5E3A',
-  },
-]
-
-const principles = [
-  {
-    title: 'Transparencia',
-    description: 'Datos abiertos, metodología documentada y código fuente público. Toda la información es verificable.',
-    bg: 'bg-primary-50',
-    iconColor: 'text-primary',
-    paths: [
-      'M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z',
-      'M12 12m-3 0a3 3 0 1 0 6 0 3 3 0 1 0-6 0',
-    ],
-  },
-  {
-    title: 'Rigor científico',
-    description: 'Modelo basado en literatura académica, datos oficiales y validación por expertos en el tema.',
-    bg: 'bg-secondary/10',
-    iconColor: 'text-secondary',
-    paths: [
-      'M9 3H5a2 2 0 0 0-2 2v4m6-6h10a2 2 0 0 1 2 2v4M9 3v18m0 0h10a2 2 0 0 0 2-2V9M9 21H5a2 2 0 0 1-2-2V9m0 0h18',
-    ],
-  },
-  {
-    title: 'Accesibilidad',
-    description: 'Información presentada de forma clara y comprensible para diferentes audiencias. Interfaz intuitiva.',
-    bg: 'bg-eco/10',
-    iconColor: 'text-eco',
-    paths: [
-      'M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2',
-      'M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8z',
-      'M23 21v-2a4 4 0 0 0-3-3.87',
-      'M16 3.13a4 4 0 0 1 0 7.75',
-    ],
-  },
-  {
-    title: 'Colaboración',
-    description: 'Plataforma diseñada para facilitar la colaboración entre gobierno, academia, sector privado y sociedad civil.',
-    bg: 'bg-accent/10',
-    iconColor: 'text-accent',
-    paths: [
-      'M12 2L2 7l10 5 10-5-10-5z',
-      'M2 17l10 5 10-5',
-      'M2 12l10 5 10-5',
-    ],
   },
 ]
 

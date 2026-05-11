@@ -250,12 +250,33 @@
     @apply px-7 py-3.5 text-base;
   }
 
-  /* KPI card */
+  /* KPI card — toque funny (hover lift + sombra acolchada) */
   .kpi-card {
-    @apply rounded-2xl p-4 md:p-5 flex flex-col gap-1;
+    @apply rounded-2xl p-4 md:p-5 flex flex-col gap-1 relative overflow-hidden;
     background-color: var(--c-surface);
     border: 1px solid var(--c-border-soft);
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04), 0 4px 12px rgba(0, 0, 0, 0.03);
+    transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1),
+      box-shadow 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  .kpi-card:hover {
+    transform: translate3d(0, -3px, 0);
+    box-shadow: 0 12px 24px -8px rgba(14, 94, 58, 0.18),
+      0 4px 12px rgba(0, 0, 0, 0.04);
+  }
+  /* Banda superior decorativa — usa el border-l accent existente si está */
+  .kpi-card.border-l-eco::before,
+  .kpi-card.border-l-accent::before,
+  .kpi-card.border-l-orange-500::before,
+  .kpi-card.border-l-red-500::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    opacity: 0.5;
+    background: currentColor;
   }
 
   /* Live activity indicator */
@@ -300,6 +321,456 @@
 
   .table-base tbody tr {
     @apply border-b border-gray-50 last:border-0 hover:bg-primary-50/30 transition-colors;
+  }
+}
+
+/* ------------------------------------------------------------------ */
+/* Fun cards — patrón visual con icono protagonista                   */
+/* Reutilizable desde cualquier página vía CSS vars --fun-color /     */
+/* --fun-light. Acompañado por el composable useFunPalette().         */
+/* ------------------------------------------------------------------ */
+.fun-card {
+  --fun-color: #0e5e3a;
+  --fun-light: #ecfdf5;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 2rem 1.25rem 1.75rem;
+  background: var(--c-surface);
+  border: 1px solid var(--c-border-soft);
+  border-radius: 1.5rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04), 0 4px 12px rgba(0, 0, 0, 0.03);
+  transition: transform 0.4s cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 0.4s cubic-bezier(0.22, 1, 0.36, 1),
+    border-color 0.3s ease;
+  overflow: hidden;
+  text-decoration: none;
+  color: inherit;
+}
+.fun-card-link {
+  cursor: pointer;
+}
+.fun-card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: var(--fun-color);
+  opacity: 0.85;
+  transform: scaleX(0.4);
+  transform-origin: left center;
+  transition: transform 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.fun-card::after {
+  content: "";
+  position: absolute;
+  inset: auto 0 -40% 0;
+  height: 80%;
+  background: radial-gradient(
+    ellipse at center top,
+    var(--fun-light) 0%,
+    transparent 60%
+  );
+  opacity: 0;
+  transition: opacity 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+  pointer-events: none;
+  z-index: 0;
+}
+.fun-card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 16px 32px -10px color-mix(in srgb, var(--fun-color) 28%, transparent),
+    0 4px 12px rgba(0, 0, 0, 0.04);
+  border-color: var(--fun-color);
+}
+.fun-card:hover::before {
+  transform: scaleX(1);
+}
+.fun-card:hover::after {
+  opacity: 0.5;
+}
+.fun-card:focus-visible {
+  outline: 2px solid var(--fun-color);
+  outline-offset: 4px;
+}
+
+.fun-card-hint {
+  position: relative;
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.2rem 0.7rem;
+  margin-bottom: 1rem;
+  font-size: 0.625rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--fun-color);
+  background: var(--fun-light);
+  border-radius: 9999px;
+}
+
+.fun-card-icon-wrap {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 6.5rem;
+  height: 6.5rem;
+  margin-bottom: 1.1rem;
+}
+.fun-card-icon-halo {
+  position: absolute;
+  inset: -10%;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle,
+    color-mix(in srgb, var(--fun-color) 30%, transparent) 0%,
+    transparent 70%
+  );
+  filter: blur(8px);
+  opacity: 0;
+  transition: opacity 0.4s ease;
+  animation: funHaloPulse 4s ease-in-out infinite;
+}
+.fun-card:hover .fun-card-icon-halo {
+  opacity: 1;
+}
+.fun-card-icon-bubble {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: var(--fun-light);
+  border: 2px solid color-mix(in srgb, var(--fun-color) 18%, transparent);
+  transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1),
+    box-shadow 0.4s ease;
+}
+.fun-card:hover .fun-card-icon-bubble {
+  transform: scale(1.08);
+  box-shadow: 0 8px 20px -6px color-mix(in srgb, var(--fun-color) 40%, transparent);
+}
+.fun-card-icon-svg {
+  position: relative;
+  z-index: 2;
+  width: 3.25rem;
+  height: 3.25rem;
+  color: var(--fun-color);
+  transition: transform 0.45s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.fun-card:hover .fun-card-icon-svg {
+  transform: scale(1.08) rotate(-4deg);
+}
+
+/* Badge numerada (para pasos) en la esquina del icono */
+.fun-card-badge {
+  position: absolute;
+  bottom: -4px;
+  right: -4px;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.75rem;
+  height: 1.75rem;
+  font-size: 0.85rem;
+  font-weight: 800;
+  color: var(--fun-color);
+  background: var(--c-surface);
+  border: 2px solid var(--fun-light);
+  border-radius: 50%;
+  box-shadow: 0 4px 10px color-mix(in srgb, var(--fun-color) 20%, transparent);
+}
+
+/* Chispitas decorativas */
+.fun-card-spark {
+  position: absolute;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--fun-color);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+.fun-card-spark--1 {
+  top: 4%;
+  right: 6%;
+  animation: funSpark 2.2s ease-in-out infinite;
+}
+.fun-card-spark--2 {
+  bottom: 12%;
+  left: 0;
+  width: 4px;
+  height: 4px;
+  animation: funSpark 2.6s 0.4s ease-in-out infinite;
+}
+.fun-card-spark--3 {
+  top: 30%;
+  right: -4%;
+  width: 5px;
+  height: 5px;
+  animation: funSpark 3s 0.8s ease-in-out infinite;
+}
+.fun-card:hover .fun-card-spark {
+  opacity: 0.9;
+}
+
+.fun-card-value {
+  position: relative;
+  z-index: 1;
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.2rem;
+  font-size: 1.5rem;
+  font-weight: 800;
+  line-height: 1.1;
+  color: var(--fun-color);
+  letter-spacing: -0.01em;
+}
+.fun-card-unit {
+  font-size: 0.7rem;
+  font-weight: 500;
+  color: var(--c-ink-soft);
+  letter-spacing: 0;
+}
+.fun-card-label {
+  position: relative;
+  z-index: 1;
+  margin-top: 0.5rem;
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--c-ink);
+  max-width: 95%;
+  line-height: 1.3;
+}
+.fun-card-desc {
+  position: relative;
+  z-index: 1;
+  margin-top: 0.5rem;
+  max-width: 90%;
+  font-size: 0.82rem;
+  line-height: 1.5;
+  color: var(--c-ink-muted);
+}
+.fun-card-delta {
+  position: relative;
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  margin-top: 0.7rem;
+  padding: 0.2rem 0.6rem;
+  font-size: 0.65rem;
+  font-weight: 600;
+  color: var(--fun-color);
+  background: var(--fun-light);
+  border-radius: 9999px;
+}
+.fun-card-delta svg {
+  width: 0.8rem;
+  height: 0.8rem;
+}
+.fun-card-cta {
+  position: relative;
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  margin-top: 0.85rem;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--fun-color);
+  opacity: 0;
+  transform: translateY(4px);
+  transition: opacity 0.3s ease, transform 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.fun-card-cta svg {
+  width: 0.85rem;
+  height: 0.85rem;
+  transition: transform 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.fun-card:hover .fun-card-cta {
+  opacity: 1;
+  transform: translateY(0);
+}
+.fun-card:hover .fun-card-cta svg {
+  transform: translateX(3px);
+}
+
+@keyframes funHaloPulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.1); }
+}
+@keyframes funSpark {
+  0%, 100% { transform: translate(0, 0) scale(0.8); }
+  50% { transform: translate(2px, -3px) scale(1.2); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fun-card,
+  .fun-card-icon-bubble,
+  .fun-card-icon-halo,
+  .fun-card-icon-svg,
+  .fun-card-spark,
+  .fun-card-cta {
+    animation: none !important;
+    transition: none !important;
+    transform: none !important;
+  }
+}
+
+/* ------------------------------------------------------------------ */
+/* Gallery cards — figura con imagen, gradiente y numeración           */
+/* ------------------------------------------------------------------ */
+.gallery-card {
+  position: relative;
+  overflow: hidden;
+  background: var(--c-surface);
+  border: 1px solid var(--c-border-soft);
+  border-radius: 1.25rem;
+  transition: transform 0.4s cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+.gallery-card:hover {
+  transform: translate3d(0, -4px, 0);
+  box-shadow: 0 14px 28px -10px rgba(14, 94, 58, 0.2);
+}
+.gallery-card-image-wrap {
+  position: relative;
+  aspect-ratio: 16 / 10;
+  overflow: hidden;
+  background: var(--c-surface-2);
+}
+.gallery-card-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.7s cubic-bezier(0.22, 1, 0.36, 1),
+    filter 0.4s ease;
+  filter: saturate(0.95) brightness(0.98);
+}
+.gallery-card:hover .gallery-card-image {
+  transform: scale(1.07);
+  filter: saturate(1.15) brightness(1.05);
+}
+.gallery-card-gradient {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(
+    180deg,
+    transparent 40%,
+    rgba(4, 43, 26, 0.45) 100%
+  );
+  opacity: 0;
+  transition: opacity 0.4s ease;
+}
+.gallery-card:hover .gallery-card-gradient {
+  opacity: 1;
+}
+.gallery-card-num {
+  position: absolute;
+  top: 0.75rem;
+  left: 0.75rem;
+  z-index: 2;
+  padding: 0.2rem 0.65rem;
+  font-family: 'Space Grotesk', system-ui, sans-serif;
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: var(--c-ink);
+  background: color-mix(in srgb, var(--c-surface) 92%, transparent);
+  border-radius: 9999px;
+  backdrop-filter: blur(8px);
+}
+.gallery-card-caption {
+  padding: 0.95rem 1rem 1.05rem;
+  font-size: 0.78rem;
+  line-height: 1.55;
+  color: var(--c-ink-muted);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .gallery-card,
+  .gallery-card-image,
+  .gallery-card-gradient {
+    animation: none !important;
+    transition: none !important;
+    transform: none !important;
+  }
+}
+
+/* ------------------------------------------------------------------ */
+/* ODS cards — colores oficiales ONU                                  */
+/* ------------------------------------------------------------------ */
+.ods-card {
+  --ods-color: #0e5e3a;
+  --ods-light: rgba(14, 94, 58, 0.1);
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  padding: 1.5rem;
+  background: var(--c-surface);
+  border: 1px solid var(--c-border-soft);
+  border-top: 4px solid var(--ods-color);
+  border-radius: 1.25rem;
+  overflow: hidden;
+  transition: transform 0.4s cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 0.4s cubic-bezier(0.22, 1, 0.36, 1),
+    border-color 0.3s ease;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+.ods-card::after {
+  content: "";
+  position: absolute;
+  inset: auto -20% -40% auto;
+  width: 60%;
+  height: 60%;
+  background: radial-gradient(circle, var(--ods-light), transparent 70%);
+  opacity: 0;
+  transition: opacity 0.5s ease;
+  pointer-events: none;
+}
+.ods-card:hover {
+  transform: translate3d(0, -5px, 0);
+  box-shadow: 0 16px 32px -10px color-mix(in srgb, var(--ods-color) 35%, transparent);
+  border-color: var(--ods-color);
+}
+.ods-card:hover::after {
+  opacity: 1;
+}
+.ods-card-number {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 3.5rem;
+  height: 3.5rem;
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: #ffffff;
+  background: var(--ods-color);
+  border-radius: 1rem;
+  flex-shrink: 0;
+  transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+  box-shadow: 0 6px 14px -4px color-mix(in srgb, var(--ods-color) 50%, transparent);
+}
+.ods-card:hover .ods-card-number {
+  transform: scale(1.08) rotate(-3deg);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ods-card,
+  .ods-card-number {
+    animation: none !important;
+    transition: none !important;
+    transform: none !important;
   }
 }
 
@@ -362,6 +833,37 @@
   border-color: var(--c-border);
 }
 .dark .input::placeholder { color: var(--c-ink-soft); }
+
+/* ------------------------------------------------------------------ */
+/* Dark mode overrides para .fun-card y derivados                     */
+/* Los CSS vars --fun-light / --kpi-light se inyectan inline desde JS */
+/* (funStyle()) con pasteles claros. En dark mode necesitamos          */
+/* derivarlos contra la superficie oscura — usamos !important para    */
+/* superar la especificidad de los inline styles.                     */
+/* ------------------------------------------------------------------ */
+.dark .fun-card,
+.dark .roof-card,
+.dark .ods-card {
+  --fun-light: color-mix(in srgb, var(--fun-color) 22%, var(--c-surface)) !important;
+}
+.dark .kpi-fun,
+.dark .datos-curiosos-card {
+  --kpi-light: color-mix(in srgb, var(--kpi-color) 22%, var(--c-surface)) !important;
+}
+/* ODS card también se beneficia del derive contra surface oscuro */
+.dark .ods-card {
+  --ods-light: color-mix(in srgb, var(--ods-color) 22%, var(--c-surface)) !important;
+}
+
+/* Gradientes hero / lava blobs en dark: bajar intensidad para no
+   cegar contra el background oscuro */
+.dark .kpi-bg-blob,
+.dark .ciiemad-bg-blob {
+  opacity: 0.25;
+}
+
+/* Fun-card-cta usa --fun-color directo, OK en dark. Pero el background
+   de los hint/delta/bubble usa --fun-light que ya está overrideado arriba. */
 
 /* ------------------------------------------------------------------ */
 /* Utility layer                                                      */
@@ -645,52 +1147,43 @@
 /* ------------------------------------------------------------------ */
 /* Scroll-reveal (works with useScrollReveal composable)               */
 /* ------------------------------------------------------------------ */
-.reveal {
-  opacity: 0;
-  transform: translateY(32px);
-  transition: opacity 0.7s cubic-bezier(0.22, 1, 0.36, 1),
-              transform 0.7s cubic-bezier(0.22, 1, 0.36, 1);
-}
-
-.reveal.is-visible {
-  opacity: 1;
-  transform: translateY(0);
-}
-
-.reveal-left {
-  opacity: 0;
-  transform: translateX(-32px);
-  transition: opacity 0.7s cubic-bezier(0.22, 1, 0.36, 1),
-              transform 0.7s cubic-bezier(0.22, 1, 0.36, 1);
-}
-
-.reveal-left.is-visible {
-  opacity: 1;
-  transform: translateX(0);
-}
-
-.reveal-right {
-  opacity: 0;
-  transform: translateX(32px);
-  transition: opacity 0.7s cubic-bezier(0.22, 1, 0.36, 1),
-              transform 0.7s cubic-bezier(0.22, 1, 0.36, 1);
-}
-
-.reveal-right.is-visible {
-  opacity: 1;
-  transform: translateX(0);
-}
-
+/* Reveal usa translate3d para layer dedicado en GPU y backface-visibility
+   hidden para reducir paint. will-change solo en estado pre-animación. */
+.reveal,
+.reveal-left,
+.reveal-right,
 .reveal-scale {
   opacity: 0;
-  transform: scale(0.9);
-  transition: opacity 0.6s cubic-bezier(0.22, 1, 0.36, 1),
-              transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+  will-change: opacity, transform;
+  backface-visibility: hidden;
+  transition: opacity 0.55s cubic-bezier(0.22, 1, 0.36, 1),
+              transform 0.55s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.reveal {
+  transform: translate3d(0, 24px, 0);
+}
+.reveal-left {
+  transform: translate3d(-24px, 0, 0);
+}
+.reveal-right {
+  transform: translate3d(24px, 0, 0);
+}
+.reveal-scale {
+  transform: scale3d(0.94, 0.94, 1);
 }
 
+.reveal.is-visible,
+.reveal-left.is-visible,
+.reveal-right.is-visible {
+  opacity: 1;
+  transform: translate3d(0, 0, 0);
+  /* Liberar la layer GPU al terminar para no acumular memoria */
+  will-change: auto;
+}
 .reveal-scale.is-visible {
   opacity: 1;
-  transform: scale(1);
+  transform: scale3d(1, 1, 1);
+  will-change: auto;
 }
 
 /* --- Stagger children --------------------------------------------- */
@@ -706,6 +1199,33 @@
 .stagger-children > .reveal:nth-child(10) { transition-delay: 540ms; }
 .stagger-children > .reveal:nth-child(11) { transition-delay: 600ms; }
 .stagger-children > .reveal:nth-child(12) { transition-delay: 660ms; }
+
+/* En mobile: stagger más compacto (30ms vs 60ms) y duración más corta para
+   evitar que el contenido siga animando mientras el usuario hace scroll. */
+@media (max-width: 768px) {
+  .reveal,
+  .reveal-left,
+  .reveal-right,
+  .reveal-scale {
+    transition-duration: 0.4s;
+  }
+  .stagger-children > .reveal:nth-child(1)  { transition-delay: 0ms; }
+  .stagger-children > .reveal:nth-child(2)  { transition-delay: 30ms; }
+  .stagger-children > .reveal:nth-child(3)  { transition-delay: 60ms; }
+  .stagger-children > .reveal:nth-child(4)  { transition-delay: 90ms; }
+  .stagger-children > .reveal:nth-child(5)  { transition-delay: 120ms; }
+  .stagger-children > .reveal:nth-child(6)  { transition-delay: 150ms; }
+  .stagger-children > .reveal:nth-child(n+7) { transition-delay: 180ms; }
+}
+
+/* En mobile, atenuar animaciones infinitas heavy (sparks, halos, orbs) que
+   cobran caro la GPU mientras el usuario hace scroll. */
+@media (max-width: 768px) {
+  .fun-card-spark,
+  .fun-card-icon-halo {
+    animation: none;
+  }
+}
 
 /* --- Reduced motion ----------------------------------------------- */
 @media (prefers-reduced-motion: reduce) {

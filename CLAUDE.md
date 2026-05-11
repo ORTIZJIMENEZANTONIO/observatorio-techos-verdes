@@ -88,13 +88,13 @@ observatorio-techos-verdes/
     indicadores/            # Charts dashboard (tabbed: Territorial, Aptitud, Medio Ambiente, Analisis Estadistico, Simulacion Dinamica)
     metodologia/            # AHP methodology detail + official sources section
     sobre/                  # About page + normative section
-    referencias.vue         # Marco académico CIIEMAD-IPN, tesis, capítulo 2023, ODS, fuentes oficiales, normativa, bibliografía organizada en bloques colapsables
+    referencias.vue         # Marco académico CIIEMAD-IPN, artículo destacado Sustainable Cities and Society 2025 (Cervantes-Nájera et al., Q1 Elsevier) con KPIs visuales + flujo metodológico AHP, tesis, capítulo 2023, ODS, fuentes oficiales, normativa, bibliografía organizada en bloques colapsables
     agenda-2030.vue         # Techos verdes y Agenda 2030 — 7 ODS conectados, MEA 2003, galería del techo verde CIIEMAD, vínculo al capítulo 10.52501/cc.064.13
     comunidad.vue           # 5 modos de participación (tiers), contribuyentes, formulario de aporte que POSTea a /comunidad/aportes (fallback mailto)
   public/
     geojson/                # CDMX alcaldia boundaries
     images/tesis/           # Images extracted from thesis PDFs (capas, CIIEMAD photos, maps, charts)
-    img/roofs/              # 22 building photos (Wikimedia CC) + 7 category fallbacks
+    img/roofs/              # 22 building photos + 6 secondary photos (Wikimedia CC) + 7 category fallbacks → 35 archivos
   stores/                   # roofs, validation, map (Pinia composable style, repository-backed)
   types/
     index.ts                # Core types (GreenRoof, CandidateRoof, ValidationRecord, etc.)
@@ -245,6 +245,32 @@ The system prompt instructs Gemini as a TVLE expert with CDMX-specific context:
 - `shadow-card`: `0 1px 3px rgba(0,0,0,0.04), 0 1px 2px rgba(0,0,0,0.06)`
 - `shadow-card-hover`: `0 10px 15px -3px rgba(0,0,0,0.06)`
 - `shadow-panel`: `0 4px 12px rgba(0,0,0,0.05)`
+
+## IA ocultada (validación manual provisional)
+La validación con IA está oculta del frontend público — la validación se hace manualmente por expertos del CIIEMAD-IPN provisionalmente.
+
+- **Página `/ia-validacion`** existe pero no está enlazada desde ninguna nav. No la promociones en copy nuevo.
+- **No hay links a `/ia-validacion`** en: AppHeader, AppFooter, cms-defaults, hero, features grid, KPI grid, ningún paso del proceso.
+- **KPI "Validaciones IA realizadas"** reemplazado por "Captura de CO₂ del inventario" (60.81 tCO₂/año, fuente Cervantes-Nájera 2025).
+- **Sección 8 del home** (antes AI Block) ahora es el bloque protagonista CIIEMAD/Cervantes Nájera con collage de tesis, 3 publicaciones y KPIs académicos.
+- **Paso 3 de "Cómo funciona"** ahora es "Validación de campo" (icono shield) en lugar de "Detección con IA".
+- **Texto y subtítulos** purgados de menciones a "inteligencia artificial" — verificación: `grep -ri "inteligencia artificial\|ia-validacion" pages/ data/cms-defaults.ts` debe devolver 0 en HTML renderizado.
+
+## Fun-card design system (icono protagonista)
+Patrón visual unificado para cards con icono dominante, color único y hover interactivo. Reemplaza los grids de `card p-6 text-center` con iconos genéricos. Usado en home (`/`), `/sobre` (principios), `/metodologia` (pasos + 8 pesos AHP), `/agenda-2030` (servicios MEA) y `/comunidad` (pasos).
+
+### Componentes
+- **CSS global**: `assets/css/main.css` — clases `.fun-card`, `.fun-card-icon-wrap`, `.fun-card-icon-halo`, `.fun-card-icon-bubble`, `.fun-card-icon-svg`, `.fun-card-spark[-1|2|3]`, `.fun-card-hint`, `.fun-card-value`, `.fun-card-unit`, `.fun-card-label`, `.fun-card-desc`, `.fun-card-delta`, `.fun-card-cta`, `.fun-card-badge`, `.fun-card-link`. Usan CSS vars `--fun-color` / `--fun-light` para theming.
+- **Composable**: `composables/useFunPalette.ts` — exporta `funHex(key)`, `funLight(key)`, `funPaths(icono)`, `funStyle(key)`. Provee 9 colores (`primary`, `eco`, `secondary`, `accent`, `alert`, `violet`, `teal`, `rose`, `indigo`) y 26 iconos semánticos (leaf, area, target, ai, map, chart, score, pilot, thermometer, water, co2, people, satellite, scale, flag, shield, book, layers, cloud, zap, recycle, hand, building, heart, spark, community).
+
+### Filosofía
+1. **Icono protagonista** — 6.5rem wrapper, 3.25rem SVG, halo radial pulsante, bubble con border-color, sparkles
+2. **Color único por item** — evita repetir el set base; cada KPI/principle/peso/servicio tiene su tono
+3. **Card centrada** — `flex flex-col items-center text-center`
+4. **Número subordinado al icono** — 1.5rem (vs 2.5rem) cuando aplica
+5. **Card es link cuando hay destino** — `<NuxtLink class="fun-card fun-card-link">`, cursor pointer, focus-visible outline, hover CTA "Ver más"
+6. **Hover suave** — translateY(-6px), banda superior expande, halo se enciende, icono rota -4° y escala 1.08, sparkles aparecen
+7. **Respeta `prefers-reduced-motion`** — animations/transitions deshabilitadas
 
 ## Animation System (CERCU-inspired)
 Smooth, physics-based motion language adapted from the cercu-frontend project.
@@ -700,9 +726,43 @@ Only 22 of 57 roofs have `imagen` set (those with actual files). The other 35 ha
 Handled by `roofImageSrc()` + `onImgError()` in `pages/inventario/index.vue`.
 Attribution footer at bottom of inventory page.
 
+### Galería múltiple por techo verde
+**Tipo nuevo `GreenRoofImage`** (en `types/index.ts`) con campos `src`, `caption?`, `credit` (string libre), `license` (enum CC), `sourceUrl` (link Wikimedia/Flickr) — atribución obligatoria por imagen.
+
+**Campo `imagenes?: GreenRoofImage[]`** en `GreenRoof`. Cuando está poblado, la UI de `/inventario` muestra un carrusel client-side:
+- Botones prev/next visibles en hover (en mobile siempre visibles, opacity 0.9)
+- Dots numerados en la parte inferior
+- Counter "1/N" arriba a la izquierda
+- Crédito de la imagen ACTIVA al pie, linkeado a su `sourceUrl`
+- Estado del índice por roof.id en `reactive<Record<number, number>>` para no clonar todo
+
+**5 techos verdes con galería múltiple actualmente** (ver `data/mock-roofs.ts`):
+- Hospital General de México (2 fotos)
+- Mercado de Jamaica (3 fotos)
+- Palacio de Bellas Artes (2 fotos)
+- Senado de la República (2 fotos)
+- UNAM Fac. Arquitectura (2 fotos)
+
+Fotos descargadas desde Wikimedia Commons via `Special:FilePath` (resuelve redirects al CDN). Sufijo `-2.jpg`, `-3.jpg` para indicar orden secundario. Total fotos en repo: **35** (22 principales + 6 secundarias + 7 fallback de categoría).
+
+### Vista satelital de candidatos (sin pesar el servidor)
+`pages/candidatos/index.vue` ahora muestra **mini-mapa OSM static** por candidato vía `staticmap.openstreetmap.de/staticmap.php?center={lat},{lng}&zoom=18&size=600x300&maptype=mapnik&markers={lat},{lng},red-pushpin`. Es gratis, sin API key, atribución obligatoria visible (`© OpenStreetMap` linkeable a `openstreetmap.org/copyright`). Score badge sobrepuesto en el mapa con el valor numérico.
+
+Ventajas vs descarga:
+- 60 candidatos × snapshot ≈ 0 KB en el repo (las imágenes se cargan desde OSM)
+- Refresh automático cuando OSM actualiza tiles
+- Atribución cumple la ODbL de OSM
+
 ### Thesis References
-- **Doctoral (2025):** "Techos verdes una solucion sustentable para la adaptacion al cambio climatico en la Ciudad de Mexico" — M. en C. Ana Laura Cervantes Najera, CIIEMAD-IPN. Directora: Dra. Maria Concepcion Martinez Rodriguez.
-- **Master's (2021):** "Diseno, aplicacion y evaluacion de un techo verde ligero extensivo como estrategia para la adaptacion al cambio climatico en la alcaldia Gustavo A. Madero, Ciudad de Mexico" — I.Q.I. Ana Laura Cervantes Najera, CIIEMAD-IPN.
+- **Doctoral (2025, defensa 28 nov):** "Techos verdes una solución sustentable para la adaptación al cambio climático en la Ciudad de México" — M. en C. Ana Laura Cervantes Nájera, CIIEMAD-IPN. Directora: Dra. María Concepción Martínez Rodríguez. **Comité tutorial** (v3): Dra. Marta Bárbara Ochman Ikanowicz · Dr. Carlos Felipe Mendoza · Dr. Ángel Refugio Terán Cuevas · Dr. Roberto Ariel Abeldaño Zuñiga. **Marco**: economía circular (EC) + soluciones basadas en la naturaleza (SbN). PDF en `utils/TESIS ALCN dceas v3(2).pdf`.
+- **Master's (2021):** "Diseño, aplicación y evaluación de un techo verde ligero extensivo como estrategia para la adaptación al cambio climático en la alcaldía Gustavo A. Madero, Ciudad de México" — I.Q.I. Ana Laura Cervantes Nájera, CIIEMAD-IPN.
+- **Capítulo de libro (2023):** Martínez Rodríguez & Cervantes-Nájera, "Techos verdes en las áreas urbanas y su relación con la Agenda 2030", en *Repensar la Agenda 2030: Tendencias de sostenibilidad* (cap. XIII). DOI 10.52501/cc.064.13.
+- **Artículo Q1 SCS (2025):** Cervantes-Nájera et al., "Spatial suitability analysis for the implementation of green rooftops in highly urbanized Mexico City: A GIS-based multicriteria decision analysis to alleviate urban heat island (UHI)". *Sustainable Cities and Society*, Elsevier. PII S2210670725006547.
+
+### International State-of-the-Art Reference
+- **Roofpedia (2021):** Wu, A. N. y Biljecki, F. *"Roofpedia: Automatic mapping of green and solar roofs for an open roofscape registry and evaluation of urban sustainability"*. **Landscape and Urban Planning**, 214, 104167. Elsevier (Q1). DOI 10.1016/j.landurbplan.2021.104167. PDF en `utils/1-s2.0-S0169204621001304-main.pdf`.
+  - **Por qué se cita**: state-of-the-art en mapeo automatizado de techos verdes vía CNN. Cubre 1M+ edificios en 17 ciudades, mismo backbone OSM que nuestro detector. Sitúa al observatorio CDMX en el contexto global y justifica la elección de validación-de-campo + AHP en lugar de detección puramente automática (la cobertura satelital para azoteas individuales en CDMX requiere validación humana). Renderizado como sección protagonista (1.75) en `/referencias` con KPIs propios (17 ciudades · 1M+ edificios · 100% accuracy · OSM data).
+  - **Keywords**: Sustainable development, Convolutional Neural Network, Computer vision, Carbon neutrality, Building data, OpenStreetMap.
 
 ### Key Findings Used in Platform
 - 94.8% reduction in carbon footprint (TVLE vs conventional)
@@ -762,7 +822,11 @@ Página pública para que cualquier persona pueda sumar al observatorio. Estruct
 3. 3 pasos: identifica → documenta → equipo valida
 4. **5 modos de participación** (tarjetas tier importadas de `tiersDefaults`): Aprendiz · Reportador · Caracterizador · Especialista · Operador
 5. **Contribuyentes actuales** (CIIEMAD-IPN + SEDEMA) con badge de tier, validados, meses activos, tasa de aceptación
-6. **Formulario de aporte** que POSTea a `POST /api/v1/observatory/techos-verdes/comunidad/aportes`. Honeypot anti-spam (campo `website` oculto). Estados: `enviando`, `errorEnvio`, `mensajeExito`. Si el backend no responde, fallback a `mailto:contacto@techosverdes.cdmx.gob.mx`
+6. **Formulario de aporte en 3 pasos (stepper)**:
+   - **Paso 1 — Datos técnicos**: nombre, email, tipo de aporte, modo, alcaldía, superficie aprox., dirección/coordenadas, mensaje. POSTea a `POST /api/v1/observatory/techos-verdes/comunidad/aportes` con `mensaje` enriquecido (incluye `[tipoAporte]` y superficie). Honeypot anti-spam (campo `website` oculto). Si el backend no responde, fallback a `mailto:contacto@techosverdes.cdmx.gob.mx`.
+   - **Paso 2 — Documento (bloqueado)**: solo se llega tras enviar el paso 1. NO permite upload directo — informa al usuario que el equipo CIIEMAD-IPN verificará primero los datos técnicos y le enviará un correo con un enlace seguro para subir el documento de respaldo. **Razón**: evitar acumular archivos/imágenes que después serían descartados por validación técnica. Muestra el ID de referencia del aporte y una lista de qué podrá adjuntar cuando llegue el correo (fotos, planos, dictámenes, datasets).
+   - **Paso 3 — Confirmación**: resumen del flujo en 3 mini-cards (verificación → correo → publicación) y CTAs a "Hacer otro aporte" o "Explorar inventario".
+   - El usuario navega con `currentStep` (ref) y un stepper visual arriba del form muestra el progreso. El backend actual no requiere cambios: el endpoint POST sigue creando un `ProspectSubmission` con `status='pendiente'` y `source='comunidad'`. Para activar el flujo completo (upload diferido), faltaría: (a) endpoint admin para marcar aporte como "listo para documento", (b) mailer que envíe enlace único, (c) endpoint de upload con token de un solo uso. Por ahora la UX prepara al usuario para ese flujo.
 
 #### Endpoint /comunidad/aportes (cercu-backend)
 ```
@@ -886,7 +950,7 @@ Componente embebido en `/admin/index.vue`. 10 secciones acordeón en español ac
 5. **AHP — Modelo multicriterio** — explicación de las 8 variables y por qué los pesos son una decisión política.
 6. **Validación visual con IA** — workflow Gemini Vision, predicción + confianza, decisión humana.
 7. **Tipologías de techo verde** — Extensivo (TVLE), Semi-intensivo, Intensivo con cargas y costos.
-8. **Tracking de uso** — eventos sin cookies en `useTracking()`, agregados en `/admin/analytics`.
+8. **Tracking de uso** — eventos sin cookies en `useTracking()`, agregados en `/admin/analytics`. `pageviews` está **deduplicado por `(sessionId, día, path canónico)`** — una sesión recargando la misma página el mismo día cuenta 1, no N. La agregación pura está en `events.service.ts → aggregateEvents()` (cercu-backend); cubierta por 15 unit tests en `tests/unit/events-analytics.test.ts`. El frontend muestra `pageviews` (únicos) como métrica principal y `pageviewsRaw` (crudos) + tasa de reload como info secundaria.
 9. **Glosario de siglas** — TVLE, AHP, scoreAptitud, NDVI/NDBI, LST, SEDEMA, CIIEMAD, ODS, OSM, Turf.js.
 10. **Limitaciones honestas** — no reemplaza dictamen estructural, IA orienta no decide, cobertura sesgada, pesos AHP son política, datos satelitales con caché.
 
@@ -997,18 +1061,36 @@ useCmsContent(page)  ─────┘    ├─ getSection / getOne (sync con 
    PUT /observatory/techos-verdes/admin/cms/<page>/<sectionKey>
 ```
 
-**Páginas y secciones registradas:**
+**Páginas y secciones registradas (cobertura completa, todo el contenido editable):**
 | pageSlug | secciones (sectionKey) |
 |----------|------------------------|
-| `home` | hero · features · cta |
-| `sobre` | hero · mission · objetivos |
-| `metodologia` | hero · pasos |
-| `indicadores` · `inventario` · `candidatos` · `mapa` · `aptitud` · `ia-validacion` | hero |
+| `home` | hero · sectionTitles · features · steps · datosCuriosos · mapTeaser · techoVerdeIntro · ciiemadShowcase · ciiemadPubs · ciiemadKpis · respaldo · cta |
+| `sobre` | hero · mission · objetivos · **principles** · **dimensiones** · **findings** |
+| `metodologia` | hero · pasos · **limitations** |
+| `agenda-2030` | hero · intro · **servicios** |
+| `comunidad` | hero · intro · **pasos** |
+| `indicadores` · `inventario` · `candidatos` · `mapa` · `aptitud` · `ia-validacion` · `referencias` | hero |
+| `contributors` | hero · intro |
 | `footer` | brand · sources · quickLinks · institutional |
 
-**Backend:** entidad `ObsCmsSection` con columna `observatory='techos-verdes'`. Endpoint admin `PUT /:observatory/admin/cms/:pageSlug/:sectionKey`. Seed inicial siembra 18 secciones (ver `cercu-backend/src/seeds/observatory-content.seed.ts`).
+**Cobertura:** 14 páginas, **44+ secciones editables**. Todo el contenido visible en el sitio público (excepto datos reales como `greenRoofs`, `candidateRoofs`, charts) es editable desde `/admin/contenido` sin tocar código.
 
-**Admin:** `/admin/contenido` lista las 10 páginas; `/admin/contenido/:pageSlug` muestra accordion por sección con edición in-place + auto-bind al shape del default. Mover/añadir/eliminar bloques + "Restaurar default" + chip de "Sin guardar".
+**Wiring:** cada página pública consume vía `useCmsContent('<page>')` que devuelve `list<T>()` (computed array) y `one<T>()` (computed first item). El template usa `{{ data?.field || 'fallback' }}` para que SSR pinte con defaults antes de que el backend responda.
+
+**Backend (genérico, sin cambios por sectionKey):**
+- Entidad `ObsCmsSection` con columna `observatory`, `pageSlug`, `sectionKey`, `items` (JSON), `updatedBy`, `updatedAt`.
+- Migración: `1733000000000-EnsureCmsSectionsTable.ts` (idempotente).
+- Endpoint público: `GET /:observatory/cms/:pageSlug/:sectionKey` — controlador ignora `sectionKey` y devuelve TODAS las secciones de la página. El composable lo invoca con `_all` como placeholder.
+- Endpoint admin: `PUT /:observatory/admin/cms/:pageSlug/:sectionKey` con auth + permiso `manage_cms`. Validación Joi: `items: array of objects` — sin constraints de campos, permite cualquier nuevo sectionKey sin cambios backend.
+
+**Admin:** `/admin/contenido` lista las 14 páginas; `/admin/contenido/:pageSlug` muestra accordion por sección con edición in-place + auto-bind al shape del default. Mover/añadir/eliminar bloques + "Restaurar default" + chip de "Sin guardar".
+
+**Tests:**
+- Unit: `tests/unit/cms-defaults.test.ts` (17 tests) — cobertura del catálogo, cada sección nueva, ausencia de copy IA promocional.
+- Unit: `tests/unit/cms-content.test.ts` (14 tests) — `interpolateCmsText` + cobertura pública.
+- Unit: `tests/unit/cms-store.test.ts` (20 tests) — store Pinia (fallback, initPage, invalidate, lectura de todas las secciones nuevas).
+- E2E: `tests/e2e/admin-cms.spec.ts` (7 tests) — `/admin/contenido` lista todas las páginas; el home declara las 12 secciones nuevas; fallback público funciona cuando el backend no responde.
+- Total: **101 unit + 7 E2E = 108 tests pasando**.
 
 ### Prospect Approval Flow
 ```

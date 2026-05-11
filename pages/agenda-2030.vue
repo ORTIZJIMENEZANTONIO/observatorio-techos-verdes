@@ -1,4 +1,6 @@
 <script setup lang="ts">
+const { funPaths, funStyle } = useFunPalette()
+
 useHead({
   title: 'Techos verdes y la Agenda 2030 - Observatorio de Techos Verdes CDMX',
   meta: [
@@ -80,29 +82,10 @@ const ods = [
   },
 ]
 
-// Servicios ecosistémicos identificados (Millennium Ecosystem Assessment, 2003)
-const servicios = [
-  {
-    sigla: 'SC',
-    nombre: 'Servicios culturales',
-    descripcion: 'Valores estéticos, relaciones sociales, sentido de pertenencia, recreación y bienestar psicológico.',
-  },
-  {
-    sigla: 'SR',
-    nombre: 'Servicios regulatorios',
-    descripcion: 'Regulación y purificación del agua, mejora de la calidad del aire, polinización, regulación térmica.',
-  },
-  {
-    sigla: 'SA',
-    nombre: 'Servicios de aprovisionamiento',
-    descripcion: 'Alimentos, recursos ornamentales y materias primas obtenidas directamente del ecosistema.',
-  },
-  {
-    sigla: 'SS',
-    nombre: 'Servicios de soporte',
-    descripcion: 'Ciclos de nutrientes, oxígeno y carbono indispensables para la sobrevivencia de los seres vivos.',
-  },
-]
+// Servicios ecosistémicos (MEA 2003) — editables desde /admin/contenido/agenda-2030
+type Servicio = { sigla: string; nombre: string; descripcion: string; icono?: string; color?: string }
+const cmsAgenda = useCmsContent('agenda-2030')
+const servicios = cmsAgenda.list<Servicio>('servicios')
 
 // Hechos clave del capítulo con su fuente y URL referenciable
 const datos = [
@@ -320,56 +303,102 @@ const galeria = [
           <em>Millennium Ecosystem Assessment</em> (2003): cuatro categorías de servicios que
           en conjunto soportan los 7 beneficios documentados.
         </p>
-        <div class="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
-          <article v-for="s in servicios" :key="s.sigla" class="card p-5">
-            <div
-              class="flex h-10 w-10 items-center justify-center rounded-lg bg-primary text-white font-bold"
-            >
-              {{ s.sigla }}
+        <div class="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-4">
+          <article
+            v-for="s in servicios"
+            :key="s.sigla"
+            class="fun-card"
+            :style="funStyle(s.color)"
+          >
+            <span class="fun-card-hint">{{ s.sigla }}</span>
+            <div class="fun-card-icon-wrap" aria-hidden="true">
+              <span class="fun-card-icon-halo" />
+              <span class="fun-card-icon-bubble" />
+              <svg
+                class="fun-card-icon-svg"
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.6"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path v-for="(d, i) in funPaths(s.icono)" :key="i" :d="d" />
+              </svg>
+              <span class="fun-card-spark fun-card-spark--1" />
+              <span class="fun-card-spark fun-card-spark--2" />
             </div>
-            <h3 class="mt-3 text-sm font-bold text-ink">{{ s.nombre }}</h3>
-            <p class="mt-2 text-xs leading-relaxed text-slate-custom">{{ s.descripcion }}</p>
+            <h3 class="fun-card-label">{{ s.nombre }}</h3>
+            <p class="fun-card-desc">{{ s.descripcion }}</p>
           </article>
         </div>
       </section>
 
       <!-- 4. ODS conectados (corazón de la página) -->
-      <section class="reveal">
-        <div class="mb-6 flex items-center gap-3">
-          <span class="badge-eco">Convergencia</span>
-          <h2 class="text-2xl font-bold text-ink">7 ODS conectados al techo verde</h2>
+      <section class="reveal scroll-mt-24">
+        <!-- Banner divertido de entrada -->
+        <div class="ods-hero-banner">
+          <div class="ods-hero-blob ods-hero-blob--a" aria-hidden="true" />
+          <div class="ods-hero-blob ods-hero-blob--b" aria-hidden="true" />
+          <div class="ods-hero-blob ods-hero-blob--c" aria-hidden="true" />
+          <div class="relative">
+            <span class="ods-hero-eyebrow">
+              <span class="live-dot" />
+              Convergencia · Agenda 2030
+            </span>
+            <h2 class="ods-hero-title">
+              Un solo techo verde,
+              <span class="ods-hero-title-accent">7 metas globales</span>
+            </h2>
+            <p class="ods-hero-lead">
+              Cada azotea naturada empuja simultáneamente <strong class="text-white">7 Objetivos
+              de Desarrollo Sostenible</strong> de la ONU. Te contamos cuáles y cómo lo hace.
+            </p>
+            <div class="ods-hero-counter">
+              <div v-for="o in ods" :key="`mini-${o.num}`" class="ods-hero-counter-chip" :style="{ backgroundColor: o.color }">
+                {{ o.num }}
+              </div>
+            </div>
+          </div>
         </div>
-        <p class="mb-6 max-w-3xl text-sm text-slate-custom">
-          Cada tarjeta vincula un Objetivo de Desarrollo Sostenible con su(s) meta(s)
-          atendida(s) por el techo verde, el beneficio que lo conecta y el servicio
-          ecosistémico que lo respalda. Adaptado de la Tabla 1 del capítulo.
-        </p>
-        <div class="grid grid-cols-1 gap-5 md:grid-cols-2">
+
+        <!-- Cards de ODS -->
+        <div class="mt-10 grid grid-cols-1 gap-5 md:grid-cols-2">
           <article
             v-for="o in ods"
             :key="o.num"
-            class="card-interactive flex flex-col p-6"
-            :style="{ borderTop: `4px solid ${o.color}` }"
+            class="ods-card"
+            :style="{
+              '--ods-color': o.color,
+              '--ods-light': o.color + '18',
+            }"
           >
             <div class="flex items-center gap-4">
-              <div
-                class="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl text-2xl font-extrabold text-white"
-                :style="{ backgroundColor: o.color }"
-              >
+              <div class="ods-card-number">
                 {{ o.num }}
+                <span class="ods-card-number-burst" aria-hidden="true" />
               </div>
-              <div>
+              <div class="flex-1">
                 <p class="text-[10px] font-semibold uppercase tracking-wider text-ink-muted">
                   ODS {{ o.num }}
                 </p>
                 <h3 class="text-lg font-bold leading-snug text-ink">{{ o.titulo }}</h3>
               </div>
+              <span class="ods-card-sparkle" aria-hidden="true">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M12 2l2.3 7H21l-5.7 4.5L18 21l-6-4-6 4 1.7-7.5L2 9h6.7L12 2z" />
+                </svg>
+              </span>
             </div>
             <div class="mt-4 flex flex-wrap items-center gap-2">
               <span class="badge-primary">{{ o.via }}</span>
               <span class="badge-secondary">{{ o.rol }}</span>
             </div>
-            <ul class="mt-4 space-y-1.5">
+            <p class="mt-4 text-xs font-bold uppercase tracking-wider" :style="{ color: o.color }">
+              Cómo el techo verde aporta a este ODS
+            </p>
+            <ul class="mt-2 space-y-1.5">
               <li
                 v-for="(m, i) in o.metas"
                 :key="i"
@@ -392,7 +421,7 @@ const galeria = [
               </li>
             </ul>
             <p class="mt-4 border-t border-gray-100 pt-4 text-xs italic leading-relaxed text-ink-muted">
-              {{ o.cita }}
+              "{{ o.cita }}"
             </p>
           </article>
         </div>
@@ -414,17 +443,19 @@ const galeria = [
           <figure
             v-for="(g, i) in galeria"
             :key="i"
-            class="card overflow-hidden"
+            class="gallery-card"
           >
-            <div class="aspect-video overflow-hidden bg-gray-100">
+            <div class="gallery-card-image-wrap">
               <img
                 :src="g.src"
                 :alt="g.alt"
                 loading="lazy"
-                class="h-full w-full object-cover transition-transform duration-500 hover:scale-105"
+                class="gallery-card-image"
               />
+              <div class="gallery-card-gradient" aria-hidden="true" />
+              <span class="gallery-card-num">#{{ String(i + 1).padStart(2, '0') }}</span>
             </div>
-            <figcaption class="p-4 text-xs leading-relaxed text-slate-custom">
+            <figcaption class="gallery-card-caption">
               {{ g.caption }}
             </figcaption>
           </figure>
@@ -588,3 +619,165 @@ const galeria = [
     </div>
   </div>
 </template>
+
+<style scoped>
+/* ════════════════════════════════════════════════════════════════════
+   ODS Hero Banner — entrada divertida a la sección de 7 ODS
+   ════════════════════════════════════════════════════════════════════ */
+.ods-hero-banner {
+  position: relative;
+  overflow: hidden;
+  border-radius: 1.5rem;
+  padding: 2rem 1.5rem;
+  background: linear-gradient(
+    135deg,
+    #0e5e3a 0%,
+    #1a7a4e 40%,
+    #18a5e3 100%
+  );
+  color: #ffffff;
+}
+@media (min-width: 768px) {
+  .ods-hero-banner {
+    padding: 3rem 2.5rem;
+  }
+}
+.ods-hero-blob {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(40px);
+  opacity: 0.4;
+  pointer-events: none;
+}
+.ods-hero-blob--a {
+  top: -60px;
+  right: -40px;
+  width: 200px;
+  height: 200px;
+  background: radial-gradient(circle, #f59e0b 0%, transparent 70%);
+}
+.ods-hero-blob--b {
+  bottom: -80px;
+  left: -40px;
+  width: 240px;
+  height: 240px;
+  background: radial-gradient(circle, #ec4899 0%, transparent 70%);
+}
+.ods-hero-blob--c {
+  top: 40%;
+  right: 30%;
+  width: 160px;
+  height: 160px;
+  background: radial-gradient(circle, #79c141 0%, transparent 70%);
+}
+.ods-hero-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.3rem 0.85rem;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #c5e8d4;
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 9999px;
+  backdrop-filter: blur(8px);
+}
+.ods-hero-title {
+  margin-top: 1.1rem;
+  font-size: clamp(1.7rem, 4vw, 2.6rem);
+  font-weight: 800;
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+}
+.ods-hero-title-accent {
+  background: linear-gradient(135deg, #fde047 0%, #79c141 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+.ods-hero-lead {
+  margin-top: 1rem;
+  font-size: 1rem;
+  line-height: 1.6;
+  color: rgba(255, 255, 255, 0.85);
+  max-width: 38rem;
+}
+.ods-hero-counter {
+  margin-top: 1.5rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+.ods-hero-counter-chip {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  font-size: 1rem;
+  font-weight: 800;
+  color: #ffffff;
+  border-radius: 0.75rem;
+  border: 2px solid rgba(255, 255, 255, 0.4);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.ods-hero-counter-chip:hover {
+  transform: translate3d(0, -4px, 0) rotate(-4deg) scale(1.1);
+}
+
+/* ════════════════════════════════════════════════════════════════════
+   ODS Card — extras divertidos (burst en el número + sparkle esquina)
+   ════════════════════════════════════════════════════════════════════ */
+.ods-card-number {
+  position: relative;
+}
+.ods-card-number-burst {
+  position: absolute;
+  inset: -6px;
+  border-radius: inherit;
+  border: 2px dashed var(--ods-color, currentColor);
+  opacity: 0;
+  transform: scale(1);
+  transition: opacity 0.4s ease;
+  animation: odsBurst 8s linear infinite;
+  pointer-events: none;
+}
+.ods-card:hover .ods-card-number-burst {
+  opacity: 0.6;
+}
+@keyframes odsBurst {
+  to {
+    transform: rotate(360deg);
+  }
+}
+.ods-card-sparkle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.5rem;
+  height: 1.5rem;
+  color: var(--ods-color, #0e5e3a);
+  opacity: 0;
+  transform: scale(0.6) rotate(-20deg);
+  transition: opacity 0.4s cubic-bezier(0.34, 1.56, 0.64, 1),
+    transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.ods-card:hover .ods-card-sparkle {
+  opacity: 1;
+  transform: scale(1) rotate(0);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ods-card-number-burst,
+  .ods-card-sparkle,
+  .ods-hero-counter-chip {
+    animation: none !important;
+    transition: none !important;
+    transform: none !important;
+  }
+}
+</style>

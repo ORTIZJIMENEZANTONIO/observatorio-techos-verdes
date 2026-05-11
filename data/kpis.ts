@@ -27,12 +27,12 @@ export const kpiPrimary: KPIData[] = [
     cambio: '+15 nuevos',
   },
   {
-    label: 'Validaciones IA realizadas',
-    valor: 30,
-    unidad: 'revisiones',
-    icono: 'ai',
+    label: 'Captura de CO₂ del inventario',
+    valor: '60.81',
+    unidad: 'tCO₂/año',
+    icono: 'co2',
     color: 'accent',
-    cambio: '87% precisión',
+    cambio: 'Cervantes-Nájera 2025',
   },
 ]
 

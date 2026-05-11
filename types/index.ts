@@ -54,6 +54,20 @@ export type NivelConfianza = 'alta' | 'media' | 'baja'
 // ---------------------------------------------------------------------------
 
 /** Existing green-roof record */
+/**
+ * Imagen con atribución requerida — para cumplir con licencias
+ * Wikimedia Commons / Flickr / Unsplash. `src` debe ser ruta local
+ * (descargada en `public/img/roofs/`) para evitar hotlinking; los
+ * créditos quedan junto a la imagen siempre visibles.
+ */
+export interface GreenRoofImage {
+  src: string
+  caption?: string
+  credit: string // ej. "Foto: Wikimedia Commons / Usuario X"
+  license: 'CC BY-SA 4.0' | 'CC BY-SA 3.0' | 'CC BY 4.0' | 'CC BY 3.0' | 'CC BY 2.0' | 'CC0' | 'Public Domain' | 'Fair use'
+  sourceUrl: string // link a la página de origen (Wikimedia/Flickr)
+}
+
 export interface GreenRoof {
   id: number
   nombre: string
@@ -65,7 +79,14 @@ export interface GreenRoof {
   estado: EstadoTecho
   lat: number
   lng: number
+  /** Foto principal (legacy — usar `imagenes[0].src` cuando hay galería). */
   imagen?: string
+  /**
+   * Galería de imágenes con atribución obligatoria. Cuando está presente,
+   * la UI muestra carrusel + créditos. Las imágenes deben estar en
+   * `public/img/roofs/` (descargadas, no hotlinkeadas).
+   */
+  imagenes?: GreenRoofImage[]
   fechaRegistro: string
   descripcion?: string
   visible?: boolean

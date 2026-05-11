@@ -173,13 +173,21 @@ watch(
         <!-- Spacer to push right group to the end -->
         <div class="flex-1" />
 
-        <!-- Institutional logos (compact on mobile) -->
-        <div class="hidden md:flex items-center gap-3">
+        <!-- Institutional logos — siempre visibles, más chicos en mobile -->
+        <div class="flex items-center gap-2 md:gap-3 shrink-0">
           <a href="https://www.ciiemad.ipn.mx/" target="_blank" rel="noopener noreferrer" class="shrink-0">
-            <img src="/images/logo-ciiemad.png" alt="CIIEMAD - IPN" class="h-9 w-auto" />
+            <img
+              src="/images/logo-ciiemad.png"
+              alt="CIIEMAD - IPN"
+              class="h-7 w-auto md:h-9"
+            />
           </a>
           <a href="https://www.ipn.mx/" target="_blank" rel="noopener noreferrer" class="shrink-0">
-            <img src="/images/logo-ipn.svg" alt="Instituto Politécnico Nacional" class="h-9 w-auto" />
+            <img
+              src="/images/logo-ipn.svg"
+              alt="Instituto Politécnico Nacional"
+              class="h-7 w-auto md:h-9"
+            />
           </a>
         </div>
 
@@ -188,8 +196,8 @@ watch(
           <CommonColorModeToggle />
 
           <NuxtLink
-            to="/comunidad"
-            class="hidden lg:inline-flex items-center gap-1.5 rounded-xl bg-eco px-3.5 py-2 text-xs font-semibold text-white shadow-sm transition-all hover:bg-eco-light hover:shadow-md hover:shadow-eco/20"
+            to="/comunidad#aportar"
+            class="hidden lg:inline-flex items-center gap-1.5 rounded-xl bg-primary px-3.5 py-2 text-xs font-semibold text-white shadow-sm transition-all hover:bg-primary-light hover:shadow-md hover:shadow-primary/20"
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -311,8 +319,8 @@ watch(
           <!-- Mobile CTA -->
           <div class="border-t border-gray-100 p-4 space-y-2">
             <NuxtLink
-              to="/comunidad"
-              class="btn-eco w-full justify-center"
+              to="/comunidad#aportar"
+              class="btn-primary w-full justify-center"
               @click="mobileOpen = false"
             >
               <svg

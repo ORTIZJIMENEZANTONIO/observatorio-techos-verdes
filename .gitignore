@@ -1,1 +1,14 @@
 node_modules
+
+# OS / IDE
+.DS_Store
+
+# Build / runtime artifacts (no commitear)
+.output/
+test-results/
+playwright-report/
+
+# Archivos academicos pesados (>100 MB — exceden el limite de GitHub).
+# Quedan locales en /utils como referencia; si necesitan commitearse,
+# usar Git LFS.
+utils/TECHOS VERDES.pptx

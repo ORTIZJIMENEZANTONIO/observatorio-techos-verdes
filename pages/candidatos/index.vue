@@ -120,6 +120,37 @@
               :key="candidate.id"
               class="card-interactive overflow-hidden animate-fade-in"
             >
+              <!-- Vista satelital (OSM static — gratis, sin API key) -->
+              <div
+                v-if="candidate.lat && candidate.lng"
+                class="relative h-32 overflow-hidden bg-gradient-to-br from-primary-50 to-secondary/10"
+              >
+                <img
+                  :src="`https://staticmap.openstreetmap.de/staticmap.php?center=${candidate.lat},${candidate.lng}&zoom=18&size=600x300&maptype=mapnik&markers=${candidate.lat},${candidate.lng},red-pushpin`"
+                  :alt="`Vista satelital de ${candidate.nombre}`"
+                  class="h-full w-full object-cover"
+                  loading="lazy"
+                  referrerpolicy="no-referrer"
+                />
+                <!-- Score badge encima del mapa -->
+                <span
+                  class="absolute right-2 top-2 inline-flex items-center gap-1 rounded-full bg-black/70 px-2.5 py-1 text-xs font-bold text-white backdrop-blur"
+                  :style="{ color: scoreColor(candidate.scoreAptitud) }"
+                >
+                  {{ candidate.scoreAptitud }}
+                </span>
+                <!-- Crédito OSM -->
+                <a
+                  href="https://www.openstreetmap.org/copyright"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="absolute bottom-1 right-1 rounded-sm bg-white/80 px-1.5 py-0.5 text-[8px] font-medium text-ink hover:bg-white"
+                  @click.stop
+                >
+                  © OpenStreetMap
+                </a>
+              </div>
+
               <div class="p-5">
                 <!-- Header row -->
                 <div class="flex items-start justify-between">
@@ -233,6 +264,59 @@
                       Factores: {{ getPrefactibilidad(candidate).factoresRiesgo.join(', ') }}
                     </p>
                   </div>
+                </div>
+
+                <!-- Verificación visual: links a Google Maps / Street View / Earth -->
+                <div v-if="candidate.lat && candidate.lng" class="mt-3 rounded-lg border border-secondary/20 bg-secondary/5 p-3">
+                  <p class="mb-2 flex items-center gap-1 text-[10px] font-semibold uppercase tracking-wider text-secondary-dark">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                      <circle cx="12" cy="12" r="10" />
+                      <path d="M12 6v6l4 2" />
+                    </svg>
+                    Verificación visual de campo
+                  </p>
+                  <div class="flex flex-wrap gap-1.5">
+                    <a
+                      :href="`https://www.google.com/maps?q=&layer=c&cbll=${candidate.lat},${candidate.lng}`"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      class="inline-flex items-center gap-1 rounded-md bg-white px-2 py-1 text-[10px] font-semibold text-secondary-dark shadow-sm transition-colors hover:bg-secondary hover:text-white"
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="3" />
+                        <path d="M12 2C7 7 7 12 12 22c5-10 5-15 0-20z" />
+                      </svg>
+                      Street View
+                    </a>
+                    <a
+                      :href="`https://earth.google.com/web/@${candidate.lat},${candidate.lng},150a,500d,30y,0h,60t,0r`"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      class="inline-flex items-center gap-1 rounded-md bg-white px-2 py-1 text-[10px] font-semibold text-secondary-dark shadow-sm transition-colors hover:bg-secondary hover:text-white"
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="10" />
+                        <path d="M2 12h20" />
+                        <path d="M12 2a15 15 0 0 1 4 10 15 15 0 0 1-4 10 15 15 0 0 1-4-10 15 15 0 0 1 4-10z" />
+                      </svg>
+                      Google Earth
+                    </a>
+                    <a
+                      :href="`https://www.google.com/maps/place/${candidate.lat},${candidate.lng}/@${candidate.lat},${candidate.lng},19z`"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      class="inline-flex items-center gap-1 rounded-md bg-white px-2 py-1 text-[10px] font-semibold text-secondary-dark shadow-sm transition-colors hover:bg-secondary hover:text-white"
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6" />
+                      </svg>
+                      Maps
+                    </a>
+                  </div>
+                  <p class="mt-2 text-[9px] text-ink-muted">
+                    Imágenes © Google · imágenes satelitales y de calle se cargan desde el
+                    servicio de Google sin almacenarse en el observatorio.
+                  </p>
                 </div>
               </div>
             </div>
