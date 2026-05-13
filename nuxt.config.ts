@@ -8,7 +8,22 @@ export default defineNuxtConfig({
     '@vueuse/nuxt',
     '@nuxtjs/color-mode',
     'nuxt-icon',
+    '@nuxt/image',
   ],
+
+  image: {
+    format: ['avif', 'webp', 'jpg'],
+    quality: 78,
+    screens: {
+      xs: 360,
+      sm: 640,
+      md: 768,
+      lg: 1024,
+      xl: 1280,
+      xxl: 1536,
+    },
+    densities: [1, 2],
+  },
 
   ssr: true,
 
@@ -63,7 +78,12 @@ export default defineNuxtConfig({
     },
   },
 
-  css: ['~/assets/css/main.css'],
+  css: [
+    // Tipografías variables self-hospedadas (eliminan el chain a fonts.googleapis.com)
+    '@fontsource-variable/inter',
+    '@fontsource-variable/space-grotesk',
+    '~/assets/css/main.css',
+  ],
 
   colorMode: {
     classSuffix: '',
@@ -80,7 +100,23 @@ export default defineNuxtConfig({
 
   routeRules: {
     '/admin/**': { ssr: false },
+    // Imágenes optimizadas por @nuxt/image — la URL contiene los parámetros
+    // (ancho, formato, calidad), así que es seguro tratarlas como inmutables.
+    '/_ipx/**': {
+      headers: {
+        'cache-control': 'public, max-age=31536000, immutable',
+      },
+    },
   },
+
+  // Sin `nitro.publicAssets` custom: dejamos el catch-all default de Nitro
+  // (`{ baseURL: '/', dir: 'public' }`) para que /public/images, /public/img,
+  // /public/docs, /public/geojson y archivos sueltos como favicon.svg se
+  // sirvan correctamente en dev y prod.
+  //
+  // Para añadir cache-control a esos archivos en prod, usamos un hook que
+  // inyecta el header `Cache-Control` según el prefijo de la ruta justo antes
+  // de mandar la respuesta. En dev sigue sin cache (que es lo deseado).
 
   compatibilityDate: '2025-03-01',
 })

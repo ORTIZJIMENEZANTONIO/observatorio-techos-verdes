@@ -9,15 +9,20 @@ defineProps<{
     <slot />
     <!--
       Párpados sobre los ojos de Techito. SVG fuente: width=960 height=1088
-      (sin viewBox declarado). Usamos viewBox + preserveAspectRatio="xMidYMid meet"
-      idéntico al patrón de Humedalito para que los párpados escalen 1:1 con la
-      imagen del techito (object-fit:contain en el <img> hace lo equivalente).
+      (sin viewBox declarado). preserveAspectRatio="xMidYMid meet" mantiene
+      el mismo encuadre que `object-fit: contain` en el <img>, por lo que las
+      coordenadas absolutas en el viewBox coinciden 1:1 con las del SVG real.
 
-      Coordenadas: cy=740, corridas progresivamente a la derecha (+15 px más).
-        Ojo izquierdo:  cx=550, cy=740
-        Ojo derecho:    cx=695, cy=740
-        Radio cerrado:  rx=34, ry=28
-      Color del párpado: #807a72 (gris-marrón ladrillo).
+      Coordenadas calculadas a partir de los <path> de córnea del SVG fuente
+      (fill #4A351C y #4B351D, los dos paths que dibujan el iris/pupila):
+
+        Córnea izquierda (Techito's right): path translate(474, 580),
+          bbox local x[-19.47, 8.85] y[-0.84, 35.5] → centro abs (469, 597)
+        Córnea derecha (Techito's left):    path translate(581, 579),
+          bbox local x[-19.43, 7.0]  y[-0.66, 35]   → centro abs (575, 596)
+        rx ≈ 14, ry abierto = 0, ry cerrado = 18 (mitad de altura del ojo).
+      Color del párpado: #7E532F (ladrillo de Techito), coincide con la piel
+      alrededor de los ojos.
     -->
     <svg
       class="techito-eyelids"
@@ -25,23 +30,25 @@ defineProps<{
       preserveAspectRatio="xMidYMid meet"
       aria-hidden="true"
     >
+      <!-- Ojo izquierdo del observador -->
       <ellipse
-        cx="550"
-        cy="740"
-        rx="34"
+        cx="469"
+        cy="597"
+        rx="14"
         ry="0"
         class="eyelid"
         :class="{ 'eyelid--closed': blinking }"
-        fill="#807a72"
+        fill="#7E532F"
       />
+      <!-- Ojo derecho del observador -->
       <ellipse
-        cx="695"
-        cy="740"
-        rx="34"
+        cx="575"
+        cy="596"
+        rx="14"
         ry="0"
         class="eyelid"
         :class="{ 'eyelid--closed': blinking }"
-        fill="#807a72"
+        fill="#7E532F"
       />
     </svg>
   </div>
@@ -67,7 +74,7 @@ defineProps<{
 }
 
 .eyelid--closed {
-  ry: 28;
+  ry: 18;
   transition: ry 80ms ease-out;
 }
 </style>

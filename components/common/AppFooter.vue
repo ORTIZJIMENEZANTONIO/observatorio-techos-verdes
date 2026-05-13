@@ -30,9 +30,9 @@
 
         <!-- Quick links -->
         <div>
-          <h4 class="mb-4 text-xs font-semibold uppercase tracking-wider text-white/50">
+          <h3 class="mb-4 text-xs font-semibold uppercase tracking-wider text-white/80">
             Enlaces rápidos
-          </h4>
+          </h3>
           <ul class="space-y-2">
             <li v-for="link in quickLinks" :key="link.to">
               <NuxtLink
@@ -47,9 +47,9 @@
 
         <!-- Contact / Institutional -->
         <div>
-          <h4 class="mb-4 text-xs font-semibold uppercase tracking-wider text-white/50">
+          <h3 class="mb-4 text-xs font-semibold uppercase tracking-wider text-white/80">
             Contacto e información
-          </h4>
+          </h3>
           <ul class="space-y-3 text-sm text-white/70">
             <li class="flex items-start gap-2">
               <svg xmlns="http://www.w3.org/2000/svg" class="mt-0.5 h-4 w-4 shrink-0 text-white/40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -87,7 +87,7 @@
             <img src="/images/logo-ipn.svg" alt="Instituto Politécnico Nacional" class="h-12 w-auto brightness-0 invert" />
           </a>
         </div>
-        <p class="text-center text-xs text-white/40">
+        <p class="text-center text-xs text-white/70">
           &copy; 2024 Observatorio de Techos Verdes CDMX. Todos los derechos reservados.
         </p>
       </div>

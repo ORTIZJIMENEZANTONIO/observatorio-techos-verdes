@@ -1,4 +1,8 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap');
+/* Tipografías self-hospedadas vía @fontsource-variable.
+   Registradas en nuxt.config.ts → css. Esto elimina las llamadas a
+   fonts.googleapis.com y fonts.gstatic.com (ahorra ~2 saltos de DNS+TLS
+   en la cadena crítica) y permite que las cachee el mismo `cache-control:
+   public, max-age=31536000, immutable` que aplican los otros assets. */
 
 @tailwind base;
 @tailwind components;
@@ -681,7 +685,7 @@
   left: 0.75rem;
   z-index: 2;
   padding: 0.2rem 0.65rem;
-  font-family: 'Space Grotesk', system-ui, sans-serif;
+  font-family: 'Space Grotesk Variable', 'Space Grotesk', system-ui, sans-serif;
   font-size: 0.65rem;
   font-weight: 700;
   letter-spacing: 0.08em;
@@ -1251,7 +1255,7 @@
 /* Leaflet overrides                                                   */
 /* ------------------------------------------------------------------ */
 .leaflet-container {
-  font-family: 'Inter', system-ui, sans-serif;
+  font-family: 'Inter Variable', 'Inter', system-ui, sans-serif;
   font-size: 0.875rem;
   z-index: 0;
 }
@@ -1365,10 +1369,172 @@
 
 /* Tooltip override */
 .leaflet-tooltip {
-  font-family: 'Inter', system-ui, sans-serif;
+  font-family: 'Inter Variable', 'Inter', system-ui, sans-serif;
   font-size: 0.75rem;
   border-radius: 0.375rem;
   padding: 4px 10px;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
   border: 1px solid #e5e7eb;
 }
+
+/* ════════════════════════════════════════════════════════════════════
+   DARK MODE — overrides globales para utilities Tailwind hardcodeadas.
+   Tailwind config sólo define hex literales (bg-white = #fff siempre),
+   así que estos overrides redirigen a las CSS variables del .dark scope.
+   Especificidad: .dark .X (0,2,0) > .X (0,1,0).
+   ════════════════════════════════════════════════════════════════════ */
+
+/* Backgrounds neutros */
+.dark .bg-white {
+  background-color: var(--c-surface);
+}
+.dark .bg-white\/95,
+.dark .bg-white\/90,
+.dark .bg-white\/80 {
+  background-color: color-mix(in srgb, var(--c-surface) 95%, transparent);
+}
+.dark .bg-surface {
+  background-color: var(--c-bg);
+}
+.dark .bg-gray-50,
+.dark .bg-gray-100 {
+  background-color: var(--c-surface-2);
+}
+
+/* Bordes neutros */
+.dark .border-gray-50,
+.dark .border-gray-100,
+.dark .border-gray-200,
+.dark .border-gray-300 {
+  border-color: var(--c-border);
+}
+.dark .divide-gray-50 > * + *,
+.dark .divide-gray-100 > * + * {
+  border-color: var(--c-border);
+}
+
+/* Texto */
+.dark .text-ink {
+  color: var(--c-ink);
+}
+.dark .text-ink-muted,
+.dark .text-slate-custom,
+.dark .text-gray-500,
+.dark .text-gray-600,
+.dark .text-gray-700 {
+  color: var(--c-ink-muted);
+}
+.dark .text-gray-400,
+.dark .text-ink-soft {
+  color: var(--c-ink-soft);
+}
+
+/* Brand: bg-primary-50 (verde casi blanco) es ilegible en dark; lo bajamos
+   a un verde profundo translúcido. Aplica tanto al utility normal como al
+   override con `!` que usa el active-class del AppHeader. */
+.dark .bg-primary-50,
+.dark .\!bg-primary-50 {
+  background-color: rgba(14, 94, 58, 0.22) !important;
+}
+.dark .hover\:bg-primary-50:hover {
+  background-color: rgba(14, 94, 58, 0.28);
+}
+.dark .bg-primary-100 {
+  background-color: rgba(14, 94, 58, 0.35);
+}
+.dark .text-primary,
+.dark .\!text-primary {
+  color: #8FCD5F;
+}
+.dark .text-primary-dark {
+  color: #C5E8D4;
+}
+
+/* Eco — pill activo "Comunidad" del header */
+.dark .bg-eco\/10,
+.dark .\!bg-eco\/10,
+.dark .bg-eco\/15 {
+  background-color: rgba(121, 193, 65, 0.18) !important;
+}
+.dark .text-eco-dark,
+.dark .\!text-eco-dark {
+  color: #B9E07A;
+}
+
+/* Secondary, accent, alert badges en dark — bajan saturación de fondo */
+.dark .bg-secondary\/10,
+.dark .bg-secondary\/15 {
+  background-color: rgba(24, 165, 227, 0.18);
+}
+.dark .bg-accent\/5,
+.dark .bg-accent\/10,
+.dark .bg-accent\/15 {
+  background-color: rgba(242, 168, 29, 0.18);
+}
+.dark .bg-accent\/30 {
+  background-color: rgba(242, 168, 29, 0.30);
+}
+.dark .text-accent-dark {
+  color: #FAD37A;
+}
+.dark .bg-alert\/5,
+.dark .bg-alert\/15 {
+  background-color: rgba(217, 54, 62, 0.18);
+}
+
+/* Cards y panels que tienen sombras de papel */
+.dark .shadow-card,
+.dark .shadow-card-hover,
+.dark .shadow-panel {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35), 0 1px 3px rgba(0, 0, 0, 0.25);
+}
+
+/* Cards que usan var(--c-surface) por defecto se funden con la sección
+   contenedora cuando esa también se vuelve var(--c-surface) (vía `bg-white`
+   override). En dark las elevamos a --c-surface-2 para que se vean separadas
+   del background. Aplica a fun-card, kpi-fun, panel y .card genéricos. */
+.dark .fun-card,
+.dark .kpi-fun,
+.dark .panel,
+.dark .card,
+.dark .card-flat,
+.dark .card-interactive {
+  background: var(--c-surface-2);
+  border-color: var(--c-border);
+}
+
+/* Inputs en dark — destacar sobre surface-2 con surface */
+.dark .input,
+.dark input[type='text'],
+.dark input[type='email'],
+.dark input[type='number'],
+.dark input[type='search'],
+.dark input[type='password'],
+.dark select,
+.dark textarea {
+  background-color: var(--c-surface);
+}
+
+/* Inputs */
+.dark .input,
+.dark input,
+.dark select,
+.dark textarea {
+  background-color: var(--c-surface-2);
+  border-color: var(--c-border);
+  color: var(--c-ink);
+}
+.dark .input::placeholder,
+.dark input::placeholder,
+.dark textarea::placeholder {
+  color: var(--c-ink-soft);
+}
+
+/* Aviso técnico, info boxes (bg-accent/5) — texto que era text-ink se
+   queda legible porque ya redirigimos text-ink → var(--c-ink). */
+
+/* Header dropdown panel (bg-white inside the hover panel) */
+.dark .border-gray-100.bg-white {
+  background-color: var(--c-surface);
+}
+

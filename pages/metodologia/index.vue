@@ -5,7 +5,7 @@
       <p class="mt-2 text-base text-white/80">Documentación técnica del modelo multicriterio, variables, fuentes de datos y el índice de aptitud territorial</p>
     </CommonHeroSection>
 
-    <section class="bg-white py-16">
+    <section class="bg-white py-12 md:py-16">
       <div class="container-wide">
         <!-- Introduction -->
         <div class="mt-8 max-w-3xl">
@@ -39,7 +39,7 @@
     </section>
 
     <!-- Flujo del modelo -->
-    <section class="py-16">
+    <section class="py-12 md:py-16">
       <div class="container-wide">
         <CommonSectionTitle
           title="Flujo del modelo"
@@ -94,7 +94,7 @@
     </section>
 
     <!-- Model toggle + Variable cards -->
-    <section class="bg-white py-16">
+    <section class="bg-white py-12 md:py-16">
       <div class="container-wide">
         <div class="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
           <CommonSectionTitle
@@ -184,7 +184,7 @@
     </section>
 
     <!-- Charts -->
-    <section class="py-16">
+    <section class="py-12 md:py-16">
       <div class="container-wide">
         <h3 class="text-xl font-semibold text-ink">Pesos del modelo</h3>
         <p class="mt-1 text-sm text-slate-custom">Visualización de la distribución de pesos entre las {{ numVariables }} variables (suman 100%)</p>
@@ -259,7 +259,7 @@
     </section>
 
     <!-- What it means / What it does NOT mean -->
-    <section class="py-16">
+    <section class="py-12 md:py-16">
       <div class="container-wide">
         <div class="grid grid-cols-1 gap-8 lg:grid-cols-2">
           <!-- What it means -->
@@ -327,7 +327,7 @@
     </section>
 
     <!-- Fuentes oficiales de datos -->
-    <section class="py-16">
+    <section class="py-12 md:py-16">
       <div class="container-wide">
         <CommonOfficialSourcesSection />
         <div class="mt-8 rounded-card border border-primary/20 bg-primary-50 p-5">
@@ -354,7 +354,7 @@
     </section>
 
     <!-- Limitaciones del estudio -->
-    <section class="bg-white py-16">
+    <section class="bg-white py-12 md:py-16">
       <div class="container-wide">
         <h3 class="text-xl font-semibold text-ink">Limitaciones del estudio</h3>
         <p class="mt-2 text-sm text-slate-custom max-w-3xl">

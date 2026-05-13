@@ -1,20 +1,29 @@
 <script setup lang="ts">
-defineProps<{
+const props = defineProps<{
   compact?: boolean
   /** Override de imagen de fondo (URL absoluta o relativa). Si se omite, usa el techo verde del CIIEMAD. */
   image?: string
 }>()
+
+const heroPhotoSrc = computed(() => props.image || '/images/tesis/techo-verde-ciiemad-panoramica.jpg')
 </script>
 
 <template>
   <section
     class="hero-section relative overflow-hidden flex items-center"
     :class="compact ? 'py-10 md:py-12' : 'py-12 md:py-16'"
-    :style="image ? { '--hero-image': `url('${image}')` } : undefined"
   >
     <div class="hero-bg" aria-hidden="true">
       <!-- Foto real del techo verde CIIEMAD (capa base) -->
-      <div class="hero-photo" />
+      <NuxtImg
+        :src="heroPhotoSrc"
+        alt=""
+        class="hero-photo"
+        sizes="xs:800px sm:1024px md:1280px lg:1600px xl:1600px"
+        format="webp"
+        loading="eager"
+        densities="x1 x2"
+      />
       <!-- Tint verde para integrar con la paleta -->
       <div class="hero-photo-tint" />
       <!-- Anillos isobáticos (topo) -->
@@ -37,9 +46,7 @@ defineProps<{
 </template>
 
 <style scoped>
-/* Override --hero-image desde el componente padre o desde otra página/sección */
 .hero-section {
-  --hero-image: url('/images/tesis/techo-verde-ciiemad-panoramica.jpg');
   background:
     radial-gradient(ellipse 90% 60% at 50% 0%, rgba(26, 122, 78, 0.45) 0%, transparent 60%),
     linear-gradient(160deg, #042B1A 0%, #0A4A2D 25%, #0E5E3A 55%, #1A7A4E 85%, #0E5E3A 100%);
@@ -56,10 +63,10 @@ defineProps<{
 .hero-photo {
   position: absolute;
   inset: 0;
-  background-image: var(--hero-image);
-  background-size: cover;
-  background-position: center 50%;
-  background-repeat: no-repeat;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 50%;
   z-index: 0;
   filter: saturate(1.1) contrast(1.05) brightness(0.95);
   animation: photo-pan 30s ease-in-out infinite alternate;

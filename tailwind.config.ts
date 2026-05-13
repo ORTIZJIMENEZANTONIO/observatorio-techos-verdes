@@ -67,8 +67,11 @@ export default <Config>{
         },
       },
       fontFamily: {
-        sans: ['Inter', 'system-ui', 'sans-serif'],
-        display: ['"Space Grotesk"', 'Inter', 'sans-serif'],
+        // 'Inter Variable' = nombre que expone @fontsource-variable/inter.
+        // Mantengo 'Inter' como fallback porque algunos navegadores antiguos
+        // aún cargan la versión estática local si la tienen instalada.
+        sans: ['"Inter Variable"', 'Inter', 'system-ui', 'sans-serif'],
+        display: ['"Space Grotesk Variable"', '"Space Grotesk"', '"Inter Variable"', 'sans-serif'],
       },
       borderRadius: {
         card: '0.75rem',

@@ -6,16 +6,39 @@
     </CommonHeroSection>
 
     <!-- KPIs + Tabs -->
-    <section class="bg-white py-16">
+    <section class="bg-white py-12 md:py-16">
       <div class="container-wide">
-        <!-- KPI grid -->
-        <div class="mt-8 grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-6">
-          <div v-for="kpi in kpis" :key="kpi.label" class="kpi-card">
-            <p class="text-2xl font-bold" :class="kpiColor(kpi.color)">{{ kpi.valor }}</p>
-            <p class="text-xs text-slate-custom">{{ kpi.label }}</p>
-            <p v-if="kpi.unidad" class="text-[10px] text-ink-muted">{{ kpi.unidad }}</p>
-            <p v-if="kpi.cambio" class="mt-1 text-[10px] font-medium text-eco">{{ kpi.cambio }}</p>
-          </div>
+        <!-- KPI grid — patrón fun-card mini (icono protagonista + valor + label) -->
+        <div class="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-6">
+          <article
+            v-for="kpi in kpis"
+            :key="kpi.label"
+            class="fun-card"
+            :style="funStyle((kpi.color as string) || 'primary')"
+          >
+            <div class="fun-card-icon-wrap" aria-hidden="true">
+              <span class="fun-card-icon-halo" />
+              <span class="fun-card-icon-bubble" />
+              <svg
+                class="fun-card-icon-svg"
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.6"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path v-for="(d, i) in funPaths((kpi.icono as string) || 'chart')" :key="i" :d="d" />
+              </svg>
+              <span class="fun-card-spark fun-card-spark--1" />
+              <span class="fun-card-spark fun-card-spark--2" />
+            </div>
+            <p class="fun-card-value tabular-nums">{{ kpi.valor }}</p>
+            <p class="fun-card-label">{{ kpi.label }}</p>
+            <p v-if="kpi.unidad" class="fun-card-unit">{{ kpi.unidad }}</p>
+            <p v-if="kpi.cambio" class="fun-card-delta">{{ kpi.cambio }}</p>
+          </article>
         </div>
       </div>
     </section>
@@ -1325,6 +1348,7 @@ import {
 import type { NivelRiesgo, RiskIndicator } from '~/composables/useStatisticalAnalysis'
 
 const { scoreColor, kpiColor } = useFormatters()
+const { funPaths, funStyle } = useFunPalette()
 
 useHead({
   title: 'Indicadores | Observatorio Techos Verdes CDMX',

@@ -3,7 +3,17 @@
     <!-- 1. Hero Section — foto CIIEMAD + humedalito + flotantes -->
     <section class="hero-home relative overflow-hidden">
       <!-- Capa 0: foto del techo verde CIIEMAD -->
-      <div class="hero-home-photo" aria-hidden="true" />
+      <NuxtImg
+        src="/images/tesis/techo-verde-ciiemad-panoramica.jpg"
+        alt=""
+        aria-hidden="true"
+        class="hero-home-photo"
+        sizes="xs:800px sm:1024px md:1280px lg:1600px xl:1600px"
+        format="webp"
+        loading="eager"
+        preload
+        densities="x1 x2"
+      />
       <!-- Capa 1: tint verde sobre la foto -->
       <div class="hero-home-tint" aria-hidden="true" />
       <!-- Capa 2: anillos topográficos -->
@@ -45,12 +55,12 @@
               {{ hero.subtitle }}
             </p>
 
-            <!-- 4 atajos visuales con iconos grandes -->
+            <!-- 4 atajos visuales: las mismas 4 puertas del nav -->
             <div class="mt-8 grid max-w-2xl grid-cols-2 gap-3 sm:grid-cols-4">
               <NuxtLink
-                to="/inventario"
+                to="/aprende"
                 class="hero-quick group"
-                title="Inventario de techos verdes"
+                title="Aprende sobre techos verdes"
               >
                 <svg
                   class="hero-quick-icon"
@@ -62,16 +72,35 @@
                   stroke-linecap="round"
                   stroke-linejoin="round"
                 >
-                  <path d="M3 21h18" />
-                  <path d="M5 21V7l7-4 7 4v14" />
-                  <path d="M9 21V13h6v8" />
+                  <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z" />
+                  <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z" />
                 </svg>
-                <span class="hero-quick-label">Inventario</span>
+                <span class="hero-quick-label">Aprende</span>
+              </NuxtLink>
+              <NuxtLink
+                to="/investigacion"
+                class="hero-quick group"
+                title="Marco académico y publicaciones"
+              >
+                <svg
+                  class="hero-quick-icon"
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1.8"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <path d="M22 10v6M2 10l10-5 10 5-10 5z" />
+                  <path d="M6 12v5c3 3 9 3 12 0v-5" />
+                </svg>
+                <span class="hero-quick-label">Investigación</span>
               </NuxtLink>
               <NuxtLink
                 to="/mapa"
                 class="hero-quick group"
-                title="Mapa interactivo"
+                title="Explora los datos en el mapa"
               >
                 <svg
                   class="hero-quick-icon"
@@ -89,30 +118,7 @@
                   <line x1="8" y1="2" x2="8" y2="18" />
                   <line x1="16" y1="6" x2="16" y2="22" />
                 </svg>
-                <span class="hero-quick-label">Mapa</span>
-              </NuxtLink>
-              <NuxtLink
-                to="/agenda-2030"
-                class="hero-quick group"
-                title="Techos verdes y Agenda 2030"
-              >
-                <svg
-                  class="hero-quick-icon"
-                  xmlns="http://www.w3.org/2000/svg"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="1.8"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                >
-                  <circle cx="12" cy="12" r="10" />
-                  <line x1="2" y1="12" x2="22" y2="12" />
-                  <path
-                    d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"
-                  />
-                </svg>
-                <span class="hero-quick-label">Agenda 2030</span>
+                <span class="hero-quick-label">Explora</span>
               </NuxtLink>
               <NuxtLink
                 to="/comunidad"
@@ -142,7 +148,7 @@
               <NuxtLink
                 v-if="hero?.primaryLabel && hero?.primaryTo"
                 :to="hero.primaryTo"
-                class="btn-primary btn-lg !bg-eco hover:!bg-eco-light"
+                class="btn-primary btn-lg !bg-primary-light hover:!bg-primary"
               >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -173,8 +179,10 @@
           </div>
 
           <!-- Columna mascota Techito + chips flotantes -->
+          <!-- mobile: centrado horizontalmente; lg+: pegado a la izquierda
+               de su columna con un offset negativo para acercarlo al texto. -->
           <div
-            class="flex lg:col-span-5 xl:col-span-4 items-center justify-center"
+            class="flex lg:col-span-5 xl:col-span-4 items-center justify-center lg:justify-start lg:-ml-6"
           >
             <div
               class="hero-mascot-wrap"
@@ -259,14 +267,15 @@
                 </div>
               </div>
 
-              <!-- Speech bubble: "Hola, soy Techito" -->
+              <!-- Speech bubble: eslogan de Techito (auto-hide 5s + hover/touch) -->
               <div
-                class="speech-bubble"
+                class="speech-bubble speech-bubble--mensaje"
                 :class="{ 'speech-visible': showSpeech }"
               >
-                <span class="text-xs font-bold text-primary"
-                  >Hola, soy Techito</span
-                >
+                <p class="speech-bubble-title">¡Hola, soy Techito!</p>
+                <p class="speech-bubble-body">
+                  Enfrío edificios, limpio el aire y traigo biodiversidad.
+                </p>
               </div>
 
               <!-- Hearts (pet easter egg) -->
@@ -312,6 +321,12 @@
         </div>
       </div>
     </section>
+
+    <!-- 1.5. Audience Gate — 4 puertas por audiencia -->
+    <HomeAudienceGate v-if="audienceGates.length > 0" :gates="audienceGates" />
+
+    <!-- 1.6. Academic highlight — Cervantes-Nájera 2025 Q1 SCS -->
+    <HomeAcademicHighlight :highlight="academicHighlight" />
 
     <!-- 2. KPI Grid — Datos que cuentan una historia -->
     <section
@@ -429,7 +444,7 @@
                   techoVerdeIntro?.stat1Value || "94.8%"
                 }}</span>
                 <p
-                  class="mt-1 text-[10px] font-medium uppercase tracking-wider text-primary/70"
+                  class="mt-1 text-[11px] font-semibold uppercase tracking-wider text-primary"
                 >
                   {{
                     techoVerdeIntro?.stat1Label ||
@@ -438,11 +453,11 @@
                 </p>
               </div>
               <div class="rounded-lg bg-eco/10 p-3 text-center">
-                <span class="text-2xl font-bold text-eco-dark">{{
+                <span class="text-2xl font-bold text-primary">{{
                   techoVerdeIntro?.stat2Value || "25.9%"
                 }}</span>
                 <p
-                  class="mt-1 text-[10px] font-medium uppercase tracking-wider text-eco-dark/70"
+                  class="mt-1 text-[11px] font-semibold uppercase tracking-wider text-primary"
                 >
                   {{
                     techoVerdeIntro?.stat2Label ||
@@ -454,10 +469,15 @@
           </div>
           <div class="reveal-right">
             <div class="overflow-hidden rounded-card bg-surface shadow-card">
-              <img
+              <NuxtImg
                 src="/images/tesis/capas-techo-verde.png"
                 alt="Diagrama de las capas de un techo verde: vegetación, sustrato, drenante, barrera anti-raíz, impermeabilizante y base del techo"
                 class="mx-auto w-full max-w-sm p-6"
+                width="384"
+                height="312"
+                sizes="xs:320px sm:384px md:384px lg:384px"
+                format="webp"
+                loading="lazy"
               />
               <div class="border-t border-gray-100 px-4 py-2.5">
                 <p class="text-[10px] text-slate-custom">
@@ -475,8 +495,8 @@
     <section class="bg-surface py-14">
       <div class="container-wide">
         <div class="mb-8 flex items-center justify-center gap-3">
-          <span
-            class="inline-flex items-center gap-2 rounded-full bg-eco/15 px-4 py-1.5 text-xs font-bold uppercase tracking-wider text-eco-dark"
+          <h2
+            class="inline-flex items-center gap-2 rounded-full bg-eco/15 px-4 py-1.5 text-xs font-bold uppercase tracking-wider text-primary"
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -498,7 +518,7 @@
               <path d="M16.24 7.76l2.83-2.83" />
             </svg>
             ¿Sabías que…?
-          </span>
+          </h2>
         </div>
         <div class="grid grid-cols-1 gap-5 md:grid-cols-3">
           <article
@@ -644,9 +664,9 @@
                 <!-- Badge numerada -->
                 <span class="step-fun-badge">{{ index + 1 }}</span>
               </div>
-              <h4 class="mt-5 text-base font-bold text-ink">
+              <h3 class="mt-5 text-base font-bold text-ink">
                 {{ step.title }}
-              </h4>
+              </h3>
               <p class="mt-2 text-sm leading-relaxed text-slate-custom">
                 {{ step.description }}
               </p>
@@ -665,7 +685,7 @@
           <div class="grid grid-cols-1 lg:grid-cols-2">
             <div class="flex flex-col justify-center p-8 lg:p-12">
               <span
-                class="mb-3 inline-flex w-fit items-center rounded-badge bg-secondary/10 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-secondary"
+                class="mb-3 inline-flex w-fit items-center rounded-badge bg-secondary/15 px-3 py-1 text-xs font-bold uppercase tracking-wider text-ink"
               >
                 {{ mapTeaser?.eyebrow || "Mapa interactivo" }}
               </span>
@@ -729,10 +749,15 @@
             <div
               class="relative min-h-[300px] overflow-hidden lg:min-h-[400px]"
             >
-              <img
+              <NuxtImg
                 src="/images/tesis/mapa-inventario-cdmx.png"
                 alt="Mapa inventario de techos verdes en la Ciudad de México, elaborado a partir de investigación de campo y datos georreferenciados"
                 class="absolute inset-0 h-full w-full object-cover"
+                width="1178"
+                height="956"
+                sizes="sm:100vw md:100vw lg:50vw xl:600px"
+                format="webp"
+                loading="lazy"
               />
               <div
                 class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent p-4"
@@ -774,12 +799,14 @@
             :aria-label="`Ver inventario · ${roof.nombre}`"
           >
             <div class="roof-card-image-wrap">
-              <img
+              <NuxtImg
                 v-if="roof.imagen"
                 :src="roof.imagen"
                 :alt="'Techo verde: ' + roof.nombre"
                 class="roof-card-image"
                 loading="lazy"
+                sizes="xs:400px sm:380px md:380px lg:400px"
+                format="webp"
               />
               <div v-else class="roof-card-image-fallback" aria-hidden="true">
                 <svg
@@ -808,7 +835,7 @@
               </span>
             </div>
             <div class="roof-card-body">
-              <h4 class="roof-card-title">{{ roof.nombre }}</h4>
+              <h3 class="roof-card-title">{{ roof.nombre }}</h3>
               <p class="roof-card-meta">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -864,194 +891,14 @@
       </div>
     </section>
 
-    <!-- 8. Investigación CIIEMAD — Cervantes Nájera protagonista -->
-    <section
-      ref="aiSection"
-      class="ciiemad-section relative overflow-hidden py-16 md:py-20"
-    >
-      <div class="ciiemad-bg-blob ciiemad-bg-blob--a" aria-hidden="true" />
-      <div class="ciiemad-bg-blob ciiemad-bg-blob--b" aria-hidden="true" />
+    <!-- 8. (eliminado) — el caso CIIEMAD se consolidó en /aprende#caso-ciiemad
+         para no repetir contenido con la home. El AcademicHighlight de arriba
+         ya cubre la publicación Q1. -->
 
-      <div class="container-wide relative">
-        <div
-          class="grid grid-cols-1 items-stretch gap-8 lg:grid-cols-12 lg:gap-10"
-        >
-          <!-- Columna izquierda: collage de imágenes de tesis -->
-          <div class="lg:col-span-5 reveal-left">
-            <div class="ciiemad-photo-grid">
-              <div class="ciiemad-photo ciiemad-photo--main">
-                <img
-                  src="/images/tesis/tvle-ciiemad-foto.png"
-                  alt="Techo verde ligero extensivo (TVLE) instalado en el CIIEMAD-IPN"
-                  loading="lazy"
-                />
-                <div class="ciiemad-photo-caption">
-                  TVLE del CIIEMAD-IPN · Cervantes Nájera (2025)
-                </div>
-              </div>
-              <div class="ciiemad-photo ciiemad-photo--top">
-                <img
-                  src="/images/tesis/ciiemad-cuadrantes.png"
-                  alt="Cuadrantes monitoreados del techo verde CIIEMAD"
-                  loading="lazy"
-                />
-              </div>
-              <div class="ciiemad-photo ciiemad-photo--bottom">
-                <img
-                  src="/images/tesis/mapa-inventario-cdmx.png"
-                  alt="Mapa inventario techos verdes CDMX"
-                  loading="lazy"
-                />
-              </div>
-              <!-- Badge flotante "100% sobrevivencia vegetal" -->
-              <div class="ciiemad-photo-badge">
-                <span class="text-xl font-extrabold leading-none">{{
-                  ciiemadShowcase?.badgeValue || "100%"
-                }}</span>
-                <span
-                  class="text-[10px] font-semibold uppercase tracking-wider leading-tight"
-                >
-                  {{ ciiemadShowcase?.badgeLabel || "sobrevivencia vegetal" }}
-                </span>
-              </div>
-            </div>
-          </div>
-
-          <!-- Columna derecha: texto + KPIs + CTA -->
-          <div class="lg:col-span-7 flex flex-col justify-center reveal-right">
-            <span class="ciiemad-eyebrow">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                class="h-3.5 w-3.5"
-                viewBox="0 0 24 24"
-                fill="currentColor"
-              >
-                <path d="M12 2l3 7h7l-5.5 4.5L18 21l-6-4-6 4 1.5-7.5L2 9h7z" />
-              </svg>
-              {{ ciiemadShowcase?.eyebrow || "Investigación CIIEMAD-IPN" }}
-            </span>
-            <h2 class="ciiemad-title">
-              {{
-                ciiemadShowcase?.titlePre ||
-                "El observatorio se construye sobre la"
-              }}
-              <span class="ciiemad-title-accent">{{
-                ciiemadShowcase?.titleAccent ||
-                "investigación de la M. en C. Ana Laura Cervantes Nájera"
-              }}</span>
-            </h2>
-            <p class="ciiemad-lead">
-              {{
-                ciiemadShowcase?.lead ||
-                "Tres trabajos académicos del Centro Interdisciplinario de Investigaciones y Estudios sobre Medio Ambiente y Desarrollo del IPN sustentan los modelos, datos e impactos que aquí se presentan."
-              }}
-            </p>
-
-            <!-- Pubs grid -->
-            <div class="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-3">
-              <NuxtLink
-                v-for="pub in ciiemadPubs"
-                :key="pub.year + pub.type"
-                :to="pub.to || '/referencias'"
-                class="ciiemad-pub"
-                :style="funStyle(pub.color || 'primary')"
-              >
-                <span class="ciiemad-pub-year">{{ pub.year }}</span>
-                <span class="ciiemad-pub-type">{{ pub.type }}</span>
-                <span class="ciiemad-pub-title">{{ pub.title }}</span>
-              </NuxtLink>
-            </div>
-
-            <!-- KPIs académicos -->
-            <div class="mt-6 grid grid-cols-3 gap-3">
-              <div
-                v-for="kpi in ciiemadKpis"
-                :key="kpi.label"
-                class="ciiemad-kpi"
-              >
-                <span class="ciiemad-kpi-val">{{ kpi.val }}</span>
-                <span class="ciiemad-kpi-lbl">{{ kpi.label }}</span>
-              </div>
-            </div>
-
-            <!-- CTAs -->
-            <div class="mt-6 flex flex-wrap gap-3">
-              <NuxtLink
-                :to="ciiemadShowcase?.ctaPrimaryTo || '/referencias'"
-                class="btn-primary"
-              >
-                {{ ciiemadShowcase?.ctaPrimaryLabel || "Ver marco académico" }}
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  class="h-4 w-4"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="2"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                >
-                  <line x1="5" y1="12" x2="19" y2="12" />
-                  <polyline points="12 5 19 12 12 19" />
-                </svg>
-              </NuxtLink>
-              <NuxtLink
-                :to="ciiemadShowcase?.ctaSecondaryTo || '/sobre'"
-                class="btn-outline"
-              >
-                {{ ciiemadShowcase?.ctaSecondaryLabel || "Sobre el equipo" }}
-              </NuxtLink>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- 9. Respaldo Científico + Disclaimer -->
+    <!-- 9. Aviso técnico (el respaldo completo se movió al bloque CIIEMAD/Cervantes Showcase
+         y al hub /investigacion para no repetir el contenido). -->
     <section ref="respaldoSection" class="bg-surface py-12">
       <div class="container-wide space-y-4">
-        <div
-          class="rounded-card border border-primary/10 bg-white p-6 shadow-card reveal"
-        >
-          <div class="flex flex-col gap-6 md:flex-row md:items-center">
-            <div
-              class="flex h-16 w-16 shrink-0 items-center justify-center rounded-xl bg-primary-50"
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                class="h-8 w-8 text-primary"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="1.5"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-              >
-                <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z" />
-                <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z" />
-              </svg>
-            </div>
-            <div class="flex-1">
-              <h3 class="text-base font-semibold text-ink">
-                {{ respaldo?.title || "Respaldo científico" }}
-              </h3>
-              <p class="mt-1 text-sm leading-relaxed text-slate-custom">
-                {{
-                  respaldo?.body ||
-                  "Este observatorio se fundamenta en la investigación doctoral y de maestría realizada en el CIIEMAD-IPN por Ana Laura Cervantes Nájera, bajo la dirección de la Dra. María Concepción Martínez Rodríguez."
-                }}
-              </p>
-              <div class="mt-3 space-y-1">
-                <p v-if="respaldo?.tesisDoc" class="text-xs text-slate-custom">
-                  {{ respaldo.tesisDoc }}
-                </p>
-                <p v-if="respaldo?.tesisMa" class="text-xs text-slate-custom">
-                  {{ respaldo.tesisMa }}
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
         <div class="rounded-card border border-accent/30 bg-accent/5 p-5">
           <div class="flex gap-3">
             <div
@@ -1073,9 +920,9 @@
               </svg>
             </div>
             <div>
-              <h4 class="text-sm font-semibold text-accent-dark">
+              <h3 class="text-sm font-semibold text-ink">
                 {{ respaldo?.avisoTitle || "Aviso importante" }}
-              </h4>
+              </h3>
               <p class="mt-1 text-sm leading-relaxed text-slate-custom">
                 {{
                   respaldo?.avisoBody ||
@@ -1093,6 +940,8 @@
 <script setup lang="ts">
 import { greenRoofs } from "~/data/mock-roofs";
 import { kpiData } from "~/data/kpis";
+import { computed, onMounted, onUnmounted, ref } from "vue";
+import { useHead } from "nuxt/app";
 
 const { funPaths, funStyle } = useFunPalette();
 
@@ -1201,6 +1050,40 @@ const ciiemadShowcase = cms.one<CiiemadShowcase>("ciiemadShowcase");
 const ciiemadPubs = cms.list<CiiemadPub>("ciiemadPubs");
 const ciiemadKpis = cms.list<CiiemadKpi>("ciiemadKpis");
 const respaldo = cms.one<Respaldo>("respaldo");
+
+// Fase 2 — Audience Gate + Academic Highlight
+interface GateItem {
+  tag: string;
+  title: string;
+  description: string;
+  to: string;
+  ctaLabel: string;
+  icono: string;
+  color: string;
+}
+interface AcademicHighlightShape {
+  tag?: string;
+  venue?: string;
+  anio?: string;
+  autores?: string;
+  titulo?: string;
+  descripcion?: string;
+  doi?: string;
+  kpi1Value?: string;
+  kpi1Label?: string;
+  kpi2Value?: string;
+  kpi2Label?: string;
+  kpi3Value?: string;
+  kpi3Label?: string;
+  ctaLabel?: string;
+  ctaTo?: string;
+}
+const audienceGatesRef = cms.list<GateItem>("audienceGate");
+const academicHighlightRef =
+  cms.one<AcademicHighlightShape>("academicHighlight");
+const audienceGates = computed(() => audienceGatesRef.value);
+const academicHighlight = computed(() => academicHighlightRef.value);
+
 const mapFeatures = computed(() => {
   const t = mapTeaser.value;
   if (!t) return [] as string[];
@@ -1208,6 +1091,19 @@ const mapFeatures = computed(() => {
     Boolean
   ) as string[];
 });
+
+// ── Scroll-reveal observers para cada sección ─────────────────────────────
+// Las clases `.reveal`, `.reveal-left`, `.reveal-right`, `.reveal-scale`
+// arrancan con opacity:0. `useScrollReveal()` engancha un IntersectionObserver
+// al ref de la sección y añade `.is-visible` cuando aparece en viewport.
+// Sin estos hooks, los elementos se quedan invisibles para siempre.
+const { revealRef: kpiSection } = useScrollReveal({ stagger: true });
+const { revealRef: queEsSection } = useScrollReveal();
+const { revealRef: aboutSection } = useScrollReveal({ stagger: true });
+const { revealRef: stepsSection } = useScrollReveal({ stagger: true });
+const { revealRef: mapSection } = useScrollReveal();
+const { revealRef: featuredSection } = useScrollReveal({ stagger: true });
+const { revealRef: respaldoSection } = useScrollReveal();
 
 // ── Techito mascot animation system (parpadeo + speech + pet easter egg) ──
 // Adaptado del patrón de Humedalito en /observatorio-humedales
@@ -1236,13 +1132,12 @@ onMounted(() => {
   };
   scheduleBlink();
 
-  // Saludo automático al cargar: muestra el bocadillo 3.5s y luego lo oculta
+  // Saludo automático al cargar: el bocadillo aparece de inmediato y se oculta
+  // a los 5 s. Después solo reaparece con hover (desktop) o touch (mobile).
+  showSpeech.value = true;
   speechAutoTimer = setTimeout(() => {
-    showSpeech.value = true;
-    setTimeout(() => {
-      showSpeech.value = false;
-    }, 3500);
-  }, 800);
+    showSpeech.value = false;
+  }, 5000);
 });
 
 onUnmounted(() => {
@@ -1287,15 +1182,6 @@ function petTechito() {
   }
 }
 
-// Scroll-reveal for each section
-const { revealRef: kpiSection } = useScrollReveal({ stagger: true });
-const { revealRef: aboutSection } = useScrollReveal({ stagger: true });
-const { revealRef: stepsSection } = useScrollReveal({ stagger: true });
-const { revealRef: mapSection } = useScrollReveal();
-const { revealRef: queEsSection } = useScrollReveal();
-const { revealRef: featuredSection } = useScrollReveal({ stagger: true });
-const { revealRef: aiSection } = useScrollReveal();
-const { revealRef: respaldoSection } = useScrollReveal();
 
 useHead({
   title: "Observatorio de Techos Verdes CDMX",
@@ -1529,7 +1415,7 @@ function kpiHintFor(icono: string | undefined) {
    KPI Grid — cards centradas con icono protagonista
    ════════════════════════════════════════════════════════════════════ */
 .kpi-section {
-  background: linear-gradient(180deg, #ffffff 0%, #f7f8f4 100%);
+  background: linear-gradient(180deg, var(--c-surface) 0%, var(--c-bg) 100%);
 }
 .kpi-bg-blob {
   position: absolute;
@@ -2387,8 +2273,9 @@ function kpiHintFor(icono: string | undefined) {
   align-items: center;
   gap: 0.35rem;
   font-size: 0.72rem;
-  font-weight: 500;
-  color: var(--fun-color);
+  font-weight: 600;
+  /* Oscurecemos --fun-color para que cualquier tono cumpla WCAG AA sobre blanco. */
+  color: color-mix(in srgb, var(--fun-color) 45%, #000 55%);
 }
 .roof-card-desc {
   margin-top: 0.5rem;
@@ -2456,10 +2343,10 @@ function kpiHintFor(icono: string | undefined) {
 .hero-home-photo {
   position: absolute;
   inset: 0;
-  background-image: url("/images/tesis/techo-verde-ciiemad-panoramica.jpg");
-  background-size: cover;
-  background-position: center 50%;
-  background-repeat: no-repeat;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 50%;
   z-index: 0;
   filter: saturate(1.1) contrast(1.05) brightness(0.95);
   animation: heroPan 30s ease-in-out infinite alternate;
@@ -2778,7 +2665,7 @@ function kpiHintFor(icono: string | undefined) {
   }
   .hero-chip--temp {
     bottom: 22%;
-    left: -16%;
+    left: 80%;
   }
   .hero-chip--co2 {
     bottom: 4%;
@@ -2823,7 +2710,7 @@ function kpiHintFor(icono: string | undefined) {
   top: -8px;
   right: -28px;
   z-index: 5;
-  background: #ffffff;
+  background: var(--c-surface);
   border-radius: 14px;
   padding: 0.5rem 0.85rem;
   box-shadow: 0 6px 20px rgba(4, 43, 26, 0.25);
@@ -2844,12 +2731,75 @@ function kpiHintFor(icono: string | undefined) {
   height: 0;
   border-left: 8px solid transparent;
   border-right: 8px solid transparent;
-  border-top: 10px solid #ffffff;
+  border-top: 10px solid var(--c-surface);
   filter: drop-shadow(0 2px 1px rgba(4, 43, 26, 0.1));
 }
 .speech-bubble.speech-visible {
   opacity: 1;
   transform: translateY(0) scale(1);
+}
+
+/* Variante ampliada con título + cuerpo (eslogan de Techito).
+   Centrada arriba de la mascota con cola apuntando hacia abajo al centro. */
+.speech-bubble--mensaje {
+  /* Centrado horizontal vía left:50% + translate, posicionado arriba */
+  top: -84px;
+  left: 50%;
+  right: auto;
+  transform: translateX(-50%) translateY(8px) scale(0.85);
+  max-width: 20rem;
+  padding: 0.75rem 1rem;
+  white-space: normal;
+  text-align: center;
+  border: 2px solid rgba(14, 94, 58, 0.18);
+}
+.speech-bubble--mensaje::after {
+  /* Cola al centro del borde inferior */
+  left: 50%;
+  right: auto;
+  bottom: -10px;
+  transform: translateX(-50%);
+  border-top-color: var(--c-surface);
+}
+.speech-bubble--mensaje.speech-visible {
+  /* Importante: mantener el translateX cuando se vuelve visible */
+  transform: translateX(-50%) translateY(0) scale(1);
+}
+.speech-bubble-title {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--c-primary, #0e5e3a);
+  margin-bottom: 0.35rem;
+  line-height: 1.2;
+}
+.speech-bubble-body {
+  font-size: 0.78rem;
+  line-height: 1.45;
+  color: var(--c-ink, #1f2937);
+  margin: 0;
+}
+@media (max-width: 768px) {
+  /* Tablets: bocadillo más cerca y más estrecho */
+  .speech-bubble--mensaje {
+    top: -72px;
+    max-width: 16rem;
+  }
+}
+@media (max-width: 480px) {
+  /* Mobile small: bocadillo todavía más compacto + tipografía reducida */
+  .speech-bubble--mensaje {
+    top: -64px;
+    max-width: 14rem;
+    padding: 0.55rem 0.75rem;
+  }
+  .speech-bubble--mensaje .speech-bubble-title {
+    font-size: 0.78rem;
+    margin-bottom: 0.25rem;
+  }
+  .speech-bubble--mensaje .speech-bubble-body {
+    font-size: 0.72rem;
+    line-height: 1.4;
+  }
 }
 
 /* Corazones flotantes del easter egg */

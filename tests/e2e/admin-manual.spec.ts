@@ -14,6 +14,33 @@ const FAKE_ADMIN = JSON.stringify({
 })
 
 test.beforeEach(async ({ page }) => {
+  // Stub admin API endpoints — el FAKE_TOKEN no es válido contra cercu-backend
+  // y un 401 dispararía auth.logout() → redirect a /admin/login.
+  await page.route('**/observatory/techos-verdes/admin/**', (route) => {
+    route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        success: true,
+        data: {
+          greenRoofs: 57,
+          candidates: 60,
+          validations: 30,
+          prospectsPending: 0,
+          ahpHigh: 12,
+          prospectsTotal: 0,
+          prospectsApproved: 0,
+          cmsSections: 56,
+          candidatesByEstatus: {},
+          validationsByEstado: {},
+          greenRoofsByTipo: {},
+          ahpBuckets: { alto: 0, medio: 0, bajo: 0 },
+        },
+        items: [],
+      }),
+    })
+  })
+
   await page.goto('/')
   await page.evaluate(({ token, admin }) => {
     localStorage.setItem('obs_token', token)
@@ -53,16 +80,18 @@ test.describe('Admin · Manual del observatorio (techos-verdes)', () => {
     await page.goto('/admin')
     await page.waitForLoadState('networkidle')
     await page.getByRole('button', { name: 'AHP — Modelo multicriterio' }).click()
-    await expect(page.getByText(/Saaty/i)).toBeVisible()
-    await expect(page.getByText(/Carga estructural/i)).toBeVisible()
+    // Scopear al párrafo del Manual (no al tooltip global del dashboard)
+    await expect(page.getByText(/AHP \(Analytic Hierarchy Process\) es un método/i)).toBeVisible()
+    await expect(page.getByText(/¿el edificio soporta el peso/i)).toBeVisible()
   })
 
   test('Glosario muestra TVLE y AHP', async ({ page }) => {
     await page.goto('/admin')
     await page.waitForLoadState('networkidle')
     await page.getByRole('button', { name: 'Glosario de siglas' }).click()
-    await expect(page.getByText('Techo Verde Ligero Extensivo')).toBeVisible()
-    await expect(page.getByText(/Analytic Hierarchy Process/i)).toBeVisible()
+    // Las definiciones del glosario son <dd> únicas (no aparecen en tooltips)
+    await expect(page.getByText('Techo Verde Ligero Extensivo (sustrato 5–15 cm).')).toBeVisible()
+    await expect(page.getByText(/Analytic Hierarchy Process\. Saaty/i)).toBeVisible()
   })
 })
 

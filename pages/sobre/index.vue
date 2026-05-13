@@ -6,7 +6,7 @@
     </CommonHeroSection>
 
     <!-- Propósito -->
-    <section class="py-16">
+    <section class="py-12 md:py-16">
       <div class="container-wide">
         <div class="grid grid-cols-1 gap-12 lg:grid-cols-2">
           <div>
@@ -43,7 +43,7 @@
     </section>
 
     <!-- Alcance -->
-    <section class="bg-white py-16">
+    <section class="bg-white py-12 md:py-16">
       <div class="container-wide">
         <h3 class="text-2xl font-bold text-ink">Alcance</h3>
         <div class="mt-6 grid grid-cols-1 gap-6 md:grid-cols-3">
@@ -91,7 +91,7 @@
     </section>
 
     <!-- Principios -->
-    <section class="py-16">
+    <section class="py-12 md:py-16">
       <div class="container-wide">
         <CommonSectionTitle
           title="Principios"
@@ -142,7 +142,7 @@
     </section>
 
     <!-- Investigación de respaldo: Caso CIIEMAD -->
-    <section class="py-16">
+    <section class="py-12 md:py-16">
       <div class="container-wide">
         <CommonSectionTitle
           title="Investigación de respaldo: CIIEMAD-IPN"
@@ -153,10 +153,13 @@
         <div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
           <div class="card overflow-hidden">
             <div class="relative h-52 overflow-hidden">
-              <img
+              <NuxtImg
                 src="/images/tesis/tvle-ciiemad-foto.png"
                 alt="Techo verde ligero extensivo instalado en el CIIEMAD-IPN con vegetación Sedum"
                 class="h-full w-full object-cover"
+                loading="lazy"
+                sizes="xs:400px sm:380px md:380px lg:400px"
+                format="webp"
               />
             </div>
             <div class="p-4">
@@ -166,10 +169,13 @@
           </div>
           <div class="card overflow-hidden">
             <div class="relative h-52 overflow-hidden">
-              <img
+              <NuxtImg
                 src="/images/tesis/ciiemad-cuadrantes.png"
                 alt="Cuadrantes del techo verde del CIIEMAD con vegetación crecida después de un año de instalación"
                 class="h-full w-full object-cover"
+                loading="lazy"
+                sizes="xs:400px sm:380px md:380px lg:400px"
+                format="webp"
               />
             </div>
             <div class="p-4">
@@ -179,10 +185,13 @@
           </div>
           <div class="card overflow-hidden">
             <div class="relative h-52 overflow-hidden">
-              <img
+              <NuxtImg
                 src="/images/tesis/ciiemad-vista-aerea.png"
                 alt="Vista aérea del edificio del CIIEMAD-IPN mostrando la ubicación del techo verde"
                 class="h-full w-full object-cover"
+                loading="lazy"
+                sizes="xs:400px sm:380px md:380px lg:400px"
+                format="webp"
               />
             </div>
             <div class="p-4">
@@ -204,7 +213,7 @@
     </section>
 
     <!-- Enfoque -->
-    <section class="bg-white py-16">
+    <section class="bg-white py-12 md:py-16">
       <div class="container-wide">
         <CommonSectionTitle
           title="Enfoque"
@@ -244,7 +253,7 @@
     </section>
 
     <!-- Datos, SIG y percepción remota -->
-    <section class="py-16">
+    <section class="py-12 md:py-16">
       <div class="container-wide">
         <div class="overflow-hidden rounded-card bg-gradient-to-br from-primary-800 to-primary shadow-panel">
           <div class="p-8 lg:p-12">
@@ -281,7 +290,7 @@
     </section>
 
     <!-- Sustento institucional y normativo -->
-    <section class="bg-white py-16">
+    <section class="bg-white py-12 md:py-16">
       <div class="container-wide">
         <CommonSectionTitle
           title="Sustento institucional y normativo"
@@ -333,7 +342,7 @@
     </section>
 
     <!-- Timeline -->
-    <section class="bg-white py-16">
+    <section class="bg-white py-12 md:py-16">
       <div class="container-wide">
         <CommonSectionTitle
           title="Línea del tiempo"
@@ -375,7 +384,7 @@
     </section>
 
     <!-- Contact / Institutional -->
-    <section class="py-16">
+    <section class="py-12 md:py-16">
       <div class="container-wide">
         <div class="overflow-hidden rounded-card bg-white shadow-panel">
           <div class="grid grid-cols-1 lg:grid-cols-2">

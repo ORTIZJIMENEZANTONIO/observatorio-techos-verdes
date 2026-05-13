@@ -6,7 +6,7 @@
     </CommonHeroSection>
 
     <!-- Content -->
-    <section class="bg-white py-16">
+    <section class="bg-white py-12 md:py-16">
       <div class="container-wide">
         <!-- Data disclaimer -->
         <CommonDataDisclaimer class="mt-6" />
@@ -120,19 +120,24 @@
               :key="candidate.id"
               class="card-interactive overflow-hidden animate-fade-in"
             >
-              <!-- Vista satelital (OSM static — gratis, sin API key) -->
+              <!-- Vista satelital — mosaico 2×2 de tiles OSM directos (gratis, sin API key) -->
               <div
                 v-if="candidate.lat && candidate.lng"
-                class="relative h-32 overflow-hidden bg-gradient-to-br from-primary-50 to-secondary/10"
+                class="osm-tile-grid relative h-32 overflow-hidden bg-gradient-to-br from-primary-50 to-secondary/10"
               >
-                <img
-                  :src="`https://staticmap.openstreetmap.de/staticmap.php?center=${candidate.lat},${candidate.lng}&zoom=18&size=600x300&maptype=mapnik&markers=${candidate.lat},${candidate.lng},red-pushpin`"
-                  :alt="`Vista satelital de ${candidate.nombre}`"
-                  class="h-full w-full object-cover"
-                  loading="lazy"
-                  referrerpolicy="no-referrer"
-                />
-                <!-- Score badge encima del mapa -->
+                <template v-for="(url, pos) in osmTilesFor(candidate.lat, candidate.lng)" :key="pos">
+                  <img
+                    :src="url"
+                    :alt="`Vista cartográfica ${pos} de ${candidate.nombre}`"
+                    class="osm-tile"
+                    :class="`osm-tile--${pos}`"
+                    loading="lazy"
+                    referrerpolicy="no-referrer"
+                  />
+                </template>
+                <!-- Marker en el centro del mosaico -->
+                <span class="osm-marker" aria-hidden="true" />
+                <!-- Score badge -->
                 <span
                   class="absolute right-2 top-2 inline-flex items-center gap-1 rounded-full bg-black/70 px-2.5 py-1 text-xs font-bold text-white backdrop-blur"
                   :style="{ color: scoreColor(candidate.scoreAptitud) }"
@@ -383,6 +388,22 @@ const {
 } = useFormatters()
 const roofsStore = useRoofsStore()
 
+// Convierte lat/lng a coordenadas de tile XYZ (Slippy map standard).
+// Usado para el preview OSM de cada candidato — staticmap.openstreetmap.de fue
+// discontinuado, así que armamos un mosaico 2×2 de tiles directos de tile.openstreetmap.org.
+const ZOOM = 17
+const lon2tile = (lon: number, z: number) => Math.floor(((lon + 180) / 360) * 2 ** z)
+const lat2tile = (lat: number, z: number) => Math.floor(
+  ((1 - Math.log(Math.tan((lat * Math.PI) / 180) + 1 / Math.cos((lat * Math.PI) / 180)) / Math.PI) / 2) * 2 ** z,
+)
+type TileUrls = { tl: string; tr: string; bl: string; br: string }
+const osmTilesFor = (lat: number, lng: number): TileUrls => {
+  const x = lon2tile(lng, ZOOM)
+  const y = lat2tile(lat, ZOOM)
+  const base = (xx: number, yy: number) => `https://tile.openstreetmap.org/${ZOOM}/${xx}/${yy}.png`
+  return { tl: base(x - 1, y - 1), tr: base(x, y - 1), bl: base(x - 1, y), br: base(x, y) }
+}
+
 useHead({
   title: 'Candidatos priorizados | Observatorio de Techos Verdes CDMX',
   meta: [
@@ -485,3 +506,38 @@ function getPrefactibilidad(candidate: (typeof sortedCandidates.value)[0]) {
 }
 
 </script>
+
+<style scoped>
+/* Mosaico 2×2 de tiles OSM. Cada tile es 256×256 — los posicionamos
+   absoluto formando un grid que cubre el contenedor de h-32 (128px). */
+.osm-tile-grid {
+  position: relative;
+}
+.osm-tile {
+  position: absolute;
+  width: 50%;
+  height: 50%;
+  object-fit: cover;
+  object-position: center;
+}
+.osm-tile--tl { top: 0; left: 0; }
+.osm-tile--tr { top: 0; left: 50%; }
+.osm-tile--bl { top: 50%; left: 0; }
+.osm-tile--br { top: 50%; left: 50%; }
+
+/* Marker rojo pulsante en el centro del mosaico */
+.osm-marker {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 14px;
+  height: 14px;
+  margin-top: -7px;
+  margin-left: -7px;
+  border-radius: 50%;
+  background-color: #D9363E;
+  border: 2px solid white;
+  box-shadow: 0 0 0 2px rgba(217, 54, 62, 0.35);
+  z-index: 2;
+}
+</style>

@@ -1,60 +1,138 @@
 <script setup lang="ts">
-import { ref, watch, computed } from 'vue';
+import { ref, watch, computed } from "vue";
+import { useRoute } from "vue-router";
 
-const route = useRoute()
+const route = useRoute();
 
-const mobileOpen = ref(false)
-const openDropdown = ref<string | null>(null)
+const mobileOpen = ref(false);
+const openDropdown = ref<string | null>(null);
 
 interface NavLink {
-  to: string
-  label: string
-  description?: string
+  to: string;
+  label: string;
+  description?: string;
 }
 interface NavGroup {
-  key: string
-  label: string
-  links: NavLink[]
+  key: string;
+  label: string;
+  links: NavLink[];
 }
 
 const navGroups: NavGroup[] = [
   {
-    key: 'datos',
-    label: 'Datos',
+    key: "aprende",
+    label: "Aprende",
     links: [
-      { to: '/inventario', label: 'Inventario', description: '57 techos verdes registrados en CDMX' },
-      { to: '/candidatos', label: 'Candidatos', description: 'Sitios priorizados por aptitud territorial' },
-      { to: '/mapa', label: 'Mapa interactivo', description: 'Visualización geoespacial con filtros' },
-      { to: '/indicadores', label: 'Indicadores', description: 'Dashboards ambientales y territoriales' },
+      {
+        to: "/aprende",
+        label: "¿Qué es un techo verde?",
+        description: "Sistema constructivo, capas y funciones",
+      },
+      {
+        to: "/aprende#tipologias",
+        label: "Tipologías",
+        description: "Extensivo, semi-intensivo, intensivo",
+      },
+      {
+        to: "/aprende#caso-ciiemad",
+        label: "Caso CIIEMAD",
+        description: "Techo verde experimental del IPN",
+      },
+      {
+        to: "/agenda-2030",
+        label: "Beneficios y ODS",
+        description: "7 ODS, servicios ecosistémicos MEA",
+      },
     ],
   },
   {
-    key: 'conocimiento',
-    label: 'Conocimiento',
+    key: "investigacion",
+    label: "Investigación",
     links: [
-      { to: '/sobre', label: 'Sobre el observatorio', description: 'Propósito y alcance' },
-      { to: '/metodologia', label: 'Metodología', description: 'Modelo AHP y pre-factibilidad' },
-      { to: '/agenda-2030', label: 'Agenda 2030', description: 'Conexión con 7 ODS' },
-      { to: '/referencias', label: 'Referencias', description: 'Marco académico, fuentes, bibliografía' },
+      {
+        to: "/investigacion",
+        label: "Marco académico",
+        description: "CIIEMAD-IPN, línea de investigación",
+      },
+      {
+        to: "/investigacion#publicaciones",
+        label: "Publicaciones",
+        description: "Tesis 2025/2021, paper Q1 SCS 2025",
+      },
+      {
+        to: "/metodologia",
+        label: "Metodología AHP",
+        description: "8 variables, pesos y pre-factibilidad",
+      },
+      {
+        to: "/investigacion/documentos",
+        label: "Documentos",
+        description: "Tesis, capítulos, informes y normativa descargables",
+      },
+      {
+        to: "/referencias",
+        label: "Bibliografía completa",
+        description: "41 referencias organizadas",
+      },
+      {
+        to: "/investigacion/citar",
+        label: "Cómo citar",
+        description: "Atribución del observatorio",
+      },
     ],
   },
-]
+  {
+    key: "explora",
+    label: "Explora",
+    links: [
+      {
+        to: "/mapa",
+        label: "Mapa interactivo",
+        description: "Visualización geoespacial con filtros",
+      },
+      {
+        to: "/inventario",
+        label: "Inventario",
+        description: "57 techos verdes registrados en CDMX",
+      },
+      {
+        to: "/candidatos",
+        label: "Candidatos",
+        description: "Sitios priorizados por aptitud territorial",
+      },
+      {
+        to: "/aptitud",
+        label: "Aptitud territorial",
+        description: "Modelo multicriterio AHP por alcaldía",
+      },
+      {
+        to: "/indicadores",
+        label: "Indicadores",
+        description: "Dashboards ambientales y territoriales",
+      },
+    ],
+  },
+];
 
-const isGroupActive = (g: NavGroup) => g.links.some((l) => route.path.startsWith(l.to))
+const isGroupActive = (g: NavGroup) =>
+  g.links.some((l) => {
+    const p = l.to.split("#")[0];
+    return p !== "/" && route.path.startsWith(p);
+  });
 
 const closeAll = () => {
-  openDropdown.value = null
-  mobileOpen.value = false
-}
+  openDropdown.value = null;
+  mobileOpen.value = false;
+};
 
 const toggleDropdown = (key: string) => {
-  openDropdown.value = openDropdown.value === key ? null : key
-}
+  openDropdown.value = openDropdown.value === key ? null : key;
+};
 
 watch(
   () => route.path,
-  () => closeAll(),
-)
+  () => closeAll()
+);
 </script>
 
 <template>
@@ -78,8 +156,12 @@ watch(
               stroke-linecap="round"
               stroke-linejoin="round"
             >
-              <path d="M17 8C8 10 5.9 16.17 3.82 21.34L5.71 22l1.03-2.83c2.52-1.45 5.24-2.24 8.26-2.17 3.24.07 5-1.39 5-3.5S19 8 17 8z" />
-              <path d="M12.5 2C9.64 2 8 4.14 8 6.5c0 2.18 1.41 3.44 3.5 3.44.84 0 1.62-.25 2.28-.68" />
+              <path
+                d="M17 8C8 10 5.9 16.17 3.82 21.34L5.71 22l1.03-2.83c2.52-1.45 5.24-2.24 8.26-2.17 3.24.07 5-1.39 5-3.5S19 8 17 8z"
+              />
+              <path
+                d="M12.5 2C9.64 2 8 4.14 8 6.5c0 2.18 1.41 3.44 3.5 3.44.84 0 1.62-.25 2.28-.68"
+              />
               <path d="M17 8c-.74-1.83-2.53-3-4.5-3" />
             </svg>
           </div>
@@ -152,8 +234,13 @@ watch(
                   class="block border-b border-gray-50 px-4 py-3 transition-colors last:border-0 hover:bg-primary-50"
                   active-class="!bg-primary-50"
                 >
-                  <span class="block text-sm font-semibold text-ink">{{ link.label }}</span>
-                  <span v-if="link.description" class="mt-0.5 block text-xs text-ink-muted">
+                  <span class="block text-sm font-semibold text-ink">{{
+                    link.label
+                  }}</span>
+                  <span
+                    v-if="link.description"
+                    class="mt-0.5 block text-xs text-ink-muted"
+                  >
                     {{ link.description }}
                   </span>
                 </NuxtLink>
@@ -175,14 +262,24 @@ watch(
 
         <!-- Institutional logos — siempre visibles, más chicos en mobile -->
         <div class="flex items-center gap-2 md:gap-3 shrink-0">
-          <a href="https://www.ciiemad.ipn.mx/" target="_blank" rel="noopener noreferrer" class="shrink-0">
+          <a
+            href="https://www.ciiemad.ipn.mx/"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="shrink-0"
+          >
             <img
               src="/images/logo-ciiemad.png"
               alt="CIIEMAD - IPN"
               class="h-7 w-auto md:h-9"
             />
           </a>
-          <a href="https://www.ipn.mx/" target="_blank" rel="noopener noreferrer" class="shrink-0">
+          <a
+            href="https://www.ipn.mx/"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="shrink-0"
+          >
             <img
               src="/images/logo-ipn.svg"
               alt="Instituto Politécnico Nacional"
@@ -256,7 +353,9 @@ watch(
           class="fixed right-0 top-0 z-[101] flex h-full w-80 max-w-[85vw] flex-col bg-white shadow-2xl lg:hidden"
         >
           <!-- Header -->
-          <div class="flex items-center justify-between border-b border-gray-100 px-4 py-4">
+          <div
+            class="flex items-center justify-between border-b border-gray-100 px-4 py-4"
+          >
             <span class="text-sm font-bold text-ink">Menú</span>
             <button
               class="flex h-9 w-9 items-center justify-center rounded-lg text-ink-muted hover:bg-gray-100"
@@ -291,7 +390,9 @@ watch(
             </NuxtLink>
 
             <div v-for="group in navGroups" :key="group.key" class="mt-3">
-              <p class="px-3 pb-1 text-[10px] font-semibold uppercase tracking-wider text-ink-muted">
+              <p
+                class="px-3 pb-1 text-[10px] font-semibold uppercase tracking-wider text-ink-muted"
+              >
                 {{ group.label }}
               </p>
               <NuxtLink
@@ -376,7 +477,7 @@ watch(
 .dropdown-enter-active,
 .dropdown-leave-active {
   transition: opacity 0.18s cubic-bezier(0.22, 1, 0.36, 1),
-              transform 0.18s cubic-bezier(0.22, 1, 0.36, 1);
+    transform 0.18s cubic-bezier(0.22, 1, 0.36, 1);
   transform-origin: top;
 }
 .dropdown-enter-from,

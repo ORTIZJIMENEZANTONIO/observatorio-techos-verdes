@@ -17,6 +17,7 @@ Todos los títulos, encabezados, etiquetas de tabs y subtítulos siguen la conve
 - **Styling:** Tailwind CSS 3 + custom design system (`assets/css/main.css`)
 - **Maps:** Leaflet (`.client.vue` pattern + `<ClientOnly>`)
 - **Charts:** Chart.js + vue-chartjs (`.client.vue` pattern)
+- **Images:** `@nuxt/image` con sharp + IPX provider (avif/webp/jpg, q=78). Reemplaza `<img>` por `<NuxtImg sizes="…" format="webp">` para responsive srcset
 - **AI/Vision:** Google Gemini 2.0 Flash via `@google/generative-ai` (free tier, server-only)
 - **Utilities:** VueUse, @nuxtjs/color-mode
 - **TypeScript:** strict
@@ -34,8 +35,8 @@ npm run preview    # Preview production build
 observatorio-techos-verdes/
   assets/css/main.css       # Global styles, animations, Leaflet overrides
   components/
-    common/                 # AppHeader (dropdowns Datos/Conocimiento + Comunidad CTA), AppFooter, ColorModeToggle, SectionTitle, StatCard, StatusBadge, PaginationControls, HeroSection (lava lamp + topo + canopy + vignette), TechitoBlink (overlay de párpados sobre la mascota), CountUpKPI (números animados clickeables)
-    home/                   # HeroSection, KPIGrid, HowItWorks, FeaturedRoofs, AIBlock, MapTeaser, MethodologySummary
+    common/                 # AppHeader (dropdowns Aprende/Explora/Investigación + Comunidad), AppFooter, ColorModeToggle, SectionTitle, StatCard, StatusBadge, PaginationControls, HeroSection (lava lamp + topo + canopy + vignette + NuxtImg para la foto), TechitoBlink (overlay de párpados sobre la mascota), CountUpKPI (números animados clickeables)
+    home/                   # AudienceGate (4 puertas por audiencia), AcademicHighlight (banner Cervantes-Nájera Q1 SCS 2025), HeroSection, KPIGrid, HowItWorks, FeaturedRoofs, MapTeaser, MethodologySummary
     inventory/              # RoofCard, RoofDetailDrawer
     map/                    # MapPanel.client.vue, FilterSidebar, SuitabilityLegend
     charts/                 # DoughnutChart, BarChart, RadarChart, LineChart, PolarAreaChart, ScatterChart (all .client.vue)
@@ -79,7 +80,12 @@ observatorio-techos-verdes/
       air-quality-repository.ts # Air quality readings
   layouts/default.vue       # AppHeader + DataDisclaimer (mock mode) + slot + AppFooter
   pages/
-    index.vue               # Home (hero, KPIs, features, steps, map teaser, que-es-techo-verde, caso-estudio-CIIEMAD, evolucion, featured, methodology, zonas-prioritarias, AI, respaldo-cientifico, disclaimer)
+    index.vue               # Home (hero, AudienceGate (4 puertas), AcademicHighlight (banner Q1), KPIs, features, steps, map teaser, que-es-techo-verde, caso-estudio-CIIEMAD, evolucion, featured, methodology, zonas-prioritarias, respaldo-cientifico, disclaimer)
+    aprende/                # Hub educativo (público general): qué es, 6 capas, 3 tipologías técnicas, beneficios, caso CIIEMAD experimental — todo desde CMS
+    investigacion/          # Hub académico (Marco CIIEMAD + Equipo + 5 Publicaciones + AHP + Datos abiertos + Citación) — todo desde CMS
+      index.vue             # Landing del hub con anclas #marco #publicaciones #metodologia
+      datos.vue             # Descarga CSV/JSON de inventario, candidatos, indicadores (Blob client-side) + diccionario + licencia CC BY 4.0
+      citar.vue             # 8 formatos copiables: APA + BibTeX del observatorio, paper Q1 destacado, tesis doctoral, maestría, capítulo
     mapa/                   # Full-screen Leaflet map with layers
     inventario/             # Green roof inventory with search/filters/drawer + real images
     aptitud/                # Aptitud territorial page
@@ -347,6 +353,60 @@ Reusable component used by all public pages via `<CommonHeroSection compact>`.
 
 ### Reduced Motion
 All animations and transitions are disabled with `@media (prefers-reduced-motion: reduce)`.
+
+## Performance & Accessibility (Lighthouse-driven)
+
+### Image optimization (`@nuxt/image`)
+Configurado en `nuxt.config.ts → image`:
+```ts
+image: {
+  format: ['avif', 'webp', 'jpg'],
+  quality: 78,
+  screens: { xs: 360, sm: 640, md: 768, lg: 1024, xl: 1280, xxl: 1536 },
+  densities: [1, 2],
+}
+```
+
+- **Patrón:** reemplazar `<img src="/path">` por `<NuxtImg src="/path" sizes="(max-width: 768px) 100vw, 600px" format="webp" loading="lazy">`. El sufijo `format="webp"` fuerza WebP aun cuando el navegador no envía Accept con AVIF.
+- **Hero del home:** `pages/index.vue` y `components/common/HeroSection.vue` reemplazaron `background-image: url(...)` en CSS por `<NuxtImg class="hero-home-photo">` posicionado absolute con `object-fit: cover` — así el image module aplica WebP/AVIF responsivo en lugar de cargar siempre el JPG completo.
+- **Impacto medido:** `mapa-inventario-cdmx.png` 1.7 MB → 109 KB (800w WebP). `techo-verde-ciiemad-panoramica.jpg` 608 KB → 109 KB (800w) o 289 KB (1600w).
+- **Galería del inventario:** `pages/inventario/index.vue` usa `NuxtImg` con `sizes="(max-width: 768px) 100vw, 380px"` en el carrusel.
+- **Externals que no optimizo:** thumbnails de OpenStreetMap (`staticmap.openstreetmap.de`) en `/candidatos`, Blob URLs locales en `AIAnalysisPanel`. Para externals habría que agregar `image.domains` whitelist.
+- **Sharp en producción:** `[@nuxt/image] sharp binaries have been included in your build for darwin-arm64` aparece en build. Si despliegas a Linux, hacer `npm ci` en el servidor o usar Docker con base Linux para que se compile el binario correcto.
+
+### Cache-Control headers
+En `nuxt.config.ts`:
+```ts
+routeRules: {
+  '/_ipx/**': { headers: { 'cache-control': 'public, max-age=31536000, immutable' } },
+}
+nitro: {
+  publicAssets: [
+    { baseURL: 'images', dir: 'public/images', maxAge: 60 * 60 * 24 * 365 },
+    { baseURL: 'img',    dir: 'public/img',    maxAge: 60 * 60 * 24 * 365 },
+    { baseURL: 'geojson', dir: 'public/geojson', maxAge: 60 * 60 * 24 * 7 },
+  ],
+}
+```
+
+**Por qué dos mecanismos**: `routeRules` aplica a rutas del servidor (incluyendo `/_ipx/**` generadas por `@nuxt/image`), pero NO aplica a archivos servidos directamente desde `/public/`. Para esos hay que usar `nitro.publicAssets` con `maxAge` en segundos. Nitro añade `immutable` automáticamente cuando `maxAge > 0`.
+
+**Implicación de `immutable`**: si reemplazas un archivo en `public/images/` con el mismo nombre, los usuarios con la versión vieja en caché no la van a refrescar durante un año. Renombra (`mapa-v2.png`) o reduce `maxAge` por carpeta si esperas actualizar imágenes.
+
+### Color contrast (WCAG AA)
+Patrón aplicado tras el reporte de Lighthouse: **nunca usar `text-eco-dark`, `text-secondary` ni `text-accent-dark` sobre fondos `bg-X/5..15`** porque la ratio queda en 2.3-2.8:1 (falla AA). Reglas concretas en uso:
+- Texto sobre `bg-eco/10`, `bg-eco/15`, `bg-secondary/10`, `bg-accent/5`, `bg-primary-50` → usar `text-primary` (#0E5E3A, ~7-12:1 contra fondos claros) o `text-ink` (#1F2937, ~12:1).
+- Botones `bg-eco` con `text-white` → 1.91:1 FAIL. Usar `bg-primary-light` o `bg-primary` para preservar contraste con blanco.
+- Opacidades de texto blanco sobre `bg-primary-800`: `text-white/50` (4.88:1, pasa pero borderline) → subido a `text-white/80` (7.36:1). `text-white/40` (3.1:1, falla) → `text-white/70` (4.5:1+).
+- `roof-card-meta` (color dinámico vía `--fun-color`): se oscurece con `color-mix(in srgb, var(--fun-color) 45%, #000 55%)` para que cualquier tono de la paleta pase AA sobre blanco.
+
+### Heading order
+Lighthouse pide secuencia descendente sin saltos. Decisiones aplicadas en `pages/index.vue`:
+- El `<span>` "¿Sabías que…?" pasó a ser `<h2>` (la sección no tenía heading, los h3 cards saltaban del h1 al h3).
+- "Respaldo científico" pasó de `<h3>` a `<h2>` (sección sin h2 propio).
+- "Aviso importante" pasó de `<h4>` a `<h3>` (sibling del h2 de respaldo).
+- Cards de pasos y `roof-card-title` pasaron de `<h4>` a `<h3>` (la sección ya tenía un `<h2>` vía `CommonSectionTitle`).
+- `AppFooter.vue`: "Enlaces rápidos" y "Contacto e información" pasaron de `<h4>` a `<h3>`.
 
 ## Key Patterns
 
@@ -778,22 +838,60 @@ Ventajas vs descarga:
 
 ## Header Navigation
 
-`AppHeader.vue` agrupa la navegación en **4 slots primarios** (en lugar de 8 links planos):
+`AppHeader.vue` agrupa la navegación en **4 dropdowns por audiencia** (Fase 1 de la IA reorganizada — `cer.lau.ana.18@gmail.com` 2026-05-12):
 
 ```
-[Logo] [Inicio] [Datos ▾] [Conocimiento ▾] [Comunidad]   [logos] [☀/🌙] [+ Aportar]
+[Logo] [Inicio] [Aprende ▾] [Explora ▾] [Investigación ▾] [Comunidad]   [logos CIIEMAD+IPN] [☀/🌙] [+ Aportar]
 ```
 
-- **Datos ▾** — Inventario · Candidatos · Mapa interactivo · Indicadores
-- **Conocimiento ▾** — Sobre · Metodología · Agenda 2030 · Referencias
-- **Comunidad** — link directo (color eco)
+- **Aprende ▾** — ¿Qué es un techo verde? · Tipologías · Beneficios y ODS · Caso CIIEMAD *(audiencia: público general)*
+- **Explora ▾** — Mapa interactivo · Inventario · Candidatos · Aptitud territorial · Indicadores *(audiencia: todos los que quieren datos)*
+- **Investigación ▾** — Marco académico · Publicaciones · Metodología AHP · Bibliografía · Cómo citar *(audiencia: investigadores)*
+- **Comunidad** — link directo (color eco) *(audiencia: ciudadanía participativa)*
+- **Logos CIIEMAD + IPN** — siempre visibles, linkean a las páginas institucionales
 - **+ Aportar** — CTA verde que lleva a `/comunidad#aportar`
 
-Dropdowns: cada link muestra `description` bajo el nombre. Animación `dropdown` (scaleY+fade, 180ms). Abre en hover (desktop) y click toggleable. Detecta sub-rutas activas via `isGroupActive(g)` y resalta el grupo.
+Dropdowns: cada link muestra `description` bajo el nombre. Animación `dropdown` (scaleY+fade, 180ms). Abre en hover (desktop) y click toggleable. `isGroupActive(g)` normaliza hashes (`/aprende#tipologias` → matches `/aprende`) y resalta el grupo activo.
 
-Mobile drawer: secciones agrupadas con cabecera tipográfica (Datos / Conocimiento) + dos CTAs al pie (Aportar + Mapa).
+Mobile drawer: secciones agrupadas con cabecera tipográfica (Aprende / Explora / Investigación) + dos CTAs al pie (Aportar + Mapa).
+
+### IA por audiencia — diseño 2026-05-12
+Cada grupo del header sirve una audiencia distinta. La home tiene un `<HomeAudienceGate>` con 4 cards (Aprende · Explora · Investigación · Comunidad) que envía directo a cada hub. Esta separación es deliberada: una persona curiosa no debe tener que filtrar contenido académico para entender qué es un techo verde, y un investigador no debe tener que pasar por divulgación para llegar al paper Q1.
 
 ## Public Pages — Marco académico, ODS y Comunidad
+
+### `/aprende` — Hub educativo (divulgación)
+Pensado para público sin formación técnica. Todas las secciones consumen `useCmsContent('aprende')` y son editables desde `/admin/contenido/aprende`. Estructura:
+1. Hero compact (`<CommonHeroSection>`) con anclas a las 4 secciones
+2. **¿Qué es un techo verde?** — Intro divulgativa con la métrica de 514,000 m² potenciales (CMS: `intro`)
+3. **#capas** — Las 6 capas de un techo verde con diagrama de Cervantes Nájera (2021) + lista numerada (CMS: `capas`)
+4. **#tipologias** — 3 fun-cards: Extensivo (TVLE) · Semi-intensivo · Intensivo, con peso saturado, sustrato, vegetación, mantenimiento y uso recomendado por tipología (CMS: `tipologias`). Fuente normativa: NTC-CDMX 2017 + Tabla 6 Cervantes Nájera (2025)
+5. **#beneficios** — 4 fun-cards con valores documentados: térmico (−3.5 °C), hídrico (19.5 L/m²·año), atmosférico (0.97 kg CO₂/m²·año), social (ODS 3·11·13) (CMS: `beneficios`)
+6. **#caso-ciiemad** — Foto del TVLE + 6 datos clave del experimento (6 m², 18 meses payback, 94.8 % menos huella, 100 % sobrevivencia) (CMS: `casoCiiemad`, `casoIntro`)
+7. CTAs finales a `/mapa`, `/inventario`, `/comunidad`
+
+### `/investigacion` — Hub académico
+Pensado para investigadores. Todas las secciones consumen `useCmsContent('investigacion')` y son editables desde `/admin/contenido/investigacion`. Estructura:
+1. Hero compact con anclas + links a `/investigacion/datos` y `/investigacion/citar`
+2. **#marco** — Card institucional CIIEMAD-IPN (logos + dirección Zacatenco) + 3 cards del equipo (directora, autora, comité tutorial) (CMS: `marco`, `equipo`)
+3. **#publicaciones** — 5 cards académicas: Q1 SCS 2025 destacada con `shadow-glow-primary` + tesis doctoral 2025 + capítulo 2023 + tesis maestría 2021 + Roofpedia 2021. Todas con DOI clicable (CMS: `publicaciones`)
+4. **#metodologia** — Resumen del modelo AHP + tabla de 8 pesos (LST 30.19 %, NDVI 9.56 %, etc.) + link a `/metodologia` completa (CMS: `metodologia`, `pesosAhp`)
+5. **#datos** — 3 cards resumen + CTA a `/investigacion/datos` (CMS: `datos`)
+6. **#citar** — Banner con CTA a `/investigacion/citar`
+
+### `/investigacion/datos` — Datos abiertos
+Página standalone con descargas funcionales:
+- 3 datasets: Inventario (57 techos), Candidatos (60 sitios), Indicadores por alcaldía (16). Cada uno con botones CSV y JSON.
+- CSV/JSON generados **client-side via `Blob`** — no requiere endpoint backend. La función `toCsv()` escapa correctamente comas, comillas y saltos.
+- Diccionario de variables con 9 entradas (id, nombre, tipoEdificio, tipoTechoVerde, superficie, alcaldia, lat/lng, scoreAptitud, estado, shannon/simpson).
+- Bloque de licencia **CC BY 4.0** con link a Creative Commons.
+
+### `/investigacion/citar` — Cómo citar
+Página standalone con **8 formatos copiables** vía clipboard API:
+- Observatorio en APA 7 y BibTeX (`@misc`)
+- Paper Q1 SCS 2025 destacada con `shadow-glow-primary` en APA y BibTeX (`@article`)
+- 3 citas APA: tesis doctoral 2025, tesis maestría 2021, capítulo 2023
+- Botón "Copiar" cambia a "Copiado ✓" por 1.8s tras click. La nota inferior pide citar también el paper Q1 cuando se usa el modelo AHP o los datos del TVLE.
 
 ### `/agenda-2030` — Techos verdes y la Agenda 2030
 Página completa basada en el capítulo XIII de Martínez Rodríguez & Cervantes-Nájera (2023, *Repensar la Agenda 2030*, Comunicación Científica, DOI [10.52501/cc.064.13](https://doi.org/10.52501/cc.064.13)). Estructura:
@@ -989,29 +1087,38 @@ Adaptados al dominio techos verdes (8 opciones):
 - **happy-dom** — lightweight DOM environment
 - **@playwright/test** — end-to-end browser tests (chromium)
 
-### Test Files (34 unit + 14 E2E)
+### Test Files (116 unit + 31 E2E)
 | File | Type | Count | Coverage |
 |------|------|-------|----------|
 | `tests/unit/useAnalyticsMath.test.ts` | Unit | 13 | Estadísticas analytics (mean/median/std, IC bootstrap, Spearman, Kruskal-Wallis) |
 | `tests/unit/tiers.store.test.ts` | Unit | 8 | Tiers store: 5 modos default, tierForScore boundaries, CRUD soft-delete, persistencia localStorage |
 | `tests/unit/contributors.store.test.ts` | Unit | 6 | Contributors store: defaults, addContributor, 8 roles techos-verdes, filtros (role/tier/verified) |
-| `tests/unit/cms-defaults.test.ts` | Data integrity | 6 | Catalog cubre todas las páginas, contributors hero, **home.hero con campos esperados**, footer URLs válidas |
+| `tests/unit/cms-defaults.test.ts` | Data integrity | 32 | Catalog cubre todas las páginas + audienceGate (4 puertas) + academicHighlight (paper Q1) + aprende (6 capas, 3 tipologías) + investigacion (5 publicaciones con Q1 destacada, 8 pesos AHP sumando ~100 %, datos, citar APA+BibTeX) |
+| `tests/unit/cms-content.test.ts` | Unit | 14 | `interpolateCmsText` + cobertura pública |
+| `tests/unit/cms-store.test.ts` | Unit | 20 | Pinia store (fallback, initPage, invalidate, lectura de todas las secciones nuevas) |
 
 ### E2E Tests (Playwright)
 | File | Tests | Coverage |
 |------|-------|----------|
 | `tests/e2e/public.spec.ts` | 5 | Smoke público: home + favicon, /inventario, /mapa, /aptitud, navegación |
-| `tests/e2e/admin-manual.spec.ts` | 6 | Manual del observatorio: 10 secciones, AHP, Glosario, sidebar items nuevos |
-| `tests/e2e/admin-tiers-contributors.spec.ts` | 3 | Lista 5 modos default, lista 2 contribuyentes seed, crear contributor con role arquitecto |
+| `tests/e2e/admin-manual.spec.ts` | 6 | Manual del observatorio: 10 secciones, AHP, Glosario, sidebar items nuevos. **Usa `page.route('**/observatory/techos-verdes/admin/**')` para stubear el FAKE_TOKEN ante el backend.** |
+| `tests/e2e/admin-tiers-contributors.spec.ts` | 3 | Lista 5 modos default, lista 2 contribuyentes seed, crear contributor con role arquitecto. **Mismo patrón de stub.** |
+| `tests/e2e/admin-cms.spec.ts` | 7 | `/admin/contenido` lista las 16 páginas; home declara las 14 secciones; fallback sin backend |
+| `tests/e2e/nueva-ia.spec.ts` | 10 | AudienceGate visible · banner Q1 con DOI+KPIs · `/aprende` con 4 anclas y 3 tipologías · `/investigacion` con marco+publicaciones · `/investigacion/datos` con **descarga CSV real disparada via `page.waitForEvent('download')`** · `/investigacion/citar` con APA+BibTeX · header con 4 grupos |
 
 ### Comandos
 ```bash
-npm test              # Vitest unit (34 tests, ~1s)
+npm test              # Vitest unit (116 tests, ~0.5s)
 npm run test:watch    # Vitest watch mode
 npm run test:coverage # Coverage v8
 npm run test:e2e      # Playwright E2E (necesita dev server en :3000)
 npm run test:e2e:install  # Descarga Chromium una vez
 ```
+
+### Pre-requisitos E2E
+- **Dev server corriendo** en `:3000` (`npm run dev` en otra terminal).
+- **cercu-backend corriendo** en `:3003` para que el admin-cms 7º test (fallback) tenga la URL de referencia. Los demás admin tests interceptan `/observatory/techos-verdes/admin/**` con `page.route()` así que NO requieren backend para pasar.
+- **Chromium descargado** la primera vez con `npm run test:e2e:install`.
 
 ### Admin UI/UX Patterns
 - **Pipeline banner:** Indicador horizontal de pasos en cada página, resalta el paso actual (`AdminPipelineBanner.vue`)
@@ -1064,16 +1171,30 @@ useCmsContent(page)  ─────┘    ├─ getSection / getOne (sync con 
 **Páginas y secciones registradas (cobertura completa, todo el contenido editable):**
 | pageSlug | secciones (sectionKey) |
 |----------|------------------------|
-| `home` | hero · sectionTitles · features · steps · datosCuriosos · mapTeaser · techoVerdeIntro · ciiemadShowcase · ciiemadPubs · ciiemadKpis · respaldo · cta |
-| `sobre` | hero · mission · objetivos · **principles** · **dimensiones** · **findings** |
-| `metodologia` | hero · pasos · **limitations** |
-| `agenda-2030` | hero · intro · **servicios** |
-| `comunidad` | hero · intro · **pasos** |
+| `home` | hero · sectionTitles · features · steps · datosCuriosos · mapTeaser · techoVerdeIntro · ciiemadShowcase · ciiemadPubs · ciiemadKpis · respaldo · **audienceGate** · **academicHighlight** · cta |
+| `aprende` | **hero · intro · capas · tipologias · beneficios · casoIntro · casoCiiemad · cta** (Fase 3) |
+| `investigacion` | **hero · marco · equipo · publicaciones · metodologia · pesosAhp · datos · citar** (Fase 3-4) |
+| `sobre` | hero · mission · objetivos · principles · dimensiones · findings |
+| `metodologia` | hero · pasos · limitations |
+| `agenda-2030` | hero · intro · servicios |
+| `comunidad` | hero · intro · pasos |
 | `indicadores` · `inventario` · `candidatos` · `mapa` · `aptitud` · `ia-validacion` · `referencias` | hero |
 | `contributors` | hero · intro |
 | `footer` | brand · sources · quickLinks · institutional |
 
-**Cobertura:** 14 páginas, **44+ secciones editables**. Todo el contenido visible en el sitio público (excepto datos reales como `greenRoofs`, `candidateRoofs`, charts) es editable desde `/admin/contenido` sin tocar código.
+**Cobertura:** 16 páginas, **60+ secciones editables**. Todo el contenido visible en el sitio público (excepto datos reales como `greenRoofs`, `candidateRoofs`, charts) es editable desde `/admin/contenido` sin tocar código.
+
+**Fase 2 — Home `audienceGate` y `academicHighlight`:**
+- `audienceGate` = array de 4 cards (Aprende · Explora · Investigación · Comunidad). Cada card tiene `tag`, `title`, `description`, `to`, `ctaLabel`, `icono` (clave fun-card), `color` (clave fun-palette).
+- `academicHighlight` = objeto con `tag`, `venue`, `anio`, `autores`, `titulo`, `descripcion`, `doi`, `kpi1Value/Label`, `kpi2Value/Label`, `kpi3Value/Label`, `ctaLabel`, `ctaTo`. Renderizado por `<HomeAcademicHighlight>` con KPIs sobre fondo `bg-primary`.
+
+**Fase 3-4 — Hubs `/aprende` y `/investigacion`:**
+- `aprende.capas` = 6 items con `num`, `nombre`, `funcion`, `color` (fun-palette). El test unit valida que `nums = [1,2,3,4,5,6]`.
+- `aprende.tipologias` = 3 items con `slug` (extensivo/semi-intensivo/intensivo), `pesoSaturado`, `sustrato`, `vegetacion`, `mantenimiento`, `uso`, `color`, `icono`.
+- `investigacion.publicaciones` = 5 items con `tipo`, `titulo`, `autores`, `anio`, `venue`, `doi?`, `resumen`, `destacada?`. La Q1 SCS 2025 tiene `destacada: true` y se renderiza con `shadow-glow-primary`.
+- `investigacion.pesosAhp` = 8 items con `variable` y `peso` (string con %). Test unit valida que la suma esté entre 99-101.
+- `investigacion.datos` = 3 items con `slug` (inventario/candidatos/indicadores), `nombre`, `formato`, `registros`, `estado` (Disponible/En preparación), `descripcion`.
+- `investigacion.citar` = 1 item con `titleApa`, `titleBibtex`, `nota`, `apa` (string formateado), `bibtex` (string formateado con escapes LaTeX).
 
 **Wiring:** cada página pública consume vía `useCmsContent('<page>')` que devuelve `list<T>()` (computed array) y `one<T>()` (computed first item). El template usa `{{ data?.field || 'fallback' }}` para que SSR pinte con defaults antes de que el backend responda.
 
@@ -1083,14 +1204,15 @@ useCmsContent(page)  ─────┘    ├─ getSection / getOne (sync con 
 - Endpoint público: `GET /:observatory/cms/:pageSlug/:sectionKey` — controlador ignora `sectionKey` y devuelve TODAS las secciones de la página. El composable lo invoca con `_all` como placeholder.
 - Endpoint admin: `PUT /:observatory/admin/cms/:pageSlug/:sectionKey` con auth + permiso `manage_cms`. Validación Joi: `items: array of objects` — sin constraints de campos, permite cualquier nuevo sectionKey sin cambios backend.
 
-**Admin:** `/admin/contenido` lista las 14 páginas; `/admin/contenido/:pageSlug` muestra accordion por sección con edición in-place + auto-bind al shape del default. Mover/añadir/eliminar bloques + "Restaurar default" + chip de "Sin guardar".
+**Admin:** `/admin/contenido` lista las 16 páginas; `/admin/contenido/:pageSlug` muestra accordion por sección con edición in-place + auto-bind al shape del default. Mover/añadir/eliminar bloques + "Restaurar default" + chip de "Sin guardar".
 
 **Tests:**
-- Unit: `tests/unit/cms-defaults.test.ts` (17 tests) — cobertura del catálogo, cada sección nueva, ausencia de copy IA promocional.
+- Unit: `tests/unit/cms-defaults.test.ts` (32 tests) — cobertura del catálogo, cada sección nueva, audienceGate (4 puertas), academicHighlight (paper Q1), aprende (capas 1-6, 3 tipologías), investigacion (5 publicaciones con Q1 destacada, 8 pesos AHP que suman ~100 %, datos, citar APA+BibTeX), ausencia de copy IA promocional.
 - Unit: `tests/unit/cms-content.test.ts` (14 tests) — `interpolateCmsText` + cobertura pública.
 - Unit: `tests/unit/cms-store.test.ts` (20 tests) — store Pinia (fallback, initPage, invalidate, lectura de todas las secciones nuevas).
-- E2E: `tests/e2e/admin-cms.spec.ts` (7 tests) — `/admin/contenido` lista todas las páginas; el home declara las 12 secciones nuevas; fallback público funciona cuando el backend no responde.
-- Total: **101 unit + 7 E2E = 108 tests pasando**.
+- E2E: `tests/e2e/admin-cms.spec.ts` (7 tests) — `/admin/contenido` lista todas las páginas; el home declara las 14 secciones; fallback público funciona cuando el backend no responde.
+- E2E: `tests/e2e/nueva-ia.spec.ts` (10 tests) — audienceGate visible, banner Q1 con DOI+KPIs, `/aprende` con 4 anclas y 3 tipologías, `/investigacion` con marco+publicaciones, `/investigacion/datos` con descarga CSV real disparada, `/investigacion/citar` con APA+BibTeX, header con 4 grupos.
+- Total: **116 unit + 31 E2E = 147 tests pasando** (con cercu-backend corriendo en :3003).
 
 ### Prospect Approval Flow
 ```

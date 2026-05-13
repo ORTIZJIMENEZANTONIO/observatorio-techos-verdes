@@ -14,6 +14,15 @@ const FAKE_ADMIN = JSON.stringify({
 })
 
 test.beforeEach(async ({ page }) => {
+  // Stub backend para que el FAKE_TOKEN no dispare 401→logout
+  await page.route('**/observatory/techos-verdes/admin/**', (route) => {
+    route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({ success: true, data: {}, items: [] }),
+    })
+  })
+
   await page.goto('/')
   await page.evaluate(({ token, admin }) => {
     localStorage.setItem('obs_token', token)
@@ -47,11 +56,12 @@ test.describe('Admin · Contributors (techos-verdes)', () => {
     await page.goto('/admin/contributors')
     await page.waitForLoadState('networkidle')
     await page.getByRole('button', { name: /Nuevo contribuyente/i }).click()
-    await page.getByLabel(/^Nombre/i).fill('Arq. Pedro Solís')
-    await page.getByLabel(/Handle/i).fill('pedro-solis')
-    // role default es ciudadano; cambiar a arquitecto
-    const roleSelect = page.locator('select').first()
-    await roleSelect.selectOption('arquitecto')
+    // Los <label> del modal no tienen for/id; localizamos por posición:
+    // input 1 = Nombre, input 2 = Handle, select 1 = Rol.
+    const modal = page.locator('div.fixed.inset-0').filter({ hasText: 'Nuevo contribuyente' })
+    await modal.locator('input').nth(0).fill('Arq. Pedro Solís')
+    await modal.locator('input').nth(1).fill('pedro-solis')
+    await modal.locator('select').first().selectOption('arquitecto')
     await page.getByRole('button', { name: 'Guardar' }).click()
     await expect(page.getByRole('heading', { name: 'Arq. Pedro Solís' })).toBeVisible()
   })

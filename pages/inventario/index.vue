@@ -5,7 +5,7 @@
       <p class="mt-2 text-base text-white/80">57 techos verdes registrados en la Ciudad de México</p>
     </CommonHeroSection>
 
-    <section class="bg-white py-16">
+    <section class="bg-white py-12 md:py-16">
       <div class="container-wide">
         <!-- Search and filters -->
         <div class="mt-6 space-y-4">
@@ -103,7 +103,7 @@
               <div class="relative h-36 overflow-hidden bg-gradient-to-br from-primary-50 to-eco/10">
                 <!-- Si tiene galería, muestra el carrusel; si no, una imagen única -->
                 <template v-if="roof.imagenes && roof.imagenes.length > 0">
-                  <img
+                  <NuxtImg
                     v-for="(img, i) in roof.imagenes"
                     :key="img.src"
                     :src="img.src"
@@ -111,6 +111,8 @@
                     class="absolute inset-0 h-full w-full object-cover transition-opacity duration-500"
                     :class="(galleryIndex[roof.id] || 0) === i ? 'opacity-100' : 'opacity-0'"
                     loading="lazy"
+                    sizes="xs:380px sm:400px md:380px lg:380px"
+                    format="webp"
                     @error="onImgError($event)"
                   />
                   <!-- Counter top-left -->
@@ -171,12 +173,14 @@
                     </a>
                   </div>
                 </template>
-                <img
+                <NuxtImg
                   v-else
                   :src="roofImageSrc(roof)"
                   :alt="roof.nombre"
                   class="h-full w-full object-cover"
                   loading="lazy"
+                  sizes="xs:380px sm:400px md:380px lg:380px"
+                  format="webp"
                   @error="onImgError($event)"
                 />
                 <span
@@ -325,10 +329,12 @@
           <div class="p-6">
             <!-- Image -->
             <div class="h-48 overflow-hidden rounded-card bg-gradient-to-br from-primary-50 to-eco/10">
-              <img
+              <NuxtImg
                 :src="roofImageSrc(selectedRoof)"
                 :alt="selectedRoof.nombre"
                 class="h-full w-full object-cover"
+                sizes="xs:400px sm:600px md:600px lg:600px"
+                format="webp"
                 @error="onImgError($event)"
               />
             </div>

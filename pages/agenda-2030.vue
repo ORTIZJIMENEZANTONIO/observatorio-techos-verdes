@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { useHead } from 'nuxt/app'
+
 const { funPaths, funStyle } = useFunPalette()
 
 useHead({
@@ -14,9 +16,31 @@ useHead({
 
 const { revealRef } = useScrollReveal({ stagger: true })
 
+// CMS: todo el contenido editorial de la página (ODS, stats académicos,
+// servicios ecosistémicos) es editable desde /admin/contenido/agenda-2030.
+// Los defaults siguen inline para fallback offline.
+interface OdsItem {
+  num: number
+  color: string
+  titulo: string
+  metas: string[]
+  via: string
+  rol: string
+  cita: string
+}
+interface DatoItem {
+  target?: number
+  display?: string
+  suffix?: string
+  unidad: string
+  detalle: string
+  fuente: string
+  href: string
+}
+
 // 7 ODS con los que el techo verde se vincula directamente
 // Fuente: Martínez Rodríguez & Cervantes-Nájera (2023), Tabla 1
-const ods = [
+const odsDefault: OdsItem[] = [
   {
     num: 2,
     color: '#DDA63A',
@@ -87,8 +111,12 @@ type Servicio = { sigla: string; nombre: string; descripcion: string; icono?: st
 const cmsAgenda = useCmsContent('agenda-2030')
 const servicios = cmsAgenda.list<Servicio>('servicios')
 
+// ODS + datos académicos — ahora también CMS-backed
+const odsCms = cmsAgenda.list<OdsItem>('ods')
+const datosCms = cmsAgenda.list<DatoItem>('datos')
+
 // Hechos clave del capítulo con su fuente y URL referenciable
-const datos = [
+const datosDefault: DatoItem[] = [
   {
     target: 7,
     suffix: '',
@@ -136,39 +164,25 @@ const datos = [
   },
 ]
 
-// Galería del techo verde del CIIEMAD-IPN
-const galeria = [
-  {
-    src: '/images/tesis/techo-verde-ciiemad-panoramica.jpg',
-    alt: 'Techo verde extensivo del CIIEMAD-IPN con vista al contexto urbano de Zacatenco, Ciudad de México',
-    caption: 'Vista panorámica del módulo de techo verde extensivo en CIIEMAD-IPN, Zacatenco.',
-  },
-  {
-    src: '/images/tesis/techo-verde-ciiemad-suculentas.jpg',
-    alt: 'Echeverias y suculentas en el techo verde del CIIEMAD',
-    caption: 'Diversidad de especies suculentas y crasuláceas adaptadas al clima del altiplano central.',
-  },
-  {
-    src: '/images/tesis/techo-verde-ciiemad-modulo.jpg',
-    alt: 'Módulo de techo verde con vegetación variada en terraza del CIIEMAD',
-    caption: 'Módulo experimental con cubierta vegetal mixta sobre estructura ligera.',
-  },
-  {
-    src: '/images/tesis/techo-verde-ciiemad-floracion.jpg',
-    alt: 'Floración en el techo verde del CIIEMAD',
-    caption: 'Floración estacional como evidencia de viabilidad biológica del sistema.',
-  },
-  {
-    src: '/images/tesis/techo-verde-ciiemad-mantenimiento.jpg',
-    alt: 'Equipo del CIIEMAD trabajando en el mantenimiento del techo verde',
-    caption: 'Trabajos de mantenimiento y monitoreo realizados por el equipo de investigación.',
-  },
-  {
-    src: '/images/tesis/techo-verde-ciiemad-edificio.jpg',
-    alt: 'Vista del techo verde del CIIEMAD desde lo alto, con el edificio académico al fondo',
-    caption: 'Integración del techo verde a la infraestructura existente del centro de investigación.',
-  },
-]
+// Computed que prefieren CMS si trae datos completos, si no usan defaults.
+const ods = computed<OdsItem[]>(() => (odsCms.value.length >= odsDefault.length ? odsCms.value : odsDefault))
+const datos = computed<DatoItem[]>(() => (datosCms.value.length >= datosDefault.length ? datosCms.value : datosDefault))
+
+// Navegación: al hacer click en un chip-mini del hero, hacemos scroll suave
+// hasta la card del ODS correspondiente y la resaltamos brevemente.
+const highlightedOds = ref<number | null>(null)
+function scrollToOds(num: number) {
+  if (typeof document === 'undefined') return
+  const el = document.getElementById(`ods-${num}`)
+  if (!el) return
+  el.scrollIntoView({ behavior: 'smooth', block: 'center' })
+  highlightedOds.value = num
+  // Quita el highlight a los 1.6s (después de la animación pulse)
+  setTimeout(() => {
+    if (highlightedOds.value === num) highlightedOds.value = null
+  }, 1600)
+}
+
 </script>
 
 <template>
@@ -356,9 +370,18 @@ const galeria = [
               de Desarrollo Sostenible</strong> de la ONU. Te contamos cuáles y cómo lo hace.
             </p>
             <div class="ods-hero-counter">
-              <div v-for="o in ods" :key="`mini-${o.num}`" class="ods-hero-counter-chip" :style="{ backgroundColor: o.color }">
+              <a
+                v-for="o in ods"
+                :key="`mini-${o.num}`"
+                :href="`#ods-${o.num}`"
+                class="ods-hero-counter-chip"
+                :style="{ backgroundColor: o.color }"
+                :aria-label="`Ir al ODS ${o.num}: ${o.titulo}`"
+                :title="`ODS ${o.num} · ${o.titulo}`"
+                @click.prevent="scrollToOds(o.num)"
+              >
                 {{ o.num }}
-              </div>
+              </a>
             </div>
           </div>
         </div>
@@ -368,7 +391,9 @@ const galeria = [
           <article
             v-for="o in ods"
             :key="o.num"
+            :id="`ods-${o.num}`"
             class="ods-card"
+            :class="{ 'ods-card-pulse': highlightedOds === o.num }"
             :style="{
               '--ods-color': o.color,
               '--ods-light': o.color + '18',
@@ -427,43 +452,31 @@ const galeria = [
         </div>
       </section>
 
-      <!-- 5. Galería del techo verde del CIIEMAD -->
+      <!-- 5. Evidencia empírica — link al caso CIIEMAD consolidado en /aprende -->
       <section class="reveal">
-        <div class="mb-6 flex items-center gap-3">
-          <span class="badge-eco">Evidencia empírica</span>
-          <h2 class="text-2xl font-bold text-ink">El techo verde del CIIEMAD-IPN</h2>
-        </div>
-        <p class="mb-6 max-w-3xl text-sm text-slate-custom">
-          La instalación experimental en el CIIEMAD-IPN (Zacatenco, CDMX) es la base empírica
-          de las publicaciones de Cervantes-Nájera (2021, 2023, 2025). Operada bajo la
-          dirección de la Dra. Martínez Rodríguez, valida que la naturación de azoteas es
-          viable en el clima del altiplano central mexicano.
-        </p>
-        <div class="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-          <figure
-            v-for="(g, i) in galeria"
-            :key="i"
-            class="gallery-card"
-          >
-            <div class="gallery-card-image-wrap">
-              <img
-                :src="g.src"
-                :alt="g.alt"
-                loading="lazy"
-                class="gallery-card-image"
-              />
-              <div class="gallery-card-gradient" aria-hidden="true" />
-              <span class="gallery-card-num">#{{ String(i + 1).padStart(2, '0') }}</span>
+        <div class="rounded-card border border-eco/30 bg-eco/5 p-6 md:p-8">
+          <div class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+            <div class="flex-1">
+              <span class="badge-eco">Evidencia empírica</span>
+              <h2 class="mt-3 text-xl font-bold text-ink md:text-2xl">
+                Conoce el techo verde del CIIEMAD-IPN
+              </h2>
+              <p class="mt-2 max-w-2xl text-sm leading-relaxed text-slate-custom">
+                La instalación experimental en Zacatenco (CDMX) es la base empírica
+                de las publicaciones de Cervantes-Nájera (2021, 2023, 2025). Operada bajo la
+                dirección de la Dra. Martínez Rodríguez, valida que la naturación de azoteas
+                es viable en el clima del altiplano central mexicano.
+              </p>
             </div>
-            <figcaption class="gallery-card-caption">
-              {{ g.caption }}
-            </figcaption>
-          </figure>
+            <NuxtLink to="/aprende#caso-ciiemad" class="btn-primary shrink-0">
+              Ver el caso completo
+              <svg xmlns="http://www.w3.org/2000/svg" class="ml-1.5 h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="5" y1="12" x2="19" y2="12" />
+                <polyline points="12 5 19 12 12 19" />
+              </svg>
+            </NuxtLink>
+          </div>
         </div>
-        <p class="mt-4 text-[11px] italic text-ink-muted">
-          Imágenes: archivo CIIEMAD-IPN, julio de 2023. Reproducidas con fines académicos en
-          el marco de este observatorio.
-        </p>
       </section>
 
       <!-- 6. Cómo se traduce a este observatorio -->
@@ -691,6 +704,7 @@ const galeria = [
   font-weight: 800;
   line-height: 1.15;
   letter-spacing: -0.02em;
+  color: white;
 }
 .ods-hero-title-accent {
   background: linear-gradient(135deg, #fde047 0%, #79c141 100%);
@@ -723,10 +737,42 @@ const galeria = [
   border-radius: 0.75rem;
   border: 2px solid rgba(255, 255, 255, 0.4);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-  transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+  transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1),
+              box-shadow 0.3s ease;
+  cursor: pointer;
+  text-decoration: none;
 }
-.ods-hero-counter-chip:hover {
+.ods-hero-counter-chip:hover,
+.ods-hero-counter-chip:focus-visible {
   transform: translate3d(0, -4px, 0) rotate(-4deg) scale(1.1);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+  outline: none;
+}
+.ods-hero-counter-chip:focus-visible {
+  outline: 3px solid white;
+  outline-offset: 2px;
+}
+.ods-hero-counter-chip:active {
+  transform: translate3d(0, -1px, 0) scale(0.95);
+}
+
+/* Highlight pulse al hacer click en un chip: la card target hace un pulse
+   con el color del ODS para que el usuario sepa adónde llegó tras el scroll. */
+.ods-card {
+  /* offset para que scrollIntoView { block: 'center' } no quede tapado por
+     el header sticky (h-16). El offset compensa visualmente. */
+  scroll-margin-top: 5rem;
+}
+.ods-card-pulse {
+  animation: odsPulse 1.4s cubic-bezier(0.22, 1, 0.36, 1);
+}
+@keyframes odsPulse {
+  0%   { box-shadow: 0 0 0 0 var(--ods-color, #0e5e3a), 0 1px 3px rgba(0, 0, 0, 0.06); }
+  30%  { box-shadow: 0 0 0 14px rgba(255, 255, 255, 0), 0 8px 24px var(--ods-color, #0e5e3a); transform: scale(1.02); }
+  100% { box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06); transform: scale(1); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ods-card-pulse { animation: none; }
 }
 
 /* ════════════════════════════════════════════════════════════════════

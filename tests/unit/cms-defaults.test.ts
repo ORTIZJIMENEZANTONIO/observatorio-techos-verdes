@@ -66,7 +66,7 @@ describe('CMS Defaults (techos-verdes)', () => {
 
   // ─── Cobertura completa de las nuevas secciones editables ───
 
-  it('home tiene todas las secciones nuevas (steps, datosCuriosos, ciiemad, respaldo, etc.)', () => {
+  it('home tiene todas las secciones nuevas (steps, datosCuriosos, respaldo, etc.)', () => {
     const home = cmsDefaults.home
     expect(home).toBeDefined()
     const required = [
@@ -78,9 +78,9 @@ describe('CMS Defaults (techos-verdes)', () => {
       'datosCuriosos',
       'mapTeaser',
       'techoVerdeIntro',
-      'ciiemadShowcase',
-      'ciiemadPubs',
-      'ciiemadKpis',
+      // ciiemadShowcase, ciiemadPubs, ciiemadKpis fueron consolidados en
+      // /aprende#caso-ciiemad. Los defaults siguen en cmsDefaults para
+      // compatibilidad con backend ya sembrado, pero el catalog los oculta.
       'respaldo',
     ]
     for (const key of required) {
@@ -202,8 +202,10 @@ describe('CMS Defaults (techos-verdes)', () => {
     const keys = homePage!.sections.map(s => s.key)
     expect(keys).toContain('steps')
     expect(keys).toContain('datosCuriosos')
-    expect(keys).toContain('ciiemadShowcase')
     expect(keys).toContain('respaldo')
+    // ciiemadShowcase ya NO se expone en admin: el bloque se consolidó en
+    // /aprende#caso-ciiemad. Esta aserción negativa documenta la decisión.
+    expect(keys).not.toContain('ciiemadShowcase')
   })
 
   it('cmsPageCatalog declara las secciones nuevas de sobre', () => {
@@ -213,5 +215,150 @@ describe('CMS Defaults (techos-verdes)', () => {
     expect(keys).toContain('principles')
     expect(keys).toContain('dimensiones')
     expect(keys).toContain('findings')
+  })
+
+  // ─── Fase 2 — Audience Gate + Academic Highlight ───
+
+  it('home.audienceGate tiene 4 puertas con shape válido', () => {
+    const gates = cmsDefaults.home.audienceGate as any[]
+    expect(gates, 'home.audienceGate no existe').toBeDefined()
+    expect(gates.length).toBe(4)
+    const titles = gates.map(g => g.title)
+    // Debe haber una puerta por cada audiencia + comunidad
+    expect(titles).toEqual(expect.arrayContaining(['Aprende', 'Comunidad']))
+    for (const g of gates) {
+      expect(g.tag).toBeTruthy()
+      expect(g.title).toBeTruthy()
+      expect(g.description).toBeTruthy()
+      expect(g.to, `to inválido en "${g.title}"`).toMatch(/^\//)
+      expect(g.ctaLabel).toBeTruthy()
+      expect(g.icono).toBeTruthy()
+      expect(g.color).toBeTruthy()
+    }
+  })
+
+  it('home.audienceGate apunta a las 4 secciones IA correctas', () => {
+    const gates = cmsDefaults.home.audienceGate as any[]
+    const destinos = new Set(gates.map(g => g.to))
+    expect(destinos.has('/aprende')).toBe(true)
+    expect(destinos.has('/investigacion')).toBe(true)
+    expect(destinos.has('/comunidad')).toBe(true)
+  })
+
+  it('home.academicHighlight tiene el paper Q1 Cervantes-Nájera con DOI y KPIs', () => {
+    const hl = cmsDefaults.home.academicHighlight?.[0] as any
+    expect(hl, 'home.academicHighlight no existe').toBeTruthy()
+    expect(hl.titulo).toMatch(/green rooftops|techos verdes/i)
+    expect(hl.autores).toMatch(/Cervantes/i)
+    expect(hl.venue).toMatch(/Sustainable Cities/i)
+    expect(hl.doi).toMatch(/^10\./)
+    // 3 KPIs visibles en el banner
+    expect(hl.kpi1Value).toBeTruthy()
+    expect(hl.kpi2Value).toBeTruthy()
+    expect(hl.kpi3Value).toBeTruthy()
+    expect(hl.ctaTo).toMatch(/^\/investigacion/)
+  })
+
+  // ─── Fase 3 — Hubs Aprende e Investigación ───
+
+  it('catalog incluye los hubs /aprende e /investigacion', () => {
+    const slugs = cmsPageCatalog.map(p => p.slug)
+    expect(slugs).toContain('aprende')
+    expect(slugs).toContain('investigacion')
+  })
+
+  it('aprende tiene todas las secciones del hub (capas, tipologías, beneficios, caso)', () => {
+    const ap = cmsDefaults.aprende
+    expect(ap).toBeDefined()
+    for (const key of ['hero', 'intro', 'capas', 'tipologias', 'beneficios', 'casoIntro', 'casoCiiemad', 'cta']) {
+      expect(ap[key], `falta aprende.${key}`).toBeDefined()
+    }
+    expect((ap.capas as any[]).length).toBe(6) // las 6 capas
+    expect((ap.tipologias as any[]).length).toBe(3) // ext / semi / int
+    expect((ap.beneficios as any[]).length).toBe(4)
+    expect((ap.casoCiiemad as any[]).length).toBeGreaterThanOrEqual(6)
+  })
+
+  it('aprende.capas están numeradas 1-6 con nombre y función', () => {
+    const capas = cmsDefaults.aprende.capas as any[]
+    const nums = capas.map(c => c.num).sort()
+    expect(nums).toEqual([1, 2, 3, 4, 5, 6])
+    for (const c of capas) {
+      expect(c.nombre).toBeTruthy()
+      expect(c.funcion).toBeTruthy()
+      expect(c.color).toBeTruthy()
+    }
+  })
+
+  it('aprende.tipologias incluye extensivo, semi-intensivo, intensivo', () => {
+    const tipos = cmsDefaults.aprende.tipologias as any[]
+    const slugs = tipos.map(t => t.slug).sort()
+    expect(slugs).toEqual(['extensivo', 'intensivo', 'semi-intensivo'])
+    for (const t of tipos) {
+      expect(t.pesoSaturado).toBeTruthy()
+      expect(t.sustrato).toBeTruthy()
+      expect(t.vegetacion).toBeTruthy()
+      expect(t.mantenimiento).toBeTruthy()
+      expect(t.icono).toBeTruthy()
+    }
+  })
+
+  it('investigacion tiene todas las secciones académicas', () => {
+    const inv = cmsDefaults.investigacion
+    expect(inv).toBeDefined()
+    for (const key of ['hero', 'marco', 'equipo', 'publicaciones', 'metodologia', 'pesosAhp', 'datos', 'citar']) {
+      expect(inv[key], `falta investigacion.${key}`).toBeDefined()
+    }
+  })
+
+  it('investigacion.publicaciones incluye Q1 SCS 2025 marcado como destacada', () => {
+    const pubs = cmsDefaults.investigacion.publicaciones as any[]
+    expect(pubs.length).toBeGreaterThanOrEqual(4)
+    const destacadas = pubs.filter(p => p.destacada)
+    expect(destacadas.length).toBeGreaterThanOrEqual(1)
+    const q1 = pubs.find(p => p.tipo === 'Artículo Q1')
+    expect(q1, 'no hay Artículo Q1 en publicaciones').toBeTruthy()
+    expect(q1.doi).toBeTruthy()
+    expect(q1.anio).toBe('2025')
+    expect(q1.autores).toMatch(/Cervantes/i)
+  })
+
+  it('investigacion.pesosAhp suma ~100% sobre 8 variables', () => {
+    const pesos = cmsDefaults.investigacion.pesosAhp as any[]
+    expect(pesos.length).toBe(8)
+    const total = pesos.reduce((acc, p) => acc + parseFloat(String(p.peso).replace(/[^\d.]/g, '')), 0)
+    expect(total).toBeGreaterThanOrEqual(99)
+    expect(total).toBeLessThanOrEqual(101)
+  })
+
+  it('investigacion.citar tiene formato APA y BibTeX', () => {
+    const citar = cmsDefaults.investigacion.citar?.[0] as any
+    expect(citar.apa).toBeTruthy()
+    expect(citar.apa).toMatch(/Cervantes-N[áa]jera/)
+    expect(citar.bibtex).toBeTruthy()
+    expect(citar.bibtex).toMatch(/@misc|@article/)
+  })
+
+  it('investigacion.datos tiene 3 datasets (inventario, candidatos, indicadores)', () => {
+    const ds = cmsDefaults.investigacion.datos as any[]
+    expect(ds.length).toBeGreaterThanOrEqual(3)
+    const slugs = ds.map(d => d.slug)
+    expect(slugs).toEqual(expect.arrayContaining(['inventario', 'candidatos', 'indicadores']))
+  })
+
+  it('aprende e investigacion declaran sus secciones en cmsPageCatalog', () => {
+    const ap = cmsPageCatalog.find(p => p.slug === 'aprende')!
+    const inv = cmsPageCatalog.find(p => p.slug === 'investigacion')!
+    const apKeys = ap.sections.map(s => s.key)
+    const invKeys = inv.sections.map(s => s.key)
+    expect(apKeys).toEqual(expect.arrayContaining(['hero', 'intro', 'capas', 'tipologias', 'beneficios', 'casoCiiemad']))
+    expect(invKeys).toEqual(expect.arrayContaining(['hero', 'marco', 'equipo', 'publicaciones', 'pesosAhp', 'datos', 'citar']))
+  })
+
+  it('cmsPageCatalog declara audienceGate y academicHighlight en home', () => {
+    const homePage = cmsPageCatalog.find(p => p.slug === 'home')!
+    const keys = homePage.sections.map(s => s.key)
+    expect(keys).toContain('audienceGate')
+    expect(keys).toContain('academicHighlight')
   })
 })

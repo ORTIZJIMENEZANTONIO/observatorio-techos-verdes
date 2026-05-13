@@ -43,12 +43,13 @@ test.describe('Admin · CMS — listado de páginas editables', () => {
     await page.goto('/admin/contenido')
     await page.waitForLoadState('networkidle')
 
-    // El catálogo declara "12 secciones" para el home (hero, sectionTitles,
-    // features, steps, datosCuriosos, mapTeaser, techoVerdeIntro,
-    // ciiemadShowcase, ciiemadPubs, ciiemadKpis, respaldo, cta).
+    // El catálogo declara "11 secciones" para el home: hero, sectionTitles,
+    // features, steps, datosCuriosos, mapTeaser, techoVerdeIntro, respaldo,
+    // audienceGate, academicHighlight, cta.
+    // ciiemadShowcase/ciiemadPubs/ciiemadKpis se retiraron del catálogo
+    // (consolidados en /aprende#caso-ciiemad).
     const body = await page.locator('body').innerText()
-    // El catálogo expone el número de secciones
-    expect(body).toMatch(/12 secciones/)
+    expect(body).toMatch(/11 secciones/)
   })
 })
 
