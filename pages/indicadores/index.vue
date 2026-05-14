@@ -1427,7 +1427,20 @@ function sortIcon(state: SortState, col: string): string {
 // ===========================================================================
 // KPIs
 // ===========================================================================
-const kpis = kpiData
+// KPIs del header — editables desde /admin/contenido/indicadores → kpis
+// Fallback al array `kpiData` (data/kpis.ts) si el CMS no trae al menos
+// la misma cantidad de items.
+interface KpiItem {
+  label: string
+  valor: string | number
+  unidad?: string
+  icono?: string
+  color?: string
+  cambio?: string
+}
+const cmsIndicadores = useCmsContent('indicadores')
+const kpisCms = cmsIndicadores.list<KpiItem>('kpis')
+const kpis = computed<KpiItem[]>(() => (kpisCms.value.length >= kpiData.length ? kpisCms.value : (kpiData as KpiItem[])))
 
 // ---------------------------------------------------------------------------
 // Alcaldia distribution

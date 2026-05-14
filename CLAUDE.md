@@ -406,6 +406,42 @@ Lighthouse pide secuencia descendente sin saltos. Decisiones aplicadas en `pages
 - "Respaldo científico" pasó de `<h3>` a `<h2>` (sección sin h2 propio).
 - "Aviso importante" pasó de `<h4>` a `<h3>` (sibling del h2 de respaldo).
 - Cards de pasos y `roof-card-title` pasaron de `<h4>` a `<h3>` (la sección ya tenía un `<h2>` vía `CommonSectionTitle`).
+- `AppFooter.vue`: "Enlaces rápidos" y "Contacto e información" `<h4>` → `<h3>` + `text-white/50` → `text-white/80` por contraste.
+
+### Dark mode — overrides globales en `main.css`
+Tailwind config define los colores brand como hex literales fijos (`bg-white`, `text-ink`, `bg-primary-50`), por lo que las utilities NO cambian en dark mode automáticamente. Solución: bloque `DARK MODE — overrides` al final de `assets/css/main.css` que redirige utilities Tailwind problemáticas a las CSS variables del scope `.dark`. Especificidad `.dark .X` (0,2,0) > `.X` (0,1,0) — sobrescribe automáticamente sin tocar archivos `.vue`.
+
+Tres niveles de surface en dark:
+- `--c-bg` (`#081511`) → fondo del body / `bg-surface` overridden
+- `--c-surface` (`#122620`) → secciones (`bg-white` overridden) + inputs
+- `--c-surface-2` (`#1A332B`) → cards encima de las secciones (`fun-card`, `kpi-fun`, `panel`, `card`, `card-flat`, `card-interactive`)
+
+Las cards "flotan" sobre las secciones gracias al delta de luminosidad. Sin esto, las cards se fundían con el fondo y la página parecía vacía en dark (issue real del primer despliegue).
+
+Pills/botones brand-color en dark: `bg-primary-50` ilegible → `rgba(14, 94, 58, 0.22) !important`. `text-primary` (#0E5E3A demasiado oscuro sobre dark) → `#8FCD5F` (verde lima). `text-eco-dark` → `#B9E07A`. `text-accent-dark` → `#FAD37A`.
+
+CSS scoped que define `background:` hardcoded (ej. `.kpi-section`, `.hero-mascot-photo`, `.speech-bubble`) cambió a `var(--c-surface)` para que respete dark sin sobreescribir con override.
+
+### Consolidación de contenido — caso CIIEMAD
+El bloque "El techo verde del CIIEMAD-IPN" aparecía duplicado en home, `/agenda-2030` y `/aprende`. Decisión: **una sola sección canónica en `/aprende#caso-ciiemad`** con:
+- Collage de 3 fotos (TVLE foto + cuadrantes + mapa) con badge "100% sobrevivencia vegetal"
+- 6 datos del experimento (superficie, tipología, periodo, payback, sobrevivencia, huella)
+- Galería completa de 10 fotos del PPTX 2023 + INFORME + vista aérea, con lightbox modal
+
+Los `ciiemadShowcase/Pubs/Kpis` quedan en `cmsDefaults.home` para compatibilidad con backends ya sembrados, pero **se retiraron de `cmsPageCatalog`** (admin ya no los expone). Home y `/agenda-2030` quedaron con banners-link compactos que linkean a `/aprende#caso-ciiemad`.
+
+### Fun-card design coverage
+Patrón fun-card (icono protagonista + color único + hover suave + sparkles) aplicado a:
+- Home: features (3), datos curiosos (3), audience gate (4), steps (4), KPIs grid del home
+- `/aprende`: tipologías (3), beneficios (4), capas con color por capa
+- `/sobre`: principles (4)
+- `/metodologia`: pasos (4) + 11 variables AHP
+- `/agenda-2030`: servicios MEA (4)
+- `/comunidad`: pasos
+- `/referencias`: tarjetas de bibliografía y ODS conectados
+- `/indicadores`: **8 KPIs del header** (icono + sparkles + tabular-nums)
+- `/investigacion/documentos`: variante `doc-card` con icono semántico por tipo (book / shield / flag / satellite / scale)
+- `/investigacion/datos`: variante `dataset-card` con icono protagonista (leaf / target / chart) + borde lateral coloreado
 - `AppFooter.vue`: "Enlaces rápidos" y "Contacto e información" pasaron de `<h4>` a `<h3>`.
 
 ## Key Patterns
@@ -1172,17 +1208,18 @@ useCmsContent(page)  ─────┘    ├─ getSection / getOne (sync con 
 | pageSlug | secciones (sectionKey) |
 |----------|------------------------|
 | `home` | hero · sectionTitles · features · steps · datosCuriosos · mapTeaser · techoVerdeIntro · ciiemadShowcase · ciiemadPubs · ciiemadKpis · respaldo · **audienceGate** · **academicHighlight** · cta |
-| `aprende` | **hero · intro · capas · tipologias · beneficios · casoIntro · casoCiiemad · cta** (Fase 3) |
-| `investigacion` | **hero · marco · equipo · publicaciones · metodologia · pesosAhp · datos · citar** (Fase 3-4) |
+| `aprende` | **hero · intro · capas · tipologias · beneficios · casoIntro · casoCiiemad · galeria · cta** (Fase 3 + galería CIIEMAD) |
+| `investigacion` | **hero · marco · equipo · publicaciones · metodologia · pesosAhp · datos · documentos · citar** (Fase 3-4) |
 | `sobre` | hero · mission · objetivos · principles · dimensiones · findings |
-| `metodologia` | hero · pasos · limitations |
-| `agenda-2030` | hero · intro · servicios |
+| `metodologia` | hero · **pasos (shape extendido)** · limitations |
+| `agenda-2030` | hero · intro · servicios · **ods (7 cards)** · **datos (6 stats académicos)** |
 | `comunidad` | hero · intro · pasos |
-| `indicadores` · `inventario` · `candidatos` · `mapa` · `aptitud` · `ia-validacion` · `referencias` | hero |
+| `indicadores` | hero · **kpis (8 fun-cards del header)** |
+| `inventario` · `candidatos` · `mapa` · `aptitud` · `ia-validacion` · `referencias` | hero |
 | `contributors` | hero · intro |
 | `footer` | brand · sources · quickLinks · institutional |
 
-**Cobertura:** 16 páginas, **60+ secciones editables**. Todo el contenido visible en el sitio público (excepto datos reales como `greenRoofs`, `candidateRoofs`, charts) es editable desde `/admin/contenido` sin tocar código.
+**Cobertura:** 16 páginas, **~80 secciones editables**. Todo el contenido visible en el sitio público (excepto datos reales como `greenRoofs`, `candidateRoofs`, charts en /indicadores) es editable desde `/admin/contenido` sin tocar código.
 
 **Fase 2 — Home `audienceGate` y `academicHighlight`:**
 - `audienceGate` = array de 4 cards (Aprende · Explora · Investigación · Comunidad). Cada card tiene `tag`, `title`, `description`, `to`, `ctaLabel`, `icono` (clave fun-card), `color` (clave fun-palette).
@@ -1191,18 +1228,39 @@ useCmsContent(page)  ─────┘    ├─ getSection / getOne (sync con 
 **Fase 3-4 — Hubs `/aprende` y `/investigacion`:**
 - `aprende.capas` = 6 items con `num`, `nombre`, `funcion`, `color` (fun-palette). El test unit valida que `nums = [1,2,3,4,5,6]`.
 - `aprende.tipologias` = 3 items con `slug` (extensivo/semi-intensivo/intensivo), `pesoSaturado`, `sustrato`, `vegetacion`, `mantenimiento`, `uso`, `color`, `icono`.
+- `aprende.galeria` = 10 items con `src`, `alt`, `caption`. Mezcla PPTX CIIEMAD jul 2023 + INFORME PARCIAL + vista aérea tesis. Lightbox modal con navegación teclado (← → Esc).
 - `investigacion.publicaciones` = 5 items con `tipo`, `titulo`, `autores`, `anio`, `venue`, `doi?`, `resumen`, `destacada?`. La Q1 SCS 2025 tiene `destacada: true` y se renderiza con `shadow-glow-primary`.
 - `investigacion.pesosAhp` = 8 items con `variable` y `peso` (string con %). Test unit valida que la suma esté entre 99-101.
 - `investigacion.datos` = 3 items con `slug` (inventario/candidatos/indicadores), `nombre`, `formato`, `registros`, `estado` (Disponible/En preparación), `descripcion`.
+- `investigacion.documentos` = 9 items con `tipo`, `titulo`, `autores`, `anio`, `venue`, `descripcion`, `href`, `tamano?`, `extension` ('pdf'/'docx'/'external'), `destacada?`. Cada tipo tiene icono + color únicos (`docVisual` map). Layout `doc-card` con icono protagonista a la izquierda + banda lateral coloreada.
 - `investigacion.citar` = 1 item con `titleApa`, `titleBibtex`, `nota`, `apa` (string formateado), `bibtex` (string formateado con escapes LaTeX).
+
+**Fase posterior — `ods`, `datos`, `kpis`, `pasos` extendido:**
+- `agenda-2030.ods` = 7 items con `num`, `color` (hex oficial ONU), `titulo`, `via`, `rol` (SC/SR/SA/SS), `cita`, y `metas` (array de strings). Renderizados como ods-cards con id `#ods-{num}` para scroll-to navigation.
+- `agenda-2030.datos` = 6 stats con `target?` (CountUp) o `display?` (string fijo), `suffix`, `unidad`, `detalle`, `fuente`, `href` (fuente citable).
+- `indicadores.kpis` = 8 fun-cards con `label`, `valor`, `unidad`, `icono` (clave fun-palette), `color` (clave fun-palette), `cambio` (opcional). Renderizados con el patrón fun-card protagonista en el header de /indicadores.
+- `metodologia.pasos` = 4 items con shape extendido: `number`, `title`, `description`, `icono`, `color`, `details[]` (array de bullets). El seed migration 1742 `upsertIfStaleShape` detecta shape viejo (sin `number`) y lo reemplaza.
+
+**Computed-with-fallback pattern (frontend)**: para evitar que un seed parcial del backend reemplace una lista curada completa, los hubs/cards de listas usan:
+```ts
+const items = computed(() => cmsList.value.length >= inlineDefault.length ? cmsList.value : inlineDefault)
+```
+Aplica a `documentos`, `ods`, `datos`, `kpis`, `pasos`, `galeria`. El editor admin debe cargar al menos N items para sobrescribir.
 
 **Wiring:** cada página pública consume vía `useCmsContent('<page>')` que devuelve `list<T>()` (computed array) y `one<T>()` (computed first item). El template usa `{{ data?.field || 'fallback' }}` para que SSR pinte con defaults antes de que el backend responda.
 
 **Backend (genérico, sin cambios por sectionKey):**
 - Entidad `ObsCmsSection` con columna `observatory`, `pageSlug`, `sectionKey`, `items` (JSON), `updatedBy`, `updatedAt`.
-- Migración: `1733000000000-EnsureCmsSectionsTable.ts` (idempotente).
+- Migraciones de schema:
+  - `1733000000000-EnsureCmsSectionsTable.ts` (crea tabla, idempotente).
+  - `1736000000000-AddObservatoryToCmsSections.ts` (multi-tenant).
+- Migraciones de seed (idempotentes, espejo de `data/cms-defaults.ts`):
+  - `1740000000000-SeedExpandedCmsSections.ts` — home, sobre, metodologia, agenda-2030 (hero/intro/servicios), comunidad, contributors, footer.
+  - `1741000000000-SeedTechosVerdesNewPagesCms.ts` — heros + intros de agenda-2030, referencias, comunidad.
+  - **`1742000000000-SeedTechosVerdesExtendedCms.ts`** — home (audienceGate + academicHighlight), aprende (8 secciones), investigacion (hero + pesosAhp), agenda-2030 (ods + datos), indicadores (kpis), metodologia (pasos shape extendido vía `upsertIfStaleShape`).
 - Endpoint público: `GET /:observatory/cms/:pageSlug/:sectionKey` — controlador ignora `sectionKey` y devuelve TODAS las secciones de la página. El composable lo invoca con `_all` como placeholder.
-- Endpoint admin: `PUT /:observatory/admin/cms/:pageSlug/:sectionKey` con auth + permiso `manage_cms`. Validación Joi: `items: array of objects` — sin constraints de campos, permite cualquier nuevo sectionKey sin cambios backend.
+- Endpoint admin: `PUT /:observatory/admin/cms/:pageSlug/:sectionKey` con `auth` (sin permiso `manage_cms` específico — `auth` middleware basta). Validación Joi: `items: Joi.array().items(Joi.object()).required()` — sin constraints de campos, permite cualquier nuevo sectionKey sin cambios backend.
+- Permisos: superadmin pasa `hasPermission()` siempre (corto-circuito en `stores/auth.ts:22`). El frontend NO tiene gates de permiso en el editor CMS — solo `/admin/usuarios` requiere `isSuperadmin` para crear/editar admins.
 
 **Admin:** `/admin/contenido` lista las 16 páginas; `/admin/contenido/:pageSlug` muestra accordion por sección con edición in-place + auto-bind al shape del default. Mover/añadir/eliminar bloques + "Restaurar default" + chip de "Sin guardar".
 
@@ -1210,7 +1268,7 @@ useCmsContent(page)  ─────┘    ├─ getSection / getOne (sync con 
 - Unit: `tests/unit/cms-defaults.test.ts` (32 tests) — cobertura del catálogo, cada sección nueva, audienceGate (4 puertas), academicHighlight (paper Q1), aprende (capas 1-6, 3 tipologías), investigacion (5 publicaciones con Q1 destacada, 8 pesos AHP que suman ~100 %, datos, citar APA+BibTeX), ausencia de copy IA promocional.
 - Unit: `tests/unit/cms-content.test.ts` (14 tests) — `interpolateCmsText` + cobertura pública.
 - Unit: `tests/unit/cms-store.test.ts` (20 tests) — store Pinia (fallback, initPage, invalidate, lectura de todas las secciones nuevas).
-- E2E: `tests/e2e/admin-cms.spec.ts` (7 tests) — `/admin/contenido` lista todas las páginas; el home declara las 14 secciones; fallback público funciona cuando el backend no responde.
+- E2E: `tests/e2e/admin-cms.spec.ts` (7 tests) — `/admin/contenido` lista todas las páginas; el home declara las 11 secciones (ciiemadShowcase/Pubs/Kpis retirados — caso CIIEMAD se consolidó en /aprende); fallback público funciona cuando el backend no responde.
 - E2E: `tests/e2e/nueva-ia.spec.ts` (10 tests) — audienceGate visible, banner Q1 con DOI+KPIs, `/aprende` con 4 anclas y 3 tipologías, `/investigacion` con marco+publicaciones, `/investigacion/datos` con descarga CSV real disparada, `/investigacion/citar` con APA+BibTeX, header con 4 grupos.
 - Total: **116 unit + 31 E2E = 147 tests pasando** (con cercu-backend corriendo en :3003).
 

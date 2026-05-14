@@ -14,6 +14,8 @@ import { GLOSSARY } from '~/data/admin-glossary'
 const route = useRoute()
 const router = useRouter()
 const { apiFetch } = useApi()
+const config = useRuntimeConfig()
+const observatory = config.public.observatory as string
 const pageSlug = String(route.params.pageSlug)
 const meta = cmsPageCatalog.find((p) => p.slug === pageSlug)
 
@@ -46,7 +48,7 @@ const load = async () => {
   seedFromDefaults()
   try {
     const res = await apiFetch<{ success: boolean; sections: Record<string, CmsItem[]> }>(
-      `/admin/cms/${pageSlug}`,
+      `/observatory/${observatory}/admin/cms/${pageSlug}`,
     )
     const remote = res?.sections ?? {}
     for (const s of meta!.sections) {
@@ -128,7 +130,7 @@ const saveSection = async (sectionKey: string) => {
   saving.value = sectionKey
   lastSaved.value = null
   try {
-    await apiFetch(`/admin/cms/${pageSlug}/${sectionKey}`, {
+    await apiFetch(`/observatory/${observatory}/admin/cms/${pageSlug}/${sectionKey}`, {
       method: 'PUT',
       body: { items: sections[sectionKey] },
     })

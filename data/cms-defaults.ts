@@ -417,26 +417,10 @@ export const cmsDefaults: Record<string, Record<string, CmsItem[]>> = {
       },
     ],
     pasos: [
-      {
-        title: "Detección OSM",
-        description:
-          "Query Overpass por edificios planos en cada alcaldía CDMX (filtros: building, area > 200m², geom rectangular).",
-      },
-      {
-        title: "Cálculo AHP",
-        description:
-          "Normalización 0-1 de los 8 criterios → ponderación por matriz de pesos → score 0-100.",
-      },
-      {
-        title: "Validación de campo",
-        description:
-          "Verificación manual con expertos del CIIEMAD-IPN siguiendo la metodología de Cervantes-Nájera. Fotografía aérea + observaciones territoriales.",
-      },
-      {
-        title: "Priorización territorial",
-        description:
-          "Integración de aptitud y validaciones para identificar y priorizar sitios candidatos.",
-      },
+      { number: 1, title: "Recopilación de datos geoespaciales", description: "Integración de múltiples fuentes de datos espaciales, incluyendo imágenes satelitales, datos censales y estaciones de monitoreo.", icono: "satellite", color: "secondary", details: ["Imágenes Landsat y MODIS para temperatura superficial", "Datos del INEGI para población y área urbanizada", "Estaciones RAMA para calidad del aire", "Coberturas de uso de suelo de SEDEMA"] },
+      { number: 2, title: "Construcción del índice de aptitud", description: "Normalización y ponderación de variables en un índice multicriterio de aptitud territorial.", icono: "scale", color: "violet", details: ["Normalización 0-100 por variable", "Ponderación por Proceso Analítico Jerárquico (AHP)", "Validación cruzada con expertos", "Clasificación en 5 niveles de aptitud"] },
+      { number: 3, title: "Validación de campo", description: "Verificación manual con expertos del CIIEMAD-IPN siguiendo la metodología de Cervantes-Nájera. Fotografía aérea, observaciones de campo y revisión de catastro.", icono: "shield", color: "accent", details: ["Revisión de imagen aérea de alta resolución", "Validación territorial con expertos", "Cruce con catastro y dictámenes oficiales", "Nivel de confianza por sitio"] },
+      { number: 4, title: "Priorización territorial", description: "Integración de los resultados del modelo de aptitud con las validaciones de campo para identificar y priorizar sitios candidatos.", icono: "flag", color: "rose", details: ["Cruce de aptitud con inventario existente", "Identificación de zonas de alta prioridad", "Generación de fichas por candidato", "Datos abiertos para consulta pública"] },
     ],
     limitations: [
       {
@@ -469,6 +453,16 @@ export const cmsDefaults: Record<string, Record<string, CmsItem[]>> = {
         subtitle:
           "Métricas territoriales, distribución AHP, servicios ecosistémicos cuantificados y dinámicas temporales del inventario CDMX.",
       },
+    ],
+    kpis: [
+      { label: "Techos verdes registrados", valor: 57, unidad: "techos", icono: "leaf", color: "primary", cambio: "+8 en 2024" },
+      { label: "Superficie total cubierta", valor: "98,430", unidad: "m²", icono: "area", color: "eco", cambio: "+12,600 m²" },
+      { label: "Candidatos priorizados", valor: 60, unidad: "sitios", icono: "target", color: "secondary", cambio: "+15 nuevos" },
+      { label: "Captura de CO₂ del inventario", valor: "60.81", unidad: "tCO₂/año", icono: "co2", color: "accent", cambio: "Cervantes-Nájera 2025" },
+      { label: "Alcaldías con techos verdes", valor: 14, unidad: "de 16", icono: "map", color: "primary" },
+      { label: "Variables del modelo", valor: 8, unidad: "variables", icono: "chart", color: "secondary" },
+      { label: "Score promedio candidatos", valor: 81.5, unidad: "pts", icono: "score", color: "eco", cambio: "+3.2 vs anterior" },
+      { label: "Pilotos activos", valor: 4, unidad: "proyectos", icono: "pilot", color: "accent", cambio: "+2 en Q1" },
     ],
   },
 
@@ -1429,10 +1423,17 @@ export const cmsPageCatalog: CmsPageMeta[] = [
   {
     slug: "indicadores",
     title: "Indicadores",
-    description: "Encabezado de la sección de indicadores y dashboards.",
+    description: "Encabezado y 8 KPIs del header de la sección de indicadores.",
     preview: "/indicadores",
     icon: "lucide:bar-chart-3",
-    sections: [{ key: "hero", label: "Hero" }],
+    sections: [
+      { key: "hero", label: "Hero" },
+      {
+        key: "kpis",
+        label: "KPIs del header (8 cards)",
+        help: "Cada item: label, valor, unidad, icono (leaf/area/target/co2/map/chart/score/pilot…), color (primary/eco/secondary/accent/alert/violet/teal/rose/indigo), cambio (opcional).",
+      },
+    ],
   },
   {
     slug: "inventario",
@@ -1499,6 +1500,16 @@ export const cmsPageCatalog: CmsPageMeta[] = [
         key: "servicios",
         label: "Servicios ecosistémicos (4 cards)",
         help: "SC, SR, SA, SS — marco MEA 2003.",
+      },
+      {
+        key: "ods",
+        label: "ODS conectados (7 cards)",
+        help: "Cada ODS: num, color, titulo, via, rol, cita + array de metas.",
+      },
+      {
+        key: "datos",
+        label: "Stats académicos del capítulo (6)",
+        help: "Cifras destacadas: target/display, unidad, detalle, fuente, href.",
       },
     ],
   },

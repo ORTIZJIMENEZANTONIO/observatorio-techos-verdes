@@ -463,64 +463,29 @@ const polarLabels = computed(() => pesos.value.map(p => p.variable.replace(/\s*\
 const polarData = computed(() => pesos.value.map(p => p.peso))
 const polarColors = computed(() => pesos.value.map(p => p.color))
 
-const methodologySteps = [
-  {
-    number: 1,
-    title: 'Recopilación de datos geoespaciales',
-    description: 'Integración de múltiples fuentes de datos espaciales, incluyendo imágenes satelitales, datos censales y estaciones de monitoreo.',
-    icono: 'satellite',
-    color: 'secondary',
-    details: [
-      'Imágenes Landsat y MODIS para temperatura superficial',
-      'Datos del INEGI para población y área urbanizada',
-      'Estaciones RAMA para calidad del aire',
-      'Coberturas de uso de suelo de SEDEMA',
-    ],
-  },
-  {
-    number: 2,
-    title: 'Construcción del índice de aptitud',
-    description: 'Normalización y ponderación de variables en un índice multicriterio de aptitud territorial.',
-    icono: 'scale',
-    color: 'violet',
-    details: [
-      'Normalización 0-100 por variable',
-      'Ponderación por Proceso Analítico Jerárquico (AHP)',
-      'Validación cruzada con expertos',
-      'Clasificación en 5 niveles de aptitud',
-    ],
-  },
-  {
-    number: 3,
-    title: 'Validación de campo',
-    description: 'Verificación manual con expertos del CIIEMAD-IPN siguiendo la metodología de Cervantes-Nájera. Fotografía aérea, observaciones de campo y revisión de catastro.',
-    icono: 'shield',
-    color: 'accent',
-    details: [
-      'Revisión de imagen aérea de alta resolución',
-      'Validación territorial con expertos',
-      'Cruce con catastro y dictámenes oficiales',
-      'Nivel de confianza por sitio',
-    ],
-  },
-  {
-    number: 4,
-    title: 'Priorización territorial',
-    description: 'Integración de los resultados del modelo de aptitud con las validaciones de campo para identificar y priorizar sitios candidatos.',
-    icono: 'flag',
-    color: 'rose',
-    details: [
-      'Cruce de aptitud con inventario existente',
-      'Identificación de zonas de alta prioridad',
-      'Generación de fichas por candidato',
-      'Datos abiertos para consulta pública',
-    ],
-  },
+// CMS de la página (movido arriba para que se pueda usar en computed/refs)
+const cmsMetodologia = useCmsContent('metodologia')
+
+// Pasos del modelo — editables desde /admin/contenido/metodologia → pasos
+interface StepItem {
+  number: number
+  title: string
+  description: string
+  icono: string
+  color: string
+  details: string[]
+}
+const stepsDefault: StepItem[] = [
+  { number: 1, title: 'Recopilación de datos geoespaciales', description: 'Integración de múltiples fuentes de datos espaciales, incluyendo imágenes satelitales, datos censales y estaciones de monitoreo.', icono: 'satellite', color: 'secondary', details: ['Imágenes Landsat y MODIS para temperatura superficial', 'Datos del INEGI para población y área urbanizada', 'Estaciones RAMA para calidad del aire', 'Coberturas de uso de suelo de SEDEMA'] },
+  { number: 2, title: 'Construcción del índice de aptitud', description: 'Normalización y ponderación de variables en un índice multicriterio de aptitud territorial.', icono: 'scale', color: 'violet', details: ['Normalización 0-100 por variable', 'Ponderación por Proceso Analítico Jerárquico (AHP)', 'Validación cruzada con expertos', 'Clasificación en 5 niveles de aptitud'] },
+  { number: 3, title: 'Validación de campo', description: 'Verificación manual con expertos del CIIEMAD-IPN siguiendo la metodología de Cervantes-Nájera. Fotografía aérea, observaciones de campo y revisión de catastro.', icono: 'shield', color: 'accent', details: ['Revisión de imagen aérea de alta resolución', 'Validación territorial con expertos', 'Cruce con catastro y dictámenes oficiales', 'Nivel de confianza por sitio'] },
+  { number: 4, title: 'Priorización territorial', description: 'Integración de los resultados del modelo de aptitud con las validaciones de campo para identificar y priorizar sitios candidatos.', icono: 'flag', color: 'rose', details: ['Cruce de aptitud con inventario existente', 'Identificación de zonas de alta prioridad', 'Generación de fichas por candidato', 'Datos abiertos para consulta pública'] },
 ]
+const stepsCms = cmsMetodologia.list<StepItem>('pasos')
+const methodologySteps = computed<StepItem[]>(() => (stepsCms.value.length >= stepsDefault.length ? stepsCms.value : stepsDefault))
 
 // Limitaciones — editables desde /admin/contenido/metodologia
 type Limitation = { text: string }
-const cmsMetodologia = useCmsContent('metodologia')
 const limitationsList = cmsMetodologia.list<Limitation>('limitations')
 const limitations = computed(() => limitationsList.value.map((l) => l.text))
 </script>
