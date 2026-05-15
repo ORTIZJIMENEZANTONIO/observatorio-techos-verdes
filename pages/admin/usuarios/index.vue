@@ -15,6 +15,7 @@ interface AdminUser {
 
 const { apiFetch } = useApi()
 const config = useRuntimeConfig()
+const toast = useToast()
 const observatory = config.public.observatory as string
 const auth = useAuthStore()
 
@@ -118,6 +119,7 @@ const save = async () => {
     isActive: form.isActive,
   }
   if (form.password) body.password = form.password
+  const isEdit = !!editingId.value
   try {
     if (editingId.value) {
       await apiFetch(`/observatory/${observatory}/admin/usuarios/${editingId.value}`, { method: 'PATCH', body })
@@ -127,8 +129,14 @@ const save = async () => {
     showForm.value = false
     resetForm()
     await load()
+    toast.success(
+      isEdit ? 'Usuario actualizado' : 'Usuario creado',
+      `${body.name} · ${body.email}`,
+    )
   } catch (e: any) {
-    error.value = e?.data?.error?.message || 'No se pudo guardar el usuario'
+    const msg = e?.data?.error?.message || 'No se pudo guardar el usuario'
+    error.value = msg
+    toast.errorFrom(e, msg, isEdit ? 'Error al actualizar' : 'Error al crear usuario')
   } finally {
     saving.value = false
   }
@@ -137,14 +145,18 @@ const save = async () => {
 const remove = async (u: AdminUser) => {
   if (u.id === auth.admin?.id) {
     error.value = 'No puedes eliminar tu propia cuenta'
+    toast.warning('Acción no permitida', 'No puedes eliminar tu propia cuenta')
     return
   }
   if (!confirm(`¿Eliminar al usuario "${u.name || u.email}"? Esta acción es permanente.`)) return
   try {
     await apiFetch(`/observatory/${observatory}/admin/usuarios/${u.id}`, { method: 'DELETE' })
     await load()
+    toast.success('Usuario eliminado', `${u.name || u.email}`)
   } catch (e: any) {
-    error.value = e?.data?.error?.message || 'No se pudo eliminar'
+    const msg = e?.data?.error?.message || 'No se pudo eliminar'
+    error.value = msg
+    toast.errorFrom(e, msg, 'Error al eliminar')
   }
 }
 

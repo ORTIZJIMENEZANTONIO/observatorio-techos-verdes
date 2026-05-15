@@ -1,0 +1,1667 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <title>Inspección Roofpedia — Iztapalapa</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, sans-serif; background: #f7f8f4; color: #1f2937; padding: 24px; }
+    header { background: #0E5E3A; color: white; padding: 20px 24px; border-radius: 16px; margin-bottom: 20px; }
+    h1 { font-size: 1.5rem; font-weight: 700; }
+    .subtitle { opacity: 0.85; margin-top: 4px; font-size: 0.875rem; }
+    .summary { display: flex; gap: 16px; margin-top: 16px; flex-wrap: wrap; }
+    .stat { background: rgba(255,255,255,0.15); padding: 10px 14px; border-radius: 10px; font-size: 0.875rem; }
+    .stat strong { font-size: 1.5rem; font-weight: 800; display: block; }
+    .toolbar { display: flex; gap: 10px; margin-bottom: 16px; flex-wrap: wrap; }
+    .toolbar button { padding: 8px 14px; border: 1px solid #d1d5db; background: white; border-radius: 8px; cursor: pointer; font-size: 0.875rem; }
+    .toolbar button:hover { border-color: #0E5E3A; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(540px, 1fr)); gap: 16px; }
+    .card { background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.06); border: 2px solid transparent; transition: all 0.2s; }
+    .card.valid { border-color: #10b981; background: #ecfdf5; }
+    .card.fp { border-color: #ef4444; background: #fef2f2; }
+    .card.unknown { border-color: #f59e0b; background: #fffbeb; }
+    .img-pair { display: grid; grid-template-columns: 1fr 1fr; gap: 2px; background: #e5e7eb; }
+    .img-pair > div { position: relative; }
+    .img-pair img { width: 100%; height: 320px; object-fit: cover; display: block; background: #e5e7eb; image-rendering: -webkit-optimize-contrast; }
+    .img-pair .label { position: absolute; top: 4px; left: 4px; background: rgba(0,0,0,0.7); color: white; padding: 2px 6px; border-radius: 4px; font-size: 0.7rem; font-weight: 600; }
+    .card-body { padding: 12px; }
+    .feat-id { font-size: 0.75rem; color: #6b7280; font-family: monospace; }
+    .coords { font-size: 0.75rem; color: #1f2937; margin-top: 4px; }
+    .actions { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; margin-top: 10px; }
+    .actions button { padding: 8px 4px; font-size: 0.75rem; border: 1px solid #d1d5db; background: white; border-radius: 6px; cursor: pointer; font-weight: 600; }
+    .actions button.valid { background: #10b981; color: white; border-color: #10b981; }
+    .actions button.fp { background: #ef4444; color: white; border-color: #ef4444; }
+    .actions button.unknown { background: #f59e0b; color: white; border-color: #f59e0b; }
+    .actions .links { grid-column: span 3; display: flex; gap: 4px; margin-top: 4px; }
+    .actions .links a { flex: 1; text-align: center; padding: 6px 4px; font-size: 0.7rem; background: #f3f4f6; border-radius: 6px; text-decoration: none; color: #374151; }
+    .actions .links a:hover { background: #e5e7eb; }
+    .legend { display: flex; gap: 12px; font-size: 0.75rem; margin-bottom: 12px; align-items: center; flex-wrap: wrap; }
+    .legend-item { display: flex; align-items: center; gap: 6px; }
+    .legend-dot { width: 14px; height: 14px; border-radius: 4px; }
+    .filter-bar { background: white; padding: 12px; border-radius: 10px; margin-bottom: 16px; display: flex; gap: 8px; flex-wrap: wrap; font-size: 0.875rem; }
+    .filter-bar label { display: flex; align-items: center; gap: 6px; cursor: pointer; }
+    .missing { padding: 20px; text-align: center; color: #6b7280; font-size: 0.875rem; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Inspección visual Roofpedia — Iztapalapa</h1>
+    <p class="subtitle">Pixeles rojos translúcidos = donde el CNN activó "green roof". Verifica visualmente cada detección.</p>
+    <div class="summary">
+      <div class="stat"><strong id="total">105</strong>total</div>
+      <div class="stat"><strong id="count-valid">0</strong>válidos ✓</div>
+      <div class="stat"><strong id="count-fp">0</strong>falsos positivos ✗</div>
+      <div class="stat"><strong id="count-unknown">0</strong>dudosos ?</div>
+      <div class="stat"><strong id="count-pending">105</strong>pendientes</div>
+    </div>
+  </header>
+
+  <div class="filter-bar">
+    <strong>Filtrar:</strong>
+    <label><input type="radio" name="filter" value="all" checked> Todos</label>
+    <label><input type="radio" name="filter" value="pending"> Pendientes</label>
+    <label><input type="radio" name="filter" value="valid"> Válidos</label>
+    <label><input type="radio" name="filter" value="fp"> Falsos positivos</label>
+    <label><input type="radio" name="filter" value="unknown"> Dudosos</label>
+  </div>
+
+  <div class="toolbar">
+    <button onclick="exportCSV()">📥 Exportar CSV de votos</button>
+    <button onclick="resetAll()">🔄 Limpiar todos los votos</button>
+    <button onclick="copySummary()">📋 Copiar resumen al portapapeles</button>
+  </div>
+
+  <div class="legend">
+    <span class="legend-item"><span class="legend-dot" style="background:#10b981"></span>Válido (sí es techo verde)</span>
+    <span class="legend-item"><span class="legend-dot" style="background:#ef4444"></span>Falso positivo (no es techo verde)</span>
+    <span class="legend-item"><span class="legend-dot" style="background:#f59e0b"></span>Dudoso / imagen no clara</span>
+  </div>
+
+  <div id="grid" class="grid"></div>
+
+  <script>
+    const cards = [
+  {
+    "i": 0,
+    "missing": false,
+    "comp": "composites/feat_0000_x117831_y233375.png",
+    "tile": "composites/feat_0000_x117831_y233375.png",
+    "zoom_img": "composites/feat_0000_zoom.png",
+    "lat": 19.373899,
+    "lng": -99.091798,
+    "x": 117831,
+    "y": 233375,
+    "area": 1019.6,
+    "idx_in_tile": 1,
+    "total_in_tile": 1
+  },
+  {
+    "i": 1,
+    "missing": false,
+    "comp": "composites/feat_0001_x117831_y233371.png",
+    "tile": "composites/feat_0001_x117831_y233371.png",
+    "zoom_img": "composites/feat_0001_zoom.png",
+    "lat": 19.376554,
+    "lng": -99.091712,
+    "x": 117831,
+    "y": 233371,
+    "area": 1019.7,
+    "idx_in_tile": 1,
+    "total_in_tile": 1
+  },
+  {
+    "i": 2,
+    "missing": false,
+    "comp": "composites/feat_0002_x117828_y233369.png",
+    "tile": "composites/feat_0002_x117828_y233369.png",
+    "zoom_img": "composites/feat_0002_zoom.png",
+    "lat": 19.377623,
+    "lng": -99.093451,
+    "x": 117828,
+    "y": 233369,
+    "area": 1019.7,
+    "idx_in_tile": 1,
+    "total_in_tile": 1
+  },
+  {
+    "i": 3,
+    "missing": false,
+    "comp": "composites/feat_0003_x117828_y233379.png",
+    "tile": "composites/feat_0003_x117828_y233379.png",
+    "zoom_img": "composites/feat_0003_zoom.png",
+    "lat": 19.371258,
+    "lng": -99.093626,
+    "x": 117828,
+    "y": 233379,
+    "area": 1019.6,
+    "idx_in_tile": 1,
+    "total_in_tile": 1
+  },
+  {
+    "i": 4,
+    "missing": false,
+    "comp": "composites/feat_0004_x117831_y233379.png",
+    "tile": "composites/feat_0004_x117831_y233379.png",
+    "zoom_img": "composites/feat_0004_zoom.png",
+    "lat": 19.371221,
+    "lng": -99.091849,
+    "x": 117831,
+    "y": 233379,
+    "area": 1019.6,
+    "idx_in_tile": 1,
+    "total_in_tile": 1
+  },
+  {
+    "i": 5,
+    "missing": false,
+    "comp": "composites/feat_0005_x117831_y233378.png",
+    "tile": "composites/feat_0005_x117831_y233378.png",
+    "zoom_img": "composites/feat_0005_zoom.png",
+    "lat": 19.372017,
+    "lng": -99.09183,
+    "x": 117831,
+    "y": 233378,
+    "area": 1019.6,
+    "idx_in_tile": 1,
+    "total_in_tile": 1
+  },
+  {
+    "i": 6,
+    "missing": false,
+    "comp": "composites/feat_0006_x117828_y233377.png",
+    "tile": "composites/feat_0006_x117828_y233377.png",
+    "zoom_img": "composites/feat_0006_zoom.png",
+    "lat": 19.372062,
+    "lng": -99.093602,
+    "x": 117828,
+    "y": 233377,
+    "area": 1019.6,
+    "idx_in_tile": 1,
+    "total_in_tile": 1
+  },
+  {
+    "i": 7,
+    "missing": false,
+    "comp": "composites/feat_0007_x117828_y233383.png",
+    "tile": "composites/feat_0007_x117828_y233383.png",
+    "zoom_img": "composites/feat_0007_zoom.png",
+    "lat": 19.368725,
+    "lng": -99.09369,
+    "x": 117828,
+    "y": 233383,
+    "area": 1019.6,
+    "idx_in_tile": 1,
+    "total_in_tile": 1
+  },
+  {
+    "i": 8,
+    "missing": false,
+    "comp": "composites/feat_0008_x117831_y233372.png",
+    "tile": "composites/feat_0008_x117831_y233372.png",
+    "zoom_img": "composites/feat_0008_zoom.png",
+    "lat": 19.375486,
+    "lng": -99.091739,
+    "x": 117831,
+    "y": 233372,
+    "area": 1019.7,
+    "idx_in_tile": 1,
+    "total_in_tile": 1
+  },
+  {
+    "i": 9,
+    "missing": false,
+    "comp": "composites/feat_0009_x117831_y233380.png",
+    "tile": "composites/feat_0009_x117831_y233380.png",
+    "zoom_img": "composites/feat_0009_zoom.png",
+    "lat": 19.370388,
+    "lng": -99.091873,
+    "x": 117831,
+    "y": 233380,
+    "area": 1019.6,
+    "idx_in_tile": 1,
+    "total_in_tile": 1
+  },
+  {
+    "i": 10,
+    "missing": false,
+    "comp": "composites/feat_0010_x117854_y233360.png",
+    "tile": "composites/feat_0010_x117854_y233360.png",
+    "zoom_img": "composites/feat_0010_zoom.png",
+    "lat": 19.383531,
+    "lng": -99.075542,
+    "x": 117854,
+    "y": 233360,
+    "area": 1019.7,
+    "idx_in_tile": 1,
+    "total_in_tile": 2
+  },
+  {
+    "i": 11,
+    "missing": false,
+    "comp": "composites/feat_0011_x117854_y233360.png",
+    "tile": "composites/feat_0011_x117854_y233360.png",
+    "zoom_img": "composites/feat_0011_zoom.png",
+    "lat": 19.383409,
+    "lng": -99.075546,
+    "x": 117854,
+    "y": 233360,
+    "area": 1019.7,
+    "idx_in_tile": 2,
+    "total_in_tile": 2
+  },
+  {
+    "i": 12,
+    "missing": false,
+    "comp": "composites/feat_0012_x117857_y233410.png",
+    "tile": "composites/feat_0012_x117857_y233410.png",
+    "zoom_img": "composites/feat_0012_zoom.png",
+    "lat": 19.351233,
+    "lng": -99.0738,
+    "x": 117857,
+    "y": 233410,
+    "area": 1019.5,
+    "idx_in_tile": 1,
+    "total_in_tile": 1
+  },
+  {
+    "i": 13,
+    "missing": false,
+    "comp": "composites/feat_0013_x117859_y233391.png",
+    "tile": "composites/feat_0013_x117859_y233391.png",
+    "zoom_img": "composites/feat_0013_zoom.png",
+    "lat": 19.36304,
+    "lng": -99.07253,
+    "x": 117859,
+    "y": 233391,
+    "area": 1019.6,
+    "idx_in_tile": 1,
+    "total_in_tile": 1
+  },
+  {
+    "i": 14,
+    "missing": false,
+    "comp": "composites/feat_0014_x117791_y233450.png",
+    "tile": "composites/feat_0014_x117791_y233450.png",
+    "zoom_img": "composites/feat_0014_zoom.png",
+    "lat": 19.324891,
+    "lng": -99.119277,
+    "x": 117791,
+    "y": 233450,
+    "area": 1019.3,
+    "idx_in_tile": 1,
+    "total_in_tile": 1
+  },
+  {
+    "i": 15,
+    "missing": false,
+    "comp": "composites/feat_0015_x117858_y233438.png",
+    "tile": "composites/feat_0015_x117858_y233438.png",
+    "zoom_img": "composites/feat_0015_zoom.png",
+    "lat": 19.332805,
+    "lng": -99.073154,
+    "x": 117858,
+    "y": 233438,
+    "area": 1019.4,
+    "idx_in_tile": 1,
+    "total_in_tile": 1
+  },
+  {
+    "i": 16,
+    "missing": false,
+    "comp": "composites/feat_0016_x117845_y233363.png",
+    "tile": "composites/feat_0016_x117845_y233363.png",
+    "zoom_img": "composites/feat_0016_zoom.png",
+    "lat": 19.381356,
+    "lng": -99.082226,
+    "x": 117845,
+    "y": 233363,
+    "area": 1019.7,
+    "idx_in_tile": 1,
+    "total_in_tile": 2
+  },
+  {
+    "i": 17,
+    "missing": false,
+    "comp": "composites/feat_0017_x117845_y233363.png",
+    "tile": "composites/feat_0017_x117845_y233363.png",
+    "zoom_img": "composites/feat_0017_zoom.png",
+    "lat": 19.381319,
+    "lng": -99.082046,
+    "x": 117845,
+    "y": 233363,
+    "area": 1019.7,
+    "idx_in_tile": 2,
+    "total_in_tile": 2
+  },
+  {
+    "i": 18,
+    "missing": false,
+    "comp": "composites/feat_0018_x117844_y233363.png",
+    "tile": "composites/feat_0018_x117844_y233363.png",
+    "zoom_img": "composites/feat_0018_zoom.png",
+    "lat": 19.381455,
+    "lng": -99.08284,
+    "x": 117844,
+    "y": 233363,
+    "area": 1019.7,
+    "idx_in_tile": 1,
+    "total_in_tile": 1
+  },
+  {
+    "i": 19,
+    "missing": false,
+    "comp": "composites/feat_0019_x117878_y233383.png",
+    "tile": "composites/feat_0019_x117878_y233383.png",
+    "zoom_img": "composites/feat_0019_zoom.png",
+    "lat": 19.368646,
+    "lng": -99.059432,
+    "x": 117878,
+    "y": 233383,
+    "area": 1019.6,
+    "idx_in_tile": 1,
+    "total_in_tile": 3
+  },
+  {
+    "i": 20,
+    "missing": false,
+    "comp": "composites/feat_0020_x117878_y233383.png",
+    "tile": "composites/feat_0020_x117878_y233383.png",
+    "zoom_img": "composites/feat_0020_zoom.png",
+    "lat": 19.368655,
+    "lng": -99.059304,
+    "x": 117878,
+    "y": 233383,
+    "area": 1019.6,
+    "idx_in_tile": 2,
+    "total_in_tile": 3
+  },
+  {
+    "i": 21,
+    "missing": false,
+    "comp": "composites/feat_0021_x117878_y233383.png",
+    "tile": "composites/feat_0021_x117878_y233383.png",
+    "zoom_img": "composites/feat_0021_zoom.png",
+    "lat": 19.368758,
+    "lng": -99.059589,
+    "x": 117878,
+    "y": 233383,
+    "area": 1019.6,
+    "idx_in_tile": 3,
+    "total_in_tile": 3
+  },
+  {
+    "i": 22,
+    "missing": false,
+    "comp": "composites/feat_0022_x117875_y233381.png",
+    "tile": "composites/feat_0022_x117875_y233381.png",
+    "zoom_img": "composites/feat_0022_zoom.png",
+    "lat": 19.370008,
+    "lng": -99.061535,
+    "x": 117875,
+    "y": 233381,
+    "area": 1019.6,
+    "idx_in_tile": 1,
+    "total_in_tile": 2
+  },
+  {
+    "i": 23,
+    "missing": false,
+    "comp": "composites/feat_0023_x117875_y233381.png",
+    "tile": "composites/feat_0023_x117875_y233381.png",
+    "zoom_img": "composites/feat_0023_zoom.png",
+    "lat": 19.369819,
+    "lng": -99.061543,
+    "x": 117875,
+    "y": 233381,
+    "area": 1019.6,
+    "idx_in_tile": 2,
+    "total_in_tile": 2
+  },
+  {
+    "i": 24,
+    "missing": false,
+    "comp": "composites/feat_0024_x117876_y233381.png",
+    "tile": "composites/feat_0024_x117876_y233381.png",
+    "zoom_img": "composites/feat_0024_zoom.png",
+    "lat": 19.369874,
+    "lng": -99.060317,
+    "x": 117876,
+    "y": 233381,
+    "area": 1019.6,
+    "idx_in_tile": 1,
+    "total_in_tile": 2
+  },
+  {
+    "i": 25,
+    "missing": false,
+    "comp": "composites/feat_0025_x117876_y233381.png",
+    "tile": "composites/feat_0025_x117876_y233381.png",
+    "zoom_img": "composites/feat_0025_zoom.png",
+    "lat": 19.370055,
+    "lng": -99.060321,
+    "x": 117876,
+    "y": 233381,
+    "area": 1019.6,
+    "idx_in_tile": 2,
+    "total_in_tile": 2
+  },
+  {
+    "i": 26,
+    "missing": false,
+    "comp": "composites/feat_0026_x117879_y233379.png",
+    "tile": "composites/feat_0026_x117879_y233379.png",
+    "zoom_img": "composites/feat_0026_zoom.png",
+    "lat": 19.370895,
+    "lng": -99.058641,
+    "x": 117879,
+    "y": 233379,
+    "area": 1019.6,
+    "idx_in_tile": 1,
+    "total_in_tile": 1
+  },
+  {
+    "i": 27,
+    "missing": false,
+    "comp": "composites/feat_0027_x117875_y233382.png",
+    "tile": "composites/feat_0027_x117875_y233382.png",
+    "zoom_img": "composites/feat_0027_zoom.png",
+    "lat": 19.369356,
+    "lng": -99.060989,
+    "x": 117875,
+    "y": 233382,
+    "area": 1019.6,
+    "idx_in_tile": 1,
+    "total_in_tile": 1
+  },
+  {
+    "i": 28,
+    "missing": false,
+    "comp": "composites/feat_0028_x117874_y233379.png",
+    "tile": "composites/feat_0028_x117874_y233379.png",
+    "zoom_img": "composites/feat_0028_zoom.png",
+    "lat": 19.371153,
+    "lng": -99.06227,
+    "x": 117874,
+    "y": 233379,
+    "area": 1019.6,
+    "idx_in_tile": 1,
+    "total_in_tile": 1
+  },
+  {
+    "i": 29,
+    "missing": false,
+    "comp": "composites/feat_0029_x117873_y233379.png",
+    "tile": "composites/feat_0029_x117873_y233379.png",
+    "zoom_img": "composites/feat_0029_zoom.png",
+    "lat": 19.371095,
+    "lng": -99.062433,
+    "x": 117873,
+    "y": 233379,
+    "area": 1019.6,
+    "idx_in_tile": 1,
+    "total_in_tile": 2
+  },
+  {
+    "i": 30,
+    "missing": false,
+    "comp": "composites/feat_0030_x117873_y233379.png",
+    "tile": "composites/feat_0030_x117873_y233379.png",
+    "zoom_img": "composites/feat_0030_zoom.png",
+    "lat": 19.371332,
+    "lng": -99.062562,
+    "x": 117873,
+    "y": 233379,
+    "area": 1019.6,
+    "idx_in_tile": 2,
+    "total_in_tile": 2
+  },
+  {
+    "i": 31,
+    "missing": false,
+    "comp": "composites/feat_0031_x117874_y233375.png",
+    "tile": "composites/feat_0031_x117874_y233375.png",
+    "zoom_img": "composites/feat_0031_zoom.png",
+    "lat": 19.373356,
+    "lng": -99.062157,
+    "x": 117874,
+    "y": 233375,
+    "area": 1019.6,
+    "idx_in_tile": 1,
+    "total_in_tile": 1
+  },
+  {
+    "i": 32,
+    "missing": false,
+    "comp": "composites/feat_0032_x117875_y233385.png",
+    "tile": "composites/feat_0032_x117875_y233385.png",
+    "zoom_img": "composites/feat_0032_zoom.png",
+    "lat": 19.367222,
+    "lng": -99.061273,
+    "x": 117875,
+    "y": 233385,
+    "area": 1019.6,
+    "idx_in_tile": 1,
+    "total_in_tile": 1
+  },
+  {
+    "i": 33,
+    "missing": false,
+    "comp": "composites/feat_0033_x117836_y233365.png",
+    "tile": "composites/feat_0033_x117836_y233365.png",
+    "zoom_img": "composites/feat_0033_zoom.png",
+    "lat": 19.38036,
+    "lng": -99.088199,
+    "x": 117836,
+    "y": 233365,
+    "area": 1019.7,
+    "idx_in_tile": 1,
+    "total_in_tile": 1
+  },
+  {
+    "i": 34,
+    "missing": false,
+    "comp": "composites/feat_0034_x117985_y233409.png",
+    "tile": "composites/feat_0034_x117985_y233409.png",
+    "zoom_img": "composites/feat_0034_zoom.png",
+    "lat": 19.351962,
+    "lng": -98.985603,
+    "x": 117985,
+    "y": 233409,
+    "area": 1019.5,
+    "idx_in_tile": 1,
+    "total_in_tile": 1
+  },
+  {
+    "i": 35,
+    "missing": false,
+    "comp": "composites/feat_0035_x117802_y233458.png",
+    "tile": "composites/feat_0035_x117802_y233458.png",
+    "zoom_img": "composites/feat_0035_zoom.png",
+    "lat": 19.319599,
+    "lng": -99.111758,
+    "x": 117802,
+    "y": 233458,
+    "area": 1019.3,
+    "idx_in_tile": 1,
+    "total_in_tile": 2
+  },
+  {
+    "i": 36,
+    "missing": false,
+    "comp": "composites/feat_0036_x117802_y233458.png",
+    "tile": "composites/feat_0036_x117802_y233458.png",
+    "zoom_img": "composites/feat_0036_zoom.png",
+    "lat": 19.319649,
+    "lng": -99.111756,
+    "x": 117802,
+    "y": 233458,
+    "area": 1019.3,
+    "idx_in_tile": 2,
+    "total_in_tile": 2
+  },
+  {
+    "i": 37,
+    "missing": false,
+    "comp": "composites/feat_0037_x117802_y233459.png",
+    "tile": "composites/feat_0037_x117802_y233459.png",
+    "zoom_img": "composites/feat_0037_zoom.png",
+    "lat": 19.319526,
+    "lng": -99.111746,
+    "x": 117802,
+    "y": 233459,
+    "area": 1019.3,
+    "idx_in_tile": 1,
+    "total_in_tile": 2
+  },
+  {
+    "i": 38,
+    "missing": false,
+    "comp": "composites/feat_0038_x117801_y233459.png",
+    "tile": "composites/feat_0038_x117801_y233459.png",
+    "zoom_img": "composites/feat_0038_zoom.png",
+    "lat": 19.319543,
+    "lng": -99.111807,
+    "x": 117801,
+    "y": 233459,
+    "area": 1019.3,
+    "idx_in_tile": 1,
+    "total_in_tile": 7
+  },
+  {
+    "i": 39,
+    "missing": false,
+    "comp": "composites/feat_0039_x117801_y233459.png",
+    "tile": "composites/feat_0039_x117801_y233459.png",
+    "zoom_img": "composites/feat_0039_zoom.png",
+    "lat": 19.319554,
+    "lng": -99.111859,
+    "x": 117801,
+    "y": 233459,
+    "area": 1019.3,
+    "idx_in_tile": 2,
+    "total_in_tile": 7
+  },
+  {
+    "i": 40,
+    "missing": false,
+    "comp": "composites/feat_0040_x117801_y233459.png",
+    "tile": "composites/feat_0040_x117801_y233459.png",
+    "zoom_img": "composites/feat_0040_zoom.png",
+    "lat": 19.319558,
+    "lng": -99.111909,
+    "x": 117801,
+    "y": 233459,
+    "area": 1019.3,
+    "idx_in_tile": 3,
+    "total_in_tile": 7
+  },
+  {
+    "i": 41,
+    "missing": false,
+    "comp": "composites/feat_0041_x117801_y233459.png",
+    "tile": "composites/feat_0041_x117801_y233459.png",
+    "zoom_img": "composites/feat_0041_zoom.png",
+    "lat": 19.319531,
+    "lng": -99.111963,
+    "x": 117801,
+    "y": 233459,
+    "area": 1019.3,
+    "idx_in_tile": 4,
+    "total_in_tile": 7
+  },
+  {
+    "i": 42,
+    "missing": false,
+    "comp": "composites/feat_0042_x117801_y233458.png",
+    "tile": "composites/feat_0042_x117801_y233458.png",
+    "zoom_img": "composites/feat_0042_zoom.png",
+    "lat": 19.319597,
+    "lng": -99.111959,
+    "x": 117801,
+    "y": 233458,
+    "area": 1019.3,
+    "idx_in_tile": 1,
+    "total_in_tile": 2
+  },
+  {
+    "i": 43,
+    "missing": false,
+    "comp": "composites/feat_0043_x117801_y233458.png",
+    "tile": "composites/feat_0043_x117801_y233458.png",
+    "zoom_img": "composites/feat_0043_zoom.png",
+    "lat": 19.319652,
+    "lng": -99.111915,
+    "x": 117801,
+    "y": 233458,
+    "area": 1019.3,
+    "idx_in_tile": 2,
+    "total_in_tile": 2
+  },
+  {
+    "i": 44,
+    "missing": false,
+    "comp": "composites/feat_0044_x117802_y233459.png",
+    "tile": "composites/feat_0044_x117802_y233459.png",
+    "zoom_img": "composites/feat_0044_zoom.png",
+    "lat": 19.319399,
+    "lng": -99.111777,
+    "x": 117802,
+    "y": 233459,
+    "area": 1019.3,
+    "idx_in_tile": 2,
+    "total_in_tile": 2
+  },
+  {
+    "i": 45,
+    "missing": false,
+    "comp": "composites/feat_0045_x117801_y233459.png",
+    "tile": "composites/feat_0045_x117801_y233459.png",
+    "zoom_img": "composites/feat_0045_zoom.png",
+    "lat": 19.319416,
+    "lng": -99.111855,
+    "x": 117801,
+    "y": 233459,
+    "area": 1019.3,
+    "idx_in_tile": 5,
+    "total_in_tile": 7
+  },
+  {
+    "i": 46,
+    "missing": false,
+    "comp": "composites/feat_0046_x117801_y233459.png",
+    "tile": "composites/feat_0046_x117801_y233459.png",
+    "zoom_img": "composites/feat_0046_zoom.png",
+    "lat": 19.31942,
+    "lng": -99.111944,
+    "x": 117801,
+    "y": 233459,
+    "area": 1019.3,
+    "idx_in_tile": 6,
+    "total_in_tile": 7
+  },
+  {
+    "i": 47,
+    "missing": false,
+    "comp": "composites/feat_0047_x117801_y233459.png",
+    "tile": "composites/feat_0047_x117801_y233459.png",
+    "zoom_img": "composites/feat_0047_zoom.png",
+    "lat": 19.319383,
+    "lng": -99.111946,
+    "x": 117801,
+    "y": 233459,
+    "area": 1019.3,
+    "idx_in_tile": 7,
+    "total_in_tile": 7
+  },
+  {
+    "i": 48,
+    "missing": false,
+    "comp": "composites/feat_0048_x117839_y233458.png",
+    "tile": "composites/feat_0048_x117839_y233458.png",
+    "zoom_img": "composites/feat_0048_zoom.png",
+    "lat": 19.319887,
+    "lng": -99.085923,
+    "x": 117839,
+    "y": 233458,
+    "area": 1019.3,
+    "idx_in_tile": 1,
+    "total_in_tile": 2
+  },
+  {
+    "i": 49,
+    "missing": false,
+    "comp": "composites/feat_0049_x117839_y233458.png",
+    "tile": "composites/feat_0049_x117839_y233458.png",
+    "zoom_img": "composites/feat_0049_zoom.png",
+    "lat": 19.320069,
+    "lng": -99.08589,
+    "x": 117839,
+    "y": 233458,
+    "area": 1019.3,
+    "idx_in_tile": 2,
+    "total_in_tile": 2
+  },
+  {
+    "i": 50,
+    "missing": false,
+    "comp": "composites/feat_0050_x117839_y233457.png",
+    "tile": "composites/feat_0050_x117839_y233457.png",
+    "zoom_img": "composites/feat_0050_zoom.png",
+    "lat": 19.320252,
+    "lng": -99.08584,
+    "x": 117839,
+    "y": 233457,
+    "area": 1019.3,
+    "idx_in_tile": 1,
+    "total_in_tile": 1
+  },
+  {
+    "i": 51,
+    "missing": false,
+    "comp": "composites/feat_0051_x117838_y233459.png",
+    "tile": "composites/feat_0051_x117838_y233459.png",
+    "zoom_img": "composites/feat_0051_zoom.png",
+    "lat": 19.319218,
+    "lng": -99.08699,
+    "x": 117838,
+    "y": 233459,
+    "area": 1019.3,
+    "idx_in_tile": 1,
+    "total_in_tile": 2
+  },
+  {
+    "i": 52,
+    "missing": false,
+    "comp": "composites/feat_0052_x117838_y233459.png",
+    "tile": "composites/feat_0052_x117838_y233459.png",
+    "zoom_img": "composites/feat_0052_zoom.png",
+    "lat": 19.319066,
+    "lng": -99.087017,
+    "x": 117838,
+    "y": 233459,
+    "area": 1019.3,
+    "idx_in_tile": 2,
+    "total_in_tile": 2
+  },
+  {
+    "i": 53,
+    "missing": false,
+    "comp": "composites/feat_0053_x117830_y233459.png",
+    "tile": "composites/feat_0053_x117830_y233459.png",
+    "zoom_img": "composites/feat_0053_zoom.png",
+    "lat": 19.319262,
+    "lng": -99.091987,
+    "x": 117830,
+    "y": 233459,
+    "area": 1019.3,
+    "idx_in_tile": 1,
+    "total_in_tile": 2
+  },
+  {
+    "i": 54,
+    "missing": false,
+    "comp": "composites/feat_0054_x117830_y233459.png",
+    "tile": "composites/feat_0054_x117830_y233459.png",
+    "zoom_img": "composites/feat_0054_zoom.png",
+    "lat": 19.31946,
+    "lng": -99.092048,
+    "x": 117830,
+    "y": 233459,
+    "area": 1019.3,
+    "idx_in_tile": 2,
+    "total_in_tile": 2
+  },
+  {
+    "i": 55,
+    "missing": false,
+    "comp": "composites/feat_0055_x117831_y233459.png",
+    "tile": "composites/feat_0055_x117831_y233459.png",
+    "zoom_img": "composites/feat_0055_zoom.png",
+    "lat": 19.319315,
+    "lng": -99.091708,
+    "x": 117831,
+    "y": 233459,
+    "area": 1019.3,
+    "idx_in_tile": 1,
+    "total_in_tile": 1
+  },
+  {
+    "i": 56,
+    "missing": false,
+    "comp": "composites/feat_0056_x117798_y233458.png",
+    "tile": "composites/feat_0056_x117798_y233458.png",
+    "zoom_img": "composites/feat_0056_zoom.png",
+    "lat": 19.319706,
+    "lng": -99.113958,
+    "x": 117798,
+    "y": 233458,
+    "area": 1019.3,
+    "idx_in_tile": 1,
+    "total_in_tile": 1
+  },
+  {
+    "i": 57,
+    "missing": false,
+    "comp": "composites/feat_0057_x117798_y233459.png",
+    "tile": "composites/feat_0057_x117798_y233459.png",
+    "zoom_img": "composites/feat_0057_zoom.png",
+    "lat": 19.319478,
+    "lng": -99.114032,
+    "x": 117798,
+    "y": 233459,
+    "area": 1019.3,
+    "idx_in_tile": 1,
+    "total_in_tile": 2
+  },
+  {
+    "i": 58,
+    "missing": false,
+    "comp": "composites/feat_0058_x117798_y233459.png",
+    "tile": "composites/feat_0058_x117798_y233459.png",
+    "zoom_img": "composites/feat_0058_zoom.png",
+    "lat": 19.319471,
+    "lng": -99.114149,
+    "x": 117798,
+    "y": 233459,
+    "area": 1019.3,
+    "idx_in_tile": 2,
+    "total_in_tile": 2
+  },
+  {
+    "i": 59,
+    "missing": false,
+    "comp": "composites/feat_0059_x117806_y233439.png",
+    "tile": "composites/feat_0059_x117806_y233439.png",
+    "zoom_img": "composites/feat_0059_zoom.png",
+    "lat": 19.332058,
+    "lng": -99.108907,
+    "x": 117806,
+    "y": 233439,
+    "area": 1019.4,
+    "idx_in_tile": 1,
+    "total_in_tile": 5
+  },
+  {
+    "i": 60,
+    "missing": false,
+    "comp": "composites/feat_0060_x117806_y233439.png",
+    "tile": "composites/feat_0060_x117806_y233439.png",
+    "zoom_img": "composites/feat_0060_zoom.png",
+    "lat": 19.33193,
+    "lng": -99.108833,
+    "x": 117806,
+    "y": 233439,
+    "area": 1019.4,
+    "idx_in_tile": 2,
+    "total_in_tile": 5
+  },
+  {
+    "i": 61,
+    "missing": false,
+    "comp": "composites/feat_0061_x117806_y233439.png",
+    "tile": "composites/feat_0061_x117806_y233439.png",
+    "zoom_img": "composites/feat_0061_zoom.png",
+    "lat": 19.33193,
+    "lng": -99.108771,
+    "x": 117806,
+    "y": 233439,
+    "area": 1019.4,
+    "idx_in_tile": 3,
+    "total_in_tile": 5
+  },
+  {
+    "i": 62,
+    "missing": false,
+    "comp": "composites/feat_0062_x117806_y233439.png",
+    "tile": "composites/feat_0062_x117806_y233439.png",
+    "zoom_img": "composites/feat_0062_zoom.png",
+    "lat": 19.331984,
+    "lng": -99.108768,
+    "x": 117806,
+    "y": 233439,
+    "area": 1019.4,
+    "idx_in_tile": 4,
+    "total_in_tile": 5
+  },
+  {
+    "i": 63,
+    "missing": false,
+    "comp": "composites/feat_0063_x117806_y233439.png",
+    "tile": "composites/feat_0063_x117806_y233439.png",
+    "zoom_img": "composites/feat_0063_zoom.png",
+    "lat": 19.332057,
+    "lng": -99.108811,
+    "x": 117806,
+    "y": 233439,
+    "area": 1019.4,
+    "idx_in_tile": 5,
+    "total_in_tile": 5
+  },
+  {
+    "i": 64,
+    "missing": false,
+    "comp": "composites/feat_0064_x117820_y233454.png",
+    "tile": "composites/feat_0064_x117820_y233454.png",
+    "zoom_img": "composites/feat_0064_zoom.png",
+    "lat": 19.322654,
+    "lng": -99.098807,
+    "x": 117820,
+    "y": 233454,
+    "area": 1019.3,
+    "idx_in_tile": 1,
+    "total_in_tile": 1
+  },
+  {
+    "i": 65,
+    "missing": false,
+    "comp": "composites/feat_0065_x117820_y233453.png",
+    "tile": "composites/feat_0065_x117820_y233453.png",
+    "zoom_img": "composites/feat_0065_zoom.png",
+    "lat": 19.322862,
+    "lng": -99.098758,
+    "x": 117820,
+    "y": 233453,
+    "area": 1019.3,
+    "idx_in_tile": 1,
+    "total_in_tile": 1
+  },
+  {
+    "i": 66,
+    "missing": false,
+    "comp": "composites/feat_0066_x117861_y233416.png",
+    "tile": "composites/feat_0066_x117861_y233416.png",
+    "zoom_img": "composites/feat_0066_zoom.png",
+    "lat": 19.347009,
+    "lng": -99.071204,
+    "x": 117861,
+    "y": 233416,
+    "area": 1019.5,
+    "idx_in_tile": 1,
+    "total_in_tile": 1
+  },
+  {
+    "i": 67,
+    "missing": false,
+    "comp": "composites/feat_0067_x117850_y233365.png",
+    "tile": "composites/feat_0067_x117850_y233365.png",
+    "zoom_img": "composites/feat_0067_zoom.png",
+    "lat": 19.380068,
+    "lng": -99.078465,
+    "x": 117850,
+    "y": 233365,
+    "area": 1019.7,
+    "idx_in_tile": 1,
+    "total_in_tile": 1
+  },
+  {
+    "i": 68,
+    "missing": false,
+    "comp": "composites/feat_0068_x117856_y233452.png",
+    "tile": "composites/feat_0068_x117856_y233452.png",
+    "zoom_img": "composites/feat_0068_zoom.png",
+    "lat": 19.323947,
+    "lng": -99.074511,
+    "x": 117856,
+    "y": 233452,
+    "area": 1019.3,
+    "idx_in_tile": 1,
+    "total_in_tile": 1
+  },
+  {
+    "i": 69,
+    "missing": false,
+    "comp": "composites/feat_0069_x117843_y233394.png",
+    "tile": "composites/feat_0069_x117843_y233394.png",
+    "zoom_img": "composites/feat_0069_zoom.png",
+    "lat": 19.361588,
+    "lng": -99.083071,
+    "x": 117843,
+    "y": 233394,
+    "area": 1019.6,
+    "idx_in_tile": 1,
+    "total_in_tile": 1
+  },
+  {
+    "i": 70,
+    "missing": false,
+    "comp": "composites/feat_0070_x117842_y233459.png",
+    "tile": "composites/feat_0070_x117842_y233459.png",
+    "zoom_img": "composites/feat_0070_zoom.png",
+    "lat": 19.319415,
+    "lng": -99.083802,
+    "x": 117842,
+    "y": 233459,
+    "area": 1019.3,
+    "idx_in_tile": 1,
+    "total_in_tile": 2
+  },
+  {
+    "i": 71,
+    "missing": false,
+    "comp": "composites/feat_0071_x117841_y233390.png",
+    "tile": "composites/feat_0071_x117841_y233390.png",
+    "zoom_img": "composites/feat_0071_zoom.png",
+    "lat": 19.363811,
+    "lng": -99.084583,
+    "x": 117841,
+    "y": 233390,
+    "area": 1019.6,
+    "idx_in_tile": 1,
+    "total_in_tile": 1
+  },
+  {
+    "i": 72,
+    "missing": false,
+    "comp": "composites/feat_0072_x117842_y233459.png",
+    "tile": "composites/feat_0072_x117842_y233459.png",
+    "zoom_img": "composites/feat_0072_zoom.png",
+    "lat": 19.319082,
+    "lng": -99.08397,
+    "x": 117842,
+    "y": 233459,
+    "area": 1019.3,
+    "idx_in_tile": 2,
+    "total_in_tile": 2
+  },
+  {
+    "i": 73,
+    "missing": false,
+    "comp": "composites/feat_0073_x117912_y233382.png",
+    "tile": "composites/feat_0073_x117912_y233382.png",
+    "zoom_img": "composites/feat_0073_zoom.png",
+    "lat": 19.369154,
+    "lng": -99.036002,
+    "x": 117912,
+    "y": 233382,
+    "area": 1019.6,
+    "idx_in_tile": 1,
+    "total_in_tile": 1
+  },
+  {
+    "i": 74,
+    "missing": false,
+    "comp": "composites/feat_0074_x117951_y233368.png",
+    "tile": "composites/feat_0074_x117951_y233368.png",
+    "zoom_img": "composites/feat_0074_zoom.png",
+    "lat": 19.377956,
+    "lng": -99.008913,
+    "x": 117951,
+    "y": 233368,
+    "area": 1019.7,
+    "idx_in_tile": 1,
+    "total_in_tile": 1
+  },
+  {
+    "i": 75,
+    "missing": false,
+    "comp": "composites/feat_0075_x117952_y233369.png",
+    "tile": "composites/feat_0075_x117952_y233369.png",
+    "zoom_img": "composites/feat_0075_zoom.png",
+    "lat": 19.377824,
+    "lng": -99.008751,
+    "x": 117952,
+    "y": 233369,
+    "area": 1019.7,
+    "idx_in_tile": 1,
+    "total_in_tile": 1
+  },
+  {
+    "i": 76,
+    "missing": false,
+    "comp": "composites/feat_0076_x117974_y233395.png",
+    "tile": "composites/feat_0076_x117974_y233395.png",
+    "zoom_img": "composites/feat_0076_zoom.png",
+    "lat": 19.36046,
+    "lng": -98.993228,
+    "x": 117974,
+    "y": 233395,
+    "area": 1019.6,
+    "idx_in_tile": 1,
+    "total_in_tile": 1
+  },
+  {
+    "i": 77,
+    "missing": false,
+    "comp": "composites/feat_0077_x117842_y233442.png",
+    "tile": "composites/feat_0077_x117842_y233442.png",
+    "zoom_img": "composites/feat_0077_zoom.png",
+    "lat": 19.330206,
+    "lng": -99.083926,
+    "x": 117842,
+    "y": 233442,
+    "area": 1019.4,
+    "idx_in_tile": 1,
+    "total_in_tile": 1
+  },
+  {
+    "i": 78,
+    "missing": false,
+    "comp": "composites/feat_0078_x117852_y233440.png",
+    "tile": "composites/feat_0078_x117852_y233440.png",
+    "zoom_img": "composites/feat_0078_zoom.png",
+    "lat": 19.331681,
+    "lng": -99.077314,
+    "x": 117852,
+    "y": 233440,
+    "area": 1019.4,
+    "idx_in_tile": 1,
+    "total_in_tile": 1
+  },
+  {
+    "i": 79,
+    "missing": false,
+    "comp": "composites/feat_0079_x117916_y233376.png",
+    "tile": "composites/feat_0079_x117916_y233376.png",
+    "zoom_img": "composites/feat_0079_zoom.png",
+    "lat": 19.373258,
+    "lng": -99.033381,
+    "x": 117916,
+    "y": 233376,
+    "area": 1019.6,
+    "idx_in_tile": 1,
+    "total_in_tile": 1
+  },
+  {
+    "i": 80,
+    "missing": false,
+    "comp": "composites/feat_0080_x117916_y233375.png",
+    "tile": "composites/feat_0080_x117916_y233375.png",
+    "zoom_img": "composites/feat_0080_zoom.png",
+    "lat": 19.373519,
+    "lng": -99.033225,
+    "x": 117916,
+    "y": 233375,
+    "area": 1019.6,
+    "idx_in_tile": 1,
+    "total_in_tile": 1
+  },
+  {
+    "i": 81,
+    "missing": false,
+    "comp": "composites/feat_0081_x117850_y233363.png",
+    "tile": "composites/feat_0081_x117850_y233363.png",
+    "zoom_img": "composites/feat_0081_zoom.png",
+    "lat": 19.381498,
+    "lng": -99.07823,
+    "x": 117850,
+    "y": 233363,
+    "area": 1019.7,
+    "idx_in_tile": 1,
+    "total_in_tile": 2
+  },
+  {
+    "i": 82,
+    "missing": false,
+    "comp": "composites/feat_0082_x117850_y233363.png",
+    "tile": "composites/feat_0082_x117850_y233363.png",
+    "zoom_img": "composites/feat_0082_zoom.png",
+    "lat": 19.381558,
+    "lng": -99.078792,
+    "x": 117850,
+    "y": 233363,
+    "area": 1019.7,
+    "idx_in_tile": 2,
+    "total_in_tile": 2
+  },
+  {
+    "i": 83,
+    "missing": false,
+    "comp": "composites/feat_0083_x117853_y233366.png",
+    "tile": "composites/feat_0083_x117853_y233366.png",
+    "zoom_img": "composites/feat_0083_zoom.png",
+    "lat": 19.379785,
+    "lng": -99.076761,
+    "x": 117853,
+    "y": 233366,
+    "area": 1019.7,
+    "idx_in_tile": 1,
+    "total_in_tile": 1
+  },
+  {
+    "i": 84,
+    "missing": false,
+    "comp": "composites/feat_0084_x117850_y233364.png",
+    "tile": "composites/feat_0084_x117850_y233364.png",
+    "zoom_img": "composites/feat_0084_zoom.png",
+    "lat": 19.381109,
+    "lng": -99.078688,
+    "x": 117850,
+    "y": 233364,
+    "area": 1019.7,
+    "idx_in_tile": 1,
+    "total_in_tile": 1
+  },
+  {
+    "i": 85,
+    "missing": false,
+    "comp": "composites/feat_0085_x117849_y233363.png",
+    "tile": "composites/feat_0085_x117849_y233363.png",
+    "zoom_img": "composites/feat_0085_zoom.png",
+    "lat": 19.381192,
+    "lng": -99.078867,
+    "x": 117849,
+    "y": 233363,
+    "area": 1019.7,
+    "idx_in_tile": 1,
+    "total_in_tile": 3
+  },
+  {
+    "i": 86,
+    "missing": false,
+    "comp": "composites/feat_0086_x117849_y233363.png",
+    "tile": "composites/feat_0086_x117849_y233363.png",
+    "zoom_img": "composites/feat_0086_zoom.png",
+    "lat": 19.38122,
+    "lng": -99.07905,
+    "x": 117849,
+    "y": 233363,
+    "area": 1019.7,
+    "idx_in_tile": 2,
+    "total_in_tile": 3
+  },
+  {
+    "i": 87,
+    "missing": false,
+    "comp": "composites/feat_0087_x117849_y233363.png",
+    "tile": "composites/feat_0087_x117849_y233363.png",
+    "zoom_img": "composites/feat_0087_zoom.png",
+    "lat": 19.381233,
+    "lng": -99.079243,
+    "x": 117849,
+    "y": 233363,
+    "area": 1019.7,
+    "idx_in_tile": 3,
+    "total_in_tile": 3
+  },
+  {
+    "i": 88,
+    "missing": false,
+    "comp": "composites/feat_0088_x117845_y233380.png",
+    "tile": "composites/feat_0088_x117845_y233380.png",
+    "zoom_img": "composites/feat_0088_zoom.png",
+    "lat": 19.370563,
+    "lng": -99.081588,
+    "x": 117845,
+    "y": 233380,
+    "area": 1019.6,
+    "idx_in_tile": 1,
+    "total_in_tile": 1
+  },
+  {
+    "i": 89,
+    "missing": false,
+    "comp": "composites/feat_0089_x117816_y233363.png",
+    "tile": "composites/feat_0089_x117816_y233363.png",
+    "zoom_img": "composites/feat_0089_zoom.png",
+    "lat": 19.381353,
+    "lng": -99.101726,
+    "x": 117816,
+    "y": 233363,
+    "area": 1019.7,
+    "idx_in_tile": 1,
+    "total_in_tile": 1
+  },
+  {
+    "i": 90,
+    "missing": false,
+    "comp": "composites/feat_0090_x117838_y233365.png",
+    "tile": "composites/feat_0090_x117838_y233365.png",
+    "zoom_img": "composites/feat_0090_zoom.png",
+    "lat": 19.380354,
+    "lng": -99.086455,
+    "x": 117838,
+    "y": 233365,
+    "area": 1019.7,
+    "idx_in_tile": 1,
+    "total_in_tile": 1
+  },
+  {
+    "i": 91,
+    "missing": false,
+    "comp": "composites/feat_0091_x117840_y233404.png",
+    "tile": "composites/feat_0091_x117840_y233404.png",
+    "zoom_img": "composites/feat_0091_zoom.png",
+    "lat": 19.35509,
+    "lng": -99.085495,
+    "x": 117840,
+    "y": 233404,
+    "area": 1019.5,
+    "idx_in_tile": 1,
+    "total_in_tile": 1
+  },
+  {
+    "i": 92,
+    "missing": false,
+    "comp": "composites/feat_0092_x117893_y233417.png",
+    "tile": "composites/feat_0092_x117893_y233417.png",
+    "zoom_img": "composites/feat_0092_zoom.png",
+    "lat": 19.346271,
+    "lng": -99.049052,
+    "x": 117893,
+    "y": 233417,
+    "area": 1019.5,
+    "idx_in_tile": 1,
+    "total_in_tile": 1
+  },
+  {
+    "i": 93,
+    "missing": false,
+    "comp": "composites/feat_0093_x117893_y233418.png",
+    "tile": "composites/feat_0093_x117893_y233418.png",
+    "zoom_img": "composites/feat_0093_zoom.png",
+    "lat": 19.346014,
+    "lng": -99.04876,
+    "x": 117893,
+    "y": 233418,
+    "area": 1019.5,
+    "idx_in_tile": 1,
+    "total_in_tile": 1
+  },
+  {
+    "i": 94,
+    "missing": false,
+    "comp": "composites/feat_0094_x117961_y233399.png",
+    "tile": "composites/feat_0094_x117961_y233399.png",
+    "zoom_img": "composites/feat_0094_zoom.png",
+    "lat": 19.35792,
+    "lng": -99.002276,
+    "x": 117961,
+    "y": 233399,
+    "area": 1019.5,
+    "idx_in_tile": 1,
+    "total_in_tile": 1
+  },
+  {
+    "i": 95,
+    "missing": false,
+    "comp": "composites/feat_0095_x117857_y233393.png",
+    "tile": "composites/feat_0095_x117857_y233393.png",
+    "zoom_img": "composites/feat_0095_zoom.png",
+    "lat": 19.361916,
+    "lng": -99.073958,
+    "x": 117857,
+    "y": 233393,
+    "area": 1019.6,
+    "idx_in_tile": 1,
+    "total_in_tile": 1
+  },
+  {
+    "i": 96,
+    "missing": false,
+    "comp": "composites/feat_0096_x117806_y233388.png",
+    "tile": "composites/feat_0096_x117806_y233388.png",
+    "zoom_img": "composites/feat_0096_zoom.png",
+    "lat": 19.365251,
+    "lng": -99.108956,
+    "x": 117806,
+    "y": 233388,
+    "area": 1019.6,
+    "idx_in_tile": 1,
+    "total_in_tile": 1
+  },
+  {
+    "i": 97,
+    "missing": false,
+    "comp": "composites/feat_0097_x117911_y233410.png",
+    "tile": "composites/feat_0097_x117911_y233410.png",
+    "zoom_img": "composites/feat_0097_zoom.png",
+    "lat": 19.350686,
+    "lng": -99.036418,
+    "x": 117911,
+    "y": 233410,
+    "area": 1019.5,
+    "idx_in_tile": 1,
+    "total_in_tile": 1
+  },
+  {
+    "i": 98,
+    "missing": false,
+    "comp": "composites/feat_0098_x117911_y233411.png",
+    "tile": "composites/feat_0098_x117911_y233411.png",
+    "zoom_img": "composites/feat_0098_zoom.png",
+    "lat": 19.350415,
+    "lng": -99.036467,
+    "x": 117911,
+    "y": 233411,
+    "area": 1019.5,
+    "idx_in_tile": 1,
+    "total_in_tile": 2
+  },
+  {
+    "i": 99,
+    "missing": false,
+    "comp": "composites/feat_0099_x117911_y233411.png",
+    "tile": "composites/feat_0099_x117911_y233411.png",
+    "zoom_img": "composites/feat_0099_zoom.png",
+    "lat": 19.350143,
+    "lng": -99.036515,
+    "x": 117911,
+    "y": 233411,
+    "area": 1019.5,
+    "idx_in_tile": 2,
+    "total_in_tile": 2
+  },
+  {
+    "i": 100,
+    "missing": false,
+    "comp": "composites/feat_0100_x117918_y233423.png",
+    "tile": "composites/feat_0100_x117918_y233423.png",
+    "zoom_img": "composites/feat_0100_zoom.png",
+    "lat": 19.342436,
+    "lng": -99.0321,
+    "x": 117918,
+    "y": 233423,
+    "area": 1019.5,
+    "idx_in_tile": 1,
+    "total_in_tile": 1
+  },
+  {
+    "i": 101,
+    "missing": false,
+    "comp": "composites/feat_0101_x117853_y233388.png",
+    "tile": "composites/feat_0101_x117853_y233388.png",
+    "zoom_img": "composites/feat_0101_zoom.png",
+    "lat": 19.365321,
+    "lng": -99.076232,
+    "x": 117853,
+    "y": 233388,
+    "area": 1019.6,
+    "idx_in_tile": 1,
+    "total_in_tile": 1
+  },
+  {
+    "i": 102,
+    "missing": false,
+    "comp": "composites/feat_0102_x117910_y233436.png",
+    "tile": "composites/feat_0102_x117910_y233436.png",
+    "zoom_img": "composites/feat_0102_zoom.png",
+    "lat": 19.333921,
+    "lng": -99.036989,
+    "x": 117910,
+    "y": 233436,
+    "area": 1019.4,
+    "idx_in_tile": 1,
+    "total_in_tile": 1
+  },
+  {
+    "i": 103,
+    "missing": false,
+    "comp": "composites/feat_0103_x117875_y233420.png",
+    "tile": "composites/feat_0103_x117875_y233420.png",
+    "zoom_img": "composites/feat_0103_zoom.png",
+    "lat": 19.34429,
+    "lng": -99.06124,
+    "x": 117875,
+    "y": 233420,
+    "area": 1019.5,
+    "idx_in_tile": 1,
+    "total_in_tile": 1
+  },
+  {
+    "i": 104,
+    "missing": false,
+    "comp": "composites/feat_0104_x117888_y233387.png",
+    "tile": "composites/feat_0104_x117888_y233387.png",
+    "zoom_img": "composites/feat_0104_zoom.png",
+    "lat": 19.365927,
+    "lng": -99.052675,
+    "x": 117888,
+    "y": 233387,
+    "area": 1019.6,
+    "idx_in_tile": 1,
+    "total_in_tile": 1
+  }
+];
+    const STORE = 'roofpedia_inspect_Iztapalapa';
+    let votes = JSON.parse(localStorage.getItem(STORE) || '{}');
+    let filter = 'all';
+
+    function render() {
+      const grid = document.getElementById('grid');
+      grid.innerHTML = '';
+      let visible = cards;
+      if (filter === 'pending') visible = cards.filter(c => !votes[c.i]);
+      if (filter === 'valid') visible = cards.filter(c => votes[c.i] === 'valid');
+      if (filter === 'fp') visible = cards.filter(c => votes[c.i] === 'fp');
+      if (filter === 'unknown') visible = cards.filter(c => votes[c.i] === 'unknown');
+
+      for (const c of visible) {
+        const div = document.createElement('div');
+        div.className = 'card' + (votes[c.i] ? ' ' + votes[c.i] : '');
+        if (c.missing) {
+          div.innerHTML = `<div class="missing">tile/mask no encontrado<br>feat #${c.i} · (${c.x}, ${c.y})</div>`;
+        } else {
+          const tileBadge = c.total_in_tile > 1
+            ? `<span style="background:#fbbf24;color:#000;padding:2px 6px;border-radius:4px;font-weight:700;margin-left:6px">${c.idx_in_tile} de ${c.total_in_tile} en este tile</span>`
+            : '';
+          const zoomImg = c.zoom_img
+            ? `<div><div class="label">zoom z20 (lo que el ojo ve)</div><img src="${c.zoom_img}" alt="zoom" loading="lazy"></div>`
+            : '<div><div class="label">zoom no disponible</div><img src="" alt=""></div>';
+          div.innerHTML = `
+            <div class="img-pair">
+              <div><div class="label">z19 + mask (lo que el modelo vio)</div><img src="${c.comp}" alt="feat ${c.i}" loading="lazy"></div>
+              ${zoomImg}
+            </div>
+            <div class="card-body">
+              <div class="feat-id">feat #${c.i} · tile ${c.x}/${c.y} ${tileBadge}</div>
+              <div class="coords">📍 ${c.lat}, ${c.lng} <span style="color:#6b7280">(mira amarilla = este building)</span></div>
+              <div class="actions">
+                <button class="${votes[c.i] === 'valid' ? 'valid' : ''}" onclick="vote(${c.i}, 'valid')">✓ Válido</button>
+                <button class="${votes[c.i] === 'fp' ? 'fp' : ''}" onclick="vote(${c.i}, 'fp')">✗ FP</button>
+                <button class="${votes[c.i] === 'unknown' ? 'unknown' : ''}" onclick="vote(${c.i}, 'unknown')">? Dudoso</button>
+                <div class="links">
+                  <a target="_blank" href="https://www.google.com/maps/@${c.lat},${c.lng},20z/data=!3m1!1e3">Google Maps satellite</a>
+                  <a target="_blank" href="https://www.openstreetmap.org/?mlat=${c.lat}&mlon=${c.lng}&zoom=20">OSM</a>
+                </div>
+              </div>
+            </div>
+          `;
+        }
+        grid.appendChild(div);
+      }
+      updateCounts();
+    }
+
+    function updateCounts() {
+      const v = Object.values(votes);
+      document.getElementById('count-valid').textContent = v.filter(x => x === 'valid').length;
+      document.getElementById('count-fp').textContent = v.filter(x => x === 'fp').length;
+      document.getElementById('count-unknown').textContent = v.filter(x => x === 'unknown').length;
+      document.getElementById('count-pending').textContent = cards.length - v.length;
+    }
+
+    function vote(i, v) {
+      if (votes[i] === v) delete votes[i];
+      else votes[i] = v;
+      localStorage.setItem(STORE, JSON.stringify(votes));
+      render();
+    }
+
+    function resetAll() {
+      if (!confirm('¿Borrar TODOS los votos?')) return;
+      votes = {};
+      localStorage.removeItem(STORE);
+      render();
+    }
+
+    function exportCSV() {
+      const rows = ['feat_id,lat,lng,tile_x,tile_y,voto'];
+      for (const c of cards) {
+        if (c.missing) continue;
+        rows.push(`${c.i},${c.lat},${c.lng},${c.x},${c.y},${votes[c.i] || ''}`);
+      }
+      const blob = new Blob([rows.join('\n')], {type: 'text/csv'});
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'inspection_Iztapalapa.csv';
+      a.click();
+    }
+
+    function copySummary() {
+      const v = Object.values(votes);
+      const total = cards.length;
+      const valid = v.filter(x => x === 'valid').length;
+      const fp = v.filter(x => x === 'fp').length;
+      const unk = v.filter(x => x === 'unknown').length;
+      const pending = total - v.length;
+      const precision = (valid + fp) > 0 ? (valid / (valid + fp) * 100).toFixed(1) : 'N/A';
+      const text = `Inspección Roofpedia Iztapalapa:
+  Total detecciones: ${total}
+  Válidos:           ${valid}
+  Falsos positivos:  ${fp}
+  Dudosos:           ${unk}
+  Pendientes:        ${pending}
+  Precision observada: ${precision}%`;
+      navigator.clipboard.writeText(text);
+      alert('Resumen copiado al portapapeles');
+    }
+
+    document.querySelectorAll('input[name="filter"]').forEach(r => {
+      r.addEventListener('change', e => { filter = e.target.value; render(); });
+    });
+
+    render();
+  </script>
+</body>
+</html>

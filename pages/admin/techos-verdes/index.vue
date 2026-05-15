@@ -2,6 +2,7 @@
 definePageMeta({ layout: 'admin', middleware: 'admin', ssr: false })
 
 const store = useRoofsStore()
+const toast = useToast()
 const loading = ref(true)
 
 onMounted(async () => {
@@ -32,9 +33,18 @@ const columns = [
 function toggleVisible(row: any) {
   const newVal = !(row.visible ?? true)
   store.updateGreenRoof(row.id, { visible: newVal })
+  toast.success(
+    newVal ? 'Techo visible en el sitio público' : 'Techo oculto del sitio público',
+    `${row.nombre || 'Sin nombre'} (#${row.id})`,
+  )
 }
 function toggleArchivado(row: any) {
-  store.updateGreenRoof(row.id, { archivado: !row.archivado })
+  const next = !row.archivado
+  store.updateGreenRoof(row.id, { archivado: next })
+  toast.success(
+    next ? 'Techo archivado' : 'Techo restaurado',
+    `${row.nombre || 'Sin nombre'} (#${row.id})`,
+  )
 }
 
 const rows = computed(() =>

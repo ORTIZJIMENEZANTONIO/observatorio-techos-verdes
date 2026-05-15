@@ -2,6 +2,7 @@
 definePageMeta({ layout: 'admin', middleware: 'admin', ssr: false })
 
 const store = useRoofsStore()
+const toast = useToast()
 const loading = ref(true)
 
 onMounted(async () => {
@@ -13,8 +14,22 @@ const advFilter = reactive({ estatus: '', confianzaIA: '', visibilidad: '', arch
 const hasAdvFilters = computed(() => Object.values(advFilter).some(v => !!v))
 function clearAdvFilters() { Object.assign(advFilter, { estatus: '', confianzaIA: '', visibilidad: '', archivo: '' }) }
 
-function toggleVisible(row: any) { store.updateCandidate(row.id, { visible: !(row.visible ?? true) }) }
-function toggleArchivado(row: any) { store.updateCandidate(row.id, { archivado: !row.archivado }) }
+function toggleVisible(row: any) {
+  const next = !(row.visible ?? true)
+  store.updateCandidate(row.id, { visible: next })
+  toast.success(
+    next ? 'Candidato visible' : 'Candidato oculto',
+    `${row.nombre || 'Sin nombre'} (#${row.id})`,
+  )
+}
+function toggleArchivado(row: any) {
+  const next = !row.archivado
+  store.updateCandidate(row.id, { archivado: next })
+  toast.success(
+    next ? 'Candidato archivado' : 'Candidato restaurado',
+    `${row.nombre || 'Sin nombre'} (#${row.id})`,
+  )
+}
 
 import { GLOSSARY } from '~/data/admin-glossary'
 

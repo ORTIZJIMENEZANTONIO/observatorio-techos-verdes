@@ -4,6 +4,7 @@ import type { Contributor, ContributorRole, ContributorTierSlug } from '~/types'
 definePageMeta({ layout: 'admin', middleware: 'admin', pageTransition: false })
 
 const contribStore = useContributorsStore()
+const toast = useToast()
 const tiersStore = useTiersStore()
 
 const filteredItems = computed(() => contribStore.filtered)
@@ -99,14 +100,18 @@ function save() {
     publicProfile: form.value.publicProfile,
     verified: form.value.verified,
   }
-  if (editingId.value && editingId.value > 0) {
-    contribStore.updateContributor(editingId.value, payload as any)
+  const isEdit = !!(editingId.value && editingId.value > 0)
+  if (isEdit) {
+    contribStore.updateContributor(editingId.value!, payload as any)
+    toast.success('Contribuyente actualizado', `${payload.displayName} (@${payload.handle})`)
   } else {
     if (contribStore.items.some(c => c.handle === payload.handle)) {
       formError.value = `Ya existe un contribuyente con handle "${payload.handle}"`
+      toast.error('Handle duplicado', formError.value)
       return
     }
     contribStore.addContributor(payload as any)
+    toast.success('Contribuyente añadido', `${payload.displayName} (@${payload.handle})`)
   }
   cancelEdit()
 }
@@ -114,6 +119,7 @@ function save() {
 function confirmDelete(c: Contributor) {
   if (!confirm(`Archivar a "${c.displayName}"? Sus contribuciones quedan registradas pero deja de listarse en la página pública.`)) return
   contribStore.deleteContributor(c.id)
+  toast.success('Contribuyente archivado', `${c.displayName} ya no aparece en la red pública`)
 }
 
 const roleLabels: Record<ContributorRole, string> = {

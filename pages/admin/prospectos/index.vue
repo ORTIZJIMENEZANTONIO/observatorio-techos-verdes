@@ -3,6 +3,7 @@ definePageMeta({ layout: 'admin', middleware: 'admin', ssr: false })
 
 const { apiFetch } = useApi()
 const config = useRuntimeConfig()
+const toast = useToast()
 const observatory = config.public.observatory as string
 const contribStore = useContributorsStore()
 
@@ -37,8 +38,9 @@ async function approve(id: number) {
   try {
     await apiFetch(`/observatory/${observatory}/admin/prospectos/${id}/aprobar`, { method: 'POST' })
     await loadProspects()
+    toast.success('Prospecto aprobado', p?.nombre ? `#${id} · ${p.nombre}` : `#${id}`)
   } catch (e: any) {
-    alert(e?.data?.error?.message || 'Error al aprobar')
+    toast.errorFrom(e, 'Error al aprobar', `Prospecto #${id}`)
     return
   }
   // Si hay contributor atribuido, sumar validacion en cliente.
@@ -91,15 +93,17 @@ function startReject(id: number) {
 
 async function confirmReject() {
   if (!rejectingId.value || !rejectNotes.value) return
+  const id = rejectingId.value
   try {
-    await apiFetch(`/observatory/${observatory}/admin/prospectos/${rejectingId.value}/rechazar`, {
+    await apiFetch(`/observatory/${observatory}/admin/prospectos/${id}/rechazar`, {
       method: 'POST',
       body: { notas: rejectNotes.value },
     })
     rejectingId.value = null
     await loadProspects()
+    toast.success('Prospecto rechazado', `#${id} · razón guardada`)
   } catch (e: any) {
-    alert(e?.data?.error?.message || 'Error al rechazar')
+    toast.errorFrom(e, 'Error al rechazar', `Prospecto #${id}`)
   }
 }
 
@@ -216,7 +220,10 @@ async function runDetection() {
       method: 'POST', body: { bbox: { ...bbox }, minAreaM2: minArea.value, maxAreaM2: maxArea.value, minScore: minScore.value },
     })
     allResults.value = res.data || []; detectorPhase.value = 'results'
-  } catch (e: any) { alert(e?.data?.error?.message || 'Error al ejecutar detección') }
+    toast.success('Detección completada', `${allResults.value.length} edificios candidatos`)
+  } catch (e: any) {
+    toast.errorFrom(e, 'Error al ejecutar detección')
+  }
   loadingDetector.value = false
 }
 
@@ -228,7 +235,7 @@ async function submitSelected() {
   submitting.value = true
   try {
     const res = await apiFetch(`/observatory/${observatory}/detector/submit`, { method: 'POST', body: { candidates: cands } })
-    alert(`${res.data.submitted} prospectos enviados`)
+    toast.success('Prospectos enviados', `${res.data.submitted} candidatos añadidos a la cola`)
     const idxs = new Set(selected.value)
     allResults.value = allResults.value.filter((_, i) => !idxs.has(i))
     selected.value = new Set()
@@ -236,7 +243,9 @@ async function submitSelected() {
     activeTab.value = 'cola'
     filter.value = 'pendiente'
     await loadProspects()
-  } catch (e: any) { alert(e?.data?.error?.message || 'Error') }
+  } catch (e: any) {
+    toast.errorFrom(e, 'Error al enviar prospectos')
+  }
   submitting.value = false
 }
 

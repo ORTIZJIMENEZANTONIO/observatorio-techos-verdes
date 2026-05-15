@@ -2,6 +2,7 @@
 definePageMeta({ layout: 'admin', middleware: 'admin', ssr: false })
 
 const validationStore = useValidationStore()
+const toast = useToast()
 const loading = ref(true)
 const filterEstado = ref('')
 
@@ -15,8 +16,16 @@ const advArchivo = ref('')
 const hasAdvFilters = computed(() => !!filterEstado.value || !!advVisibilidad.value || !!advArchivo.value)
 function clearAdvFilters() { filterEstado.value = ''; advVisibilidad.value = ''; advArchivo.value = '' }
 
-function toggleVisible(row: any) { validationStore.updateRecord(row.id, { visible: !(row.visible ?? true) }) }
-function toggleArchivado(row: any) { validationStore.updateRecord(row.id, { archivado: !row.archivado }) }
+function toggleVisible(row: any) {
+  const next = !(row.visible ?? true)
+  validationStore.updateRecord(row.id, { visible: next })
+  toast.success(next ? 'Validación visible' : 'Validación oculta', `#${row.id}`)
+}
+function toggleArchivado(row: any) {
+  const next = !row.archivado
+  validationStore.updateRecord(row.id, { archivado: next })
+  toast.success(next ? 'Validación archivada' : 'Validación restaurada', `#${row.id}`)
+}
 
 import { GLOSSARY } from '~/data/admin-glossary'
 

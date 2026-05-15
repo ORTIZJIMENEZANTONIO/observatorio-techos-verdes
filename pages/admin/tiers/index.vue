@@ -4,6 +4,7 @@ import type { Tier } from '~/types'
 definePageMeta({ layout: 'admin', middleware: 'admin', pageTransition: false })
 
 const tiersStore = useTiersStore()
+const toast = useToast()
 const items = computed(() => [...tiersStore.items].sort((a, b) => a.sortOrder - b.sortOrder))
 
 // ── Editor ──
@@ -93,15 +94,19 @@ function save() {
     contributions: contributions.length ? contributions : null,
     bridge: form.value.bridge || null,
   }
-  if (editingId.value && editingId.value > 0) {
-    tiersStore.updateTier(editingId.value, payload)
+  const isEdit = !!(editingId.value && editingId.value > 0)
+  if (isEdit) {
+    tiersStore.updateTier(editingId.value!, payload)
+    toast.success('Tier actualizado', `«${payload.label}» (${payload.slug})`)
   } else {
     // duplicate slug check
     if (tiersStore.items.some(t => t.slug === payload.slug)) {
       formError.value = `Ya existe un tier con slug "${payload.slug}"`
+      toast.error('Slug duplicado', formError.value)
       return
     }
     tiersStore.addTier(payload as any)
+    toast.success('Tier creado', `«${payload.label}» (${payload.slug})`)
   }
   cancelEdit()
 }
@@ -110,6 +115,7 @@ function confirmDelete(t: Tier) {
   if (!t.id) return
   if (!confirm(`Archivar tier "${t.label}"? Esto lo oculta de la pagina publica pero conserva los contribuyentes con ese tier asignado.`)) return
   tiersStore.deleteTier(t.id)
+  toast.success('Tier archivado', `«${t.label}» ya no aparece en la red`)
 }
 
 const colorOptions = [

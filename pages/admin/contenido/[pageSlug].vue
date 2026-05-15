@@ -15,6 +15,7 @@ const route = useRoute()
 const router = useRouter()
 const { apiFetch } = useApi()
 const config = useRuntimeConfig()
+const toast = useToast()
 const observatory = config.public.observatory as string
 const pageSlug = String(route.params.pageSlug)
 const meta = cmsPageCatalog.find((p) => p.slug === pageSlug)
@@ -59,8 +60,9 @@ const load = async () => {
     }
   } catch (e: any) {
     // Si el endpoint admin falla (sin permiso o backend offline) seguimos con
-    // defaults pero alertamos.
+    // defaults pero alertamos con banner + toast.
     error.value = e?.data?.error?.message || 'No se pudo cargar el contenido remoto. Mostrando defaults.'
+    toast.warning('Mostrando defaults', error.value)
   } finally {
     loading.value = false
   }
@@ -129,6 +131,7 @@ const resetSection = (sectionKey: string) => {
 const saveSection = async (sectionKey: string) => {
   saving.value = sectionKey
   lastSaved.value = null
+  const label = meta?.sections.find((s) => s.key === sectionKey)?.label || sectionKey
   try {
     await apiFetch(`/observatory/${observatory}/admin/cms/${pageSlug}/${sectionKey}`, {
       method: 'PUT',
@@ -141,8 +144,9 @@ const saveSection = async (sectionKey: string) => {
     }, 2200)
     // Invalida la cache pública para que la página pública refetchee.
     useCmsStore().invalidatePage(pageSlug)
+    toast.success(`Sección guardada`, `«${label}» actualizada en el sitio público`)
   } catch (e: any) {
-    alert(e?.data?.error?.message || 'No se pudo guardar la sección')
+    toast.errorFrom(e, 'No se pudo guardar la sección', `Error guardando «${label}»`)
   } finally {
     saving.value = null
   }
