@@ -9,6 +9,11 @@ import {
   MAPBOX_PRICING_USD_PER_1K,
   type CostEstimate,
 } from '~/composables/useRoofpedia'
+import {
+  useRoofpediaJobs,
+  usePollJob,
+  type RoofpediaJobDTO,
+} from '~/composables/useRoofpediaJobs'
 
 const route = useRoute()
 const router = useRouter()
@@ -26,6 +31,85 @@ useHead({ title: () => `Roofpedia · ${alcaldia.value?.nombre} · Admin` })
 const estimate = ref<CostEstimate | null>(null)
 const loadingEstimate = ref(false)
 const estimateError = ref('')
+
+// ─── Jobs Roofpedia ───
+const api = useRoofpediaJobs()
+const runningJob = ref<RoofpediaJobDTO | null>(null)
+const activeJobId = ref<string | null>(null)
+const showConfirm = ref(false)
+const launching = ref(false)
+
+// Polling reactivo del job activo (desestructurado para auto-unwrap en template)
+const {
+  job: pollJob,
+  log: pollLog,
+} = usePollJob(activeJobId, 5000)
+
+onMounted(async () => {
+  try {
+    runningJob.value = await api.getRunning()
+    // Si el job global es de esta alcaldía, lo trackeamos aquí.
+    if (runningJob.value && runningJob.value.alcaldiaSlug === slug) {
+      activeJobId.value = runningJob.value.publicId
+    }
+  } catch {
+    // Ignorar — el endpoint puede no estar disponible aún.
+  }
+})
+
+// Cuando el polling termina con done → reload para mostrar el visor.
+watch(() => pollJob.value?.status, (status) => {
+  if (status === 'done') {
+    toast.success(
+      'Análisis completado',
+      'Recarga la página para ver las detecciones.',
+    )
+  } else if (status === 'failed') {
+    toast.error(
+      'Análisis falló',
+      pollJob.value?.errorMessage || 'Revisa los logs.',
+    )
+  } else if (status === 'cancelled') {
+    toast.info('Análisis cancelado', '')
+  }
+})
+
+const canLaunch = computed(() =>
+  !runningJob.value &&
+  !activeJobId.value &&
+  !!estimate.value &&
+  !alcaldia.value?.analizada,
+)
+
+async function confirmLaunch() {
+  if (!estimate.value || !alcaldia.value) return
+  launching.value = true
+  try {
+    const job = await api.startScan(alcaldia.value.nombre, estimate.value.costoUsd)
+    activeJobId.value = job.publicId
+    runningJob.value = job
+    showConfirm.value = false
+    toast.success(
+      'Análisis iniciado',
+      `Job ${job.publicId.slice(0, 8)} en cola. Esto puede tardar varios minutos.`,
+    )
+  } catch (e: any) {
+    toast.errorFrom(e, 'No se pudo iniciar el análisis')
+  } finally {
+    launching.value = false
+  }
+}
+
+async function cancelActive() {
+  if (!activeJobId.value) return
+  if (!confirm('¿Cancelar el análisis en curso? El subprocess será terminado.')) return
+  try {
+    await api.cancelJob(activeJobId.value)
+    toast.info('Cancelando…', 'El subprocess recibirá SIGTERM.')
+  } catch (e: any) {
+    toast.errorFrom(e, 'No se pudo cancelar')
+  }
+}
 
 async function runEstimate() {
   loadingEstimate.value = true
@@ -189,6 +273,149 @@ function copyCli() {
           </div>
         </div>
       </div>
+
+      <!-- Banner: hay un job global en curso (otra alcaldía) -->
+      <div
+        v-if="runningJob && runningJob.alcaldiaSlug !== slug && !activeJobId"
+        class="rounded-card border border-secondary/40 bg-secondary/5 p-4"
+      >
+        <div class="flex items-center gap-3 text-sm">
+          <Icon name="lucide:hourglass" size="20" class="shrink-0 text-secondary animate-spin-smooth" />
+          <p class="text-ink">
+            Hay un análisis en curso para <strong>{{ runningJob.alcaldiaNombre }}</strong>.
+            Solo se permite un análisis simultáneo. Espera o cancélalo desde su página.
+          </p>
+        </div>
+      </div>
+
+      <!-- Panel de progreso (job activo en esta alcaldía) -->
+      <section
+        v-if="activeJobId"
+        class="rounded-card border border-primary/40 bg-primary/5 p-5 space-y-4"
+      >
+        <div class="flex flex-wrap items-center justify-between gap-3">
+          <div class="flex items-center gap-3">
+            <Icon
+              :name="pollJob?.status === 'running' ? 'lucide:loader-2' : 'lucide:check-circle-2'"
+              size="22"
+              :class="[
+                pollJob?.status === 'running' ? 'animate-spin-smooth text-primary' : '',
+                pollJob?.status === 'done' ? 'text-eco-dark' : '',
+                pollJob?.status === 'failed' ? 'text-red-600' : '',
+                pollJob?.status === 'cancelled' ? 'text-ink-muted' : '',
+              ]"
+            />
+            <div>
+              <p class="text-sm font-bold text-ink">
+                Análisis
+                <span v-if="pollJob?.status === 'pending'">pendiente</span>
+                <span v-else-if="pollJob?.status === 'running'">en curso</span>
+                <span v-else-if="pollJob?.status === 'done'">completado</span>
+                <span v-else-if="pollJob?.status === 'failed'">fallido</span>
+                <span v-else-if="pollJob?.status === 'cancelled'">cancelado</span>
+              </p>
+              <p class="text-xs text-ink-muted">
+                Job <code class="rounded bg-white px-1 py-0.5 text-[10px]">{{ activeJobId.slice(0, 8) }}</code>
+                <span v-if="pollJob?.startedAt"> · iniciado {{ new Date(pollJob.startedAt).toLocaleString('es-MX') }}</span>
+              </p>
+            </div>
+          </div>
+          <div class="flex gap-2">
+            <button
+              v-if="pollJob?.status === 'running' || pollJob?.status === 'pending'"
+              class="btn-outline btn-sm border-red-300 text-red-700 hover:bg-red-50"
+              @click="cancelActive"
+            >
+              <Icon name="lucide:x" size="14" />
+              Cancelar
+            </button>
+            <button
+              v-if="pollJob?.status === 'done'"
+              class="btn-primary btn-sm"
+              @click="$router.go(0)"
+            >
+              <Icon name="lucide:refresh-cw" size="14" />
+              Recargar para ver resultados
+            </button>
+          </div>
+        </div>
+
+        <details v-if="pollLog" class="text-xs">
+          <summary class="cursor-pointer font-semibold text-ink hover:text-primary">
+            Ver log ({{ pollLog.split('\n').length }} líneas)
+          </summary>
+          <pre class="mt-2 max-h-80 overflow-auto rounded-lg bg-gray-900 p-3 font-mono text-[11px] leading-relaxed text-gray-100">{{ pollLog }}</pre>
+        </details>
+
+        <p v-if="pollJob?.errorMessage" class="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-900">
+          {{ pollJob.errorMessage }}
+        </p>
+      </section>
+
+      <!-- Ejecutar en servidor (Opción A) -->
+      <div v-if="!activeJobId" class="rounded-card border border-primary/30 bg-primary/5 p-5 space-y-3">
+        <div>
+          <h3 class="text-sm font-bold text-ink">Ejecutar análisis (en el servidor)</h3>
+          <p class="mt-1 text-xs text-ink-muted">
+            Lanza el modelo CNN como subprocess Python en el VPS. Requiere que primero hayas estimado
+            el costo. Solo se permite <strong>1 análisis simultáneo</strong> en todo el observatorio.
+          </p>
+        </div>
+        <button
+          class="btn-primary"
+          :disabled="!canLaunch || launching"
+          :title="canLaunch ? '' : (runningJob ? 'Hay otro análisis en curso' : 'Primero estima el costo')"
+          @click="showConfirm = true"
+        >
+          <Icon name="lucide:play" size="14" />
+          Iniciar análisis en servidor
+        </button>
+      </div>
+
+      <!-- Modal confirmación -->
+      <Transition name="fade">
+        <div
+          v-if="showConfirm && estimate"
+          class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+          @click.self="showConfirm = false"
+        >
+          <div class="w-full max-w-md rounded-card bg-white p-6 shadow-xl">
+            <h4 class="text-base font-bold text-ink">Confirmar análisis</h4>
+            <p class="mt-2 text-sm text-ink-muted">
+              Vas a iniciar el modelo CNN sobre <strong>{{ alcaldia.nombre }}</strong>.
+            </p>
+            <dl class="mt-4 space-y-2 rounded-lg border border-gray-100 bg-surface p-3 text-sm">
+              <div class="flex justify-between">
+                <dt class="text-ink-muted">Tiles z19</dt>
+                <dd class="font-bold text-ink tabular-nums">{{ estimate.tiles.toLocaleString() }}</dd>
+              </div>
+              <div class="flex justify-between">
+                <dt class="text-ink-muted">Costo Mapbox</dt>
+                <dd class="font-bold tabular-nums" :class="estimate.costoUsd > 0 ? 'text-accent-dark' : 'text-eco-dark'">
+                  ${{ estimate.costoUsd.toFixed(2) }} USD
+                </dd>
+              </div>
+              <div class="flex justify-between">
+                <dt class="text-ink-muted">Tiempo estimado</dt>
+                <dd class="font-medium text-ink">~{{ estimate.tiempoMinutos.cpu }} min (CPU)</dd>
+              </div>
+            </dl>
+            <p class="mt-3 text-xs text-ink-muted">
+              El costo se cargará a la cuenta Mapbox configurada en el servidor. Esta acción
+              queda registrada en el job log con tu usuario.
+            </p>
+            <div class="mt-5 flex justify-end gap-2">
+              <button class="btn-outline btn-sm" :disabled="launching" @click="showConfirm = false">
+                Cancelar
+              </button>
+              <button class="btn-primary btn-sm" :disabled="launching" @click="confirmLaunch">
+                <Icon :name="launching ? 'lucide:loader-2' : 'lucide:play'" size="14" :class="launching ? 'animate-spin-smooth' : ''" />
+                {{ launching ? 'Iniciando…' : 'Confirmar e iniciar' }}
+              </button>
+            </div>
+          </div>
+        </div>
+      </Transition>
 
       <!-- Comando CLI -->
       <div class="rounded-card border border-gray-200 bg-white p-5 space-y-3">
